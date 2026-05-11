@@ -1,0 +1,87 @@
+'use client'
+
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+} from 'recharts'
+import { formatCurrency } from '@/lib/utils'
+
+interface ChartData {
+  date: string
+  revenue: number
+  profit: number
+  adSpend: number
+}
+
+interface ProfitChartProps {
+  data: ChartData[]
+  type?: 'area' | 'bar'
+}
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="bg-gray-900 border border-white/20 rounded-lg p-3 shadow-xl">
+      <p className="text-gray-400 text-xs mb-2">{label}</p>
+      {payload.map((entry: any) => (
+        <div key={entry.name} className="flex items-center gap-2 text-sm">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+          <span className="text-gray-300">{entry.name}:</span>
+          <span className="text-white font-medium">{formatCurrency(entry.value)}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function ProfitChart({ data, type = 'area' }: ProfitChartProps) {
+  if (type === 'bar') {
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+          <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₪${v}`} />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12 }} />
+          <Bar dataKey="revenue" name="הכנסות" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="profit" name="רווח נקי" fill="#10b981" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="adSpend" name="פרסום" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    )
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <AreaChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+        <defs>
+          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+        <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₪${v}`} />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend wrapperStyle={{ color: '#9ca3af', fontSize: 12 }} />
+        <Area type="monotone" dataKey="revenue" name="הכנסות" stroke="#3b82f6" fill="url(#colorRevenue)" strokeWidth={2} />
+        <Area type="monotone" dataKey="profit" name="רווח נקי" stroke="#10b981" fill="url(#colorProfit)" strokeWidth={2} />
+        <Area type="monotone" dataKey="adSpend" name="פרסום" stroke="#f59e0b" fill="none" strokeWidth={2} strokeDasharray="4 4" />
+      </AreaChart>
+    </ResponsiveContainer>
+  )
+}
