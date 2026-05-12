@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     businessIds = [businessId]
   } else {
     const businesses = await prisma.business.findMany({ where: { userId }, select: { id: true } })
-    businessIds = businesses.map(b => b.id)
+    businessIds = businesses.map((b: { id: string }) => b.id)
   }
 
   const now = new Date()
