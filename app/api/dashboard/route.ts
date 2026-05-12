@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
   const spendByDate = new Map(dailySpend.map((s: { date: Date; spend: number }) => [s.date.toISOString().split('T')[0], s.spend]))
 
   const chartData = dailyOrders
-    .map(d => {
+    .map((d: { orderDate: Date; _sum: { storePrice: number | null; netProfitIls: number | null } }) => {
       const dateStr = new Date(d.orderDate).toISOString().split('T')[0]
       return {
         date: new Date(d.orderDate).toLocaleDateString('he-IL', { month: 'short', day: 'numeric' }),
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         adSpend: spendByDate.get(dateStr) ?? 0,
       }
     })
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date))
 
   return Response.json({ stats, chartData })
 }
