@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     todayRevenue,
     todayProfit: sumProfit(todayOrders),
     todayCost: todayOrders.reduce(
-      (sum, o) => sum + ((o.grossProfitIls ?? 0) - (o.netProfitIls ?? 0)),
+      (sum: number, o) => sum + ((o.grossProfitIls ?? 0) - (o.netProfitIls ?? 0)),
       0
     ),
     todayOrders: todayOrders.length,
