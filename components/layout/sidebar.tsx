@@ -4,24 +4,18 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import {
-  LayoutDashboard,
-  ShoppingCart,
-  Settings,
-  Plug,
-  LogOut,
-  ChevronDown,
-  Store,
-  TrendingUp,
+  LayoutDashboard, ShoppingCart, TrendingUp, Plug, Settings,
+  LogOut, ChevronDown, Store, BarChart3, Bell, Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
 const navItems = [
-  { href: '/dashboard', label: 'לוח בקרה', icon: LayoutDashboard },
-  { href: '/orders', label: 'הזמנות', icon: ShoppingCart },
-  { href: '/analytics', label: 'אנליטיקס', icon: TrendingUp },
-  { href: '/integrations', label: 'אינטגרציות', icon: Plug },
-  { href: '/settings', label: 'הגדרות', icon: Settings },
+  { href: '/dashboard',    label: 'סקירה',       icon: LayoutDashboard },
+  { href: '/orders',       label: 'הזמנות',       icon: ShoppingCart },
+  { href: '/analytics',    label: 'אנליטיקס',     icon: BarChart3 },
+  { href: '/integrations', label: 'אינטגרציות',   icon: Plug },
+  { href: '/settings',     label: 'הגדרות',        icon: Settings },
 ]
 
 interface SidebarProps {
@@ -34,65 +28,65 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
   const pathname = usePathname()
   const { data: session } = useSession()
   const [businessOpen, setBusinessOpen] = useState(false)
-
   const currentBusiness = businesses.find(b => b.id === activeBusiness)
 
   return (
-    <aside className="w-64 shrink-0 flex flex-col h-full bg-gray-950 border-l border-white/10">
-      <div className="p-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h1 className="text-white font-bold text-sm">רווחיות</h1>
-            <p className="text-gray-500 text-xs">מנהל הכנסות</p>
-          </div>
+    <aside className="w-60 shrink-0 flex flex-col h-full border-l" style={{ background: '#0C0E14', borderColor: '#1E2130' }}>
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: '#1E2130' }}>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}>
+          <TrendingUp className="w-4 h-4 text-white" />
         </div>
+        <span className="text-white font-bold text-base tracking-tight">רווחיות</span>
+        <Bell className="w-4 h-4 mr-auto cursor-pointer" style={{ color: '#4A5174' }} />
       </div>
 
-      <div className="p-4 border-b border-white/10">
-        <button
-          onClick={() => setBusinessOpen(!businessOpen)}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-right"
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <Store className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="text-white text-sm truncate">
+      {/* Business selector */}
+      {businesses.length > 0 && (
+        <div className="px-3 py-3 border-b" style={{ borderColor: '#1E2130' }}>
+          <button
+            onClick={() => setBusinessOpen(!businessOpen)}
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors text-right"
+            style={{ background: businessOpen ? '#1E2130' : 'transparent' }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#1A1D2E')}
+            onMouseLeave={e => (e.currentTarget.style.background = businessOpen ? '#1E2130' : 'transparent')}
+          >
+            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: '#2A3050' }}>
+              <Store className="w-3.5 h-3.5" style={{ color: '#4F6EF7' }} />
+            </div>
+            <span className="text-sm font-medium truncate flex-1" style={{ color: '#CBD5E1' }}>
               {currentBusiness?.name ?? 'בחר עסק'}
             </span>
-          </div>
-          <ChevronDown className={cn('w-4 h-4 text-gray-400 shrink-0 transition-transform', businessOpen && 'rotate-180')} />
-        </button>
+            <ChevronDown className={cn('w-3.5 h-3.5 shrink-0 transition-transform', businessOpen && 'rotate-180')} style={{ color: '#4A5174' }} />
+          </button>
 
-        {businessOpen && (
-          <div className="mt-2 space-y-1">
-            {businesses.map(b => (
-              <button
-                key={b.id}
-                onClick={() => { onBusinessChange(b.id); setBusinessOpen(false) }}
-                className={cn(
-                  'w-full text-right px-3 py-2 rounded-lg text-sm transition-colors',
-                  b.id === activeBusiness
-                    ? 'bg-blue-600/20 text-blue-300'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                )}
+          {businessOpen && (
+            <div className="mt-1.5 rounded-lg overflow-hidden border" style={{ borderColor: '#1E2130', background: '#0F1119' }}>
+              {businesses.map(b => (
+                <button
+                  key={b.id}
+                  onClick={() => { onBusinessChange(b.id); setBusinessOpen(false) }}
+                  className="w-full text-right px-4 py-2.5 text-sm transition-colors"
+                  style={{ color: b.id === activeBusiness ? '#4F6EF7' : '#8B8FA8', background: b.id === activeBusiness ? '#1A2040' : 'transparent' }}
+                >
+                  {b.name}
+                </button>
+              ))}
+              <Link
+                href="/settings/business/new"
+                onClick={() => setBusinessOpen(false)}
+                className="block w-full text-right px-4 py-2.5 text-sm border-t"
+                style={{ color: '#4F6EF7', borderColor: '#1E2130' }}
               >
-                {b.name}
-              </button>
-            ))}
-            <Link
-              href="/settings/business/new"
-              onClick={() => setBusinessOpen(false)}
-              className="block w-full text-right px-3 py-2 rounded-lg text-sm text-blue-400 hover:bg-blue-600/10 transition-colors"
-            >
-              + הוסף עסק
-            </Link>
-          </div>
-        )}
-      </div>
+                + הוסף עסק
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
 
-      <nav className="flex-1 p-4 space-y-1">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-3 space-y-0.5">
         {navItems.map(item => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -100,41 +94,42 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
             <Link
               key={item.href}
               href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all',
-                isActive
-                  ? 'bg-blue-600/20 text-blue-300 font-medium'
-                  : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              )}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                color: isActive ? '#FFFFFF' : '#6B7280',
+                background: isActive ? '#1E2846' : 'transparent',
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#13161F' }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>{item.label}</span>
+              <Icon className="w-4 h-4 shrink-0" style={{ color: isActive ? '#4F6EF7' : '#4A5174' }} />
+              {item.label}
+              {isActive && <div className="mr-auto w-1.5 h-1.5 rounded-full" style={{ background: '#4F6EF7' }} />}
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3 mb-3">
-          {session?.user?.image ? (
-            <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-              {session?.user?.name?.[0] ?? session?.user?.email?.[0] ?? '?'}
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="text-white text-sm truncate">{session?.user?.name ?? 'משתמש'}</p>
-            <p className="text-gray-500 text-xs truncate">{session?.user?.email}</p>
+      {/* User */}
+      <div className="p-3 border-t" style={{ borderColor: '#1E2130' }}>
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+            style={{ background: 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}>
+            {session?.user?.name?.[0] ?? session?.user?.email?.[0]?.toUpperCase() ?? '?'}
           </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-white text-xs font-medium truncate">{session?.user?.name ?? 'משתמש'}</p>
+            <p className="text-xs truncate" style={{ color: '#4A5174' }}>{session?.user?.email}</p>
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: '/signin' })}
+            className="transition-colors p-1 rounded"
+            style={{ color: '#4A5174' }}
+            title="יציאה"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={() => signOut({ callbackUrl: '/signin' })}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>יציאה</span>
-        </button>
       </div>
     </aside>
   )
