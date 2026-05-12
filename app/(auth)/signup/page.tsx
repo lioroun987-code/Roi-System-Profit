@@ -41,7 +41,7 @@ export default function SignUpPage() {
       }
 
       await signIn('credentials', { email, password, redirect: false })
-      router.push('/settings/business/new')
+      router.push('/onboarding')
     } catch {
       setError('שגיאת שרת')
       setLoading(false)
