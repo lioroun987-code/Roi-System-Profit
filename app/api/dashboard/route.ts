@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     select: { date: true, spend: true },
   })
 
-  const spendByDate = new Map(dailySpend.map(s => [s.date.toISOString().split('T')[0], s.spend]))
+  const spendByDate = new Map(dailySpend.map((s: { date: Date; spend: number }) => [s.date.toISOString().split('T')[0], s.spend]))
 
   const chartData = dailyOrders
     .map(d => {
