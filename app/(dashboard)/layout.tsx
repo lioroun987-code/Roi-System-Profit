@@ -20,13 +20,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       fetch('/api/businesses')
         .then(r => r.json())
         .then(data => {
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && data.length > 0) {
             setBusinesses(data)
-            if (data.length > 0 && !activeBusiness) {
-              const stored = localStorage.getItem('activeBusiness')
-              const valid = stored && data.find((b: any) => b.id === stored)
-              setActiveBusiness(valid ? stored : data[0].id)
-            }
+            const stored = localStorage.getItem('activeBusiness')
+            const valid = stored && data.find((b: any) => b.id === stored)
+            setActiveBusiness(valid ? stored : data[0].id)
           }
         })
     }
@@ -40,8 +38,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0D0F14' }}>
+        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full" style={{ borderColor: '#4F6EF7', borderTopColor: 'transparent' }} />
       </div>
     )
   }
@@ -49,16 +47,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!session) return null
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
-      <Sidebar
-        businesses={businesses}
-        activeBusiness={activeBusiness}
-        onBusinessChange={handleBusinessChange}
-      />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 max-w-screen-xl mx-auto">
-          {children}
-        </div>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#0D0F14' }}>
+      <Sidebar businesses={businesses} activeBusiness={activeBusiness} onBusinessChange={handleBusinessChange} />
+      <main className="flex-1 overflow-y-auto" style={{ background: '#0D0F14' }}>
+        {children}
       </main>
     </div>
   )
