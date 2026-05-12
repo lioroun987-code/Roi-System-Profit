@@ -1,10 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Search, Download, RefreshCw, Filter } from 'lucide-react'
+import { Search, Download, RefreshCw, Filter, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react'
 import { OrderRowComponent } from '@/components/orders/order-row'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { OrderRow } from '@/types'
 import { formatCurrency } from '@/lib/utils'
 
@@ -18,6 +16,7 @@ export default function OrdersPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [syncing, setSyncing] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
@@ -36,9 +35,7 @@ export default function OrdersPage() {
       const data = await res.json()
       setOrders(data.orders ?? [])
       setTotal(data.total ?? 0)
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
   }, [activeBusiness, page, dateFrom, dateTo])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
@@ -55,79 +52,120 @@ export default function OrdersPage() {
       const res = await fetch('/api/shopify/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId: activeBusiness, daysBack: 30 }) })
       const data = await res.json()
       if (data.error) alert(`שגיאה: ${data.error}`)
-      else { alert(`סנכרון הושלם: ${data.imported} הזמנות חדשות`); fetchOrders() }
+      else { alert(`${data.imported} הזמנות חדשות, ${data.skipped} כבר קיימות`); fetchOrders() }
     } finally { setSyncing(false) }
   }
 
   async function handleExport() {
     if (!activeBusiness) return
-    const res = await fetch('/api/sheets/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId: activeBusiness, dateFrom, dateTo }) })
-    const data = await res.json()
-    alert(data.error ? `שגיאה: ${data.error}` : `יוצאו ${data.exported} הזמנות לגיליון`)
+    setExporting(true)
+    try {
+      const res = await fetch('/api/sheets/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ businessId: activeBusiness, dateFrom, dateTo }) })
+      const data = await res.json()
+      alert(data.error ? `שגיאה: ${data.error}` : `יוצאו ${data.exported} הזמנות`)
+    } finally { setExporting(false) }
   }
 
   const filtered = search ? orders.filter(o => o.orderNumber.includes(search) || o.orderSummary?.includes(search) || o.customerName?.includes(search)) : orders
   const totalRevenue = orders.reduce((s, o) => s + (o.storePrice ?? 0), 0)
   const totalProfit = orders.reduce((s, o) => s + (o.netProfitIls ?? 0), 0)
   const losingOrders = orders.filter(o => (o.netProfitIls ?? 0) < 0).length
+  const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
+
+  const inputStyle = {
+    background: '#13161F',
+    border: '1px solid #1E2130',
+    color: '#CBD5E1',
+    borderRadius: '10px',
+    padding: '8px 12px',
+    fontSize: '13px',
+    outline: 'none',
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">הזמנות</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleSync} loading={syncing}>
-            <RefreshCw className="w-4 h-4" />סנכרן מ-Shopify
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="w-4 h-4" />ייצא לגיליון
-          </Button>
+        <div>
+          <h1 className="text-xl font-bold text-white">הזמנות</h1>
+          <p className="text-sm mt-0.5" style={{ color: '#4A5174' }}>{total} הזמנות סה"כ</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
+            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'מסנכרן...' : 'סנכרן Shopify'}
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
+            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+          >
+            <Download className="w-4 h-4" />
+            {exporting ? 'מייצא...' : 'ייצא לגיליון'}
+          </button>
         </div>
       </div>
 
+      {/* Stats */}
       {orders.length > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-gray-400 text-sm">סה"כ הכנסות</p>
-            <p className="text-white text-xl font-bold">{formatCurrency(totalRevenue)}</p>
-            <p className="text-gray-500 text-xs mt-1">{total} הזמנות</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-gray-400 text-sm">רווח נקי</p>
-            <p className={`text-xl font-bold ${totalProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(totalProfit)}</p>
-            <p className="text-gray-500 text-xs mt-1">מרווח {totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0}%</p>
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-gray-400 text-sm">הזמנות מפסידות</p>
-            <p className="text-red-400 text-xl font-bold">{losingOrders}</p>
-            <p className="text-gray-500 text-xs mt-1">מתוך {orders.length} מוצגות</p>
-          </div>
+        <div className="grid grid-cols-4 gap-4">
+          {[
+            { label: 'הכנסות', val: formatCurrency(totalRevenue), icon: ShoppingCart, color: '#4F6EF7' },
+            { label: 'רווח נקי', val: formatCurrency(totalProfit), icon: totalProfit >= 0 ? TrendingUp : TrendingDown, color: totalProfit >= 0 ? '#22C55E' : '#EF4444' },
+            { label: 'מרווח ממוצע', val: `${avgMargin.toFixed(1)}%`, icon: TrendingUp, color: '#A855F7' },
+            { label: 'הזמנות מפסידות', val: String(losingOrders), icon: TrendingDown, color: '#EF4444' },
+          ].map(stat => (
+            <div key={stat.label} className="rounded-2xl p-4 border" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
+                <p className="text-xs" style={{ color: '#6B7280' }}>{stat.label}</p>
+              </div>
+              <p className="text-lg font-bold" style={{ color: stat.color }}>{stat.val}</p>
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input placeholder="חפש הזמנה..." value={search} onChange={e => setSearch(e.target.value)} className="pr-9" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#4A5174' }} />
+          <input
+            placeholder="חפש לפי מספר, שם לקוח או מוצר..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingRight: '36px', width: '100%' }}
+          />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-gray-400" />
-          <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-36" dir="ltr" />
-          <span className="text-gray-500 text-sm">—</span>
-          <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-36" dir="ltr" />
+          <Filter className="w-4 h-4 shrink-0" style={{ color: '#4A5174' }} />
+          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ ...inputStyle, width: '140px' }} dir="ltr" />
+          <span style={{ color: '#4A5174' }}>—</span>
+          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ ...inputStyle, width: '140px' }} dir="ltr" />
         </div>
       </div>
 
+      {/* Orders list */}
       {loading ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: '#13161F' }} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-500">
-          <p>אין הזמנות להצגה</p>
-          <Button variant="outline" className="mt-4" onClick={handleSync} loading={syncing}>
-            <RefreshCw className="w-4 h-4" />סנכרן הזמנות מ-Shopify
-          </Button>
+        <div className="rounded-2xl p-14 text-center border" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+          <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-10 text-white" />
+          <p className="text-white font-medium mb-1">אין הזמנות</p>
+          <p className="text-sm mb-4" style={{ color: '#4A5174' }}>סנכרן הזמנות מ-Shopify כדי להתחיל</p>
+          <button onClick={handleSync} disabled={syncing} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: '#4F6EF7' }}>
+            {syncing ? 'מסנכרן...' : 'סנכרן עכשיו'}
+          </button>
         </div>
       ) : (
         <div className="space-y-2">
@@ -135,11 +173,26 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* Pagination */}
       {total > 50 && (
-        <div className="flex justify-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>הקודם</Button>
-          <span className="text-gray-400 text-sm py-2">עמוד {page}</span>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page * 50 >= total}>הבא</Button>
+        <div className="flex justify-center items-center gap-3 pt-2">
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
+            style={{ background: '#13161F', borderColor: '#1E2130', color: page === 1 ? '#4A5174' : '#CBD5E1' }}
+          >
+            הקודם
+          </button>
+          <span className="text-sm" style={{ color: '#6B7280' }}>עמוד {page} מתוך {Math.ceil(total / 50)}</span>
+          <button
+            onClick={() => setPage(p => p + 1)}
+            disabled={page * 50 >= total}
+            className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
+            style={{ background: '#13161F', borderColor: '#1E2130', color: page * 50 >= total ? '#4A5174' : '#CBD5E1' }}
+          >
+            הבא
+          </button>
         </div>
       )}
     </div>
