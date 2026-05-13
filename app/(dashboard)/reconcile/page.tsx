@@ -292,18 +292,17 @@ export default function ReconcilePage() {
       {summary && results && (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
-              { label: 'סה"כ הזמנות', val: summary.total, color: '#CBD5E1', bg: '#13161F' },
-              { label: '✓ תואמות', val: summary.matches, color: '#22C55E', bg: '#0D2818' },
-              { label: '⚠️ פערים', val: summary.agentHigher + summary.weHigher, color: '#F59E0B', bg: '#2A1800' },
-              { label: '⏳ חסרה עלות', val: summary.missingCost, color: '#6B7280', bg: '#1A1D2A' },
-              { label: 'סה"כ פער כספי', val: `₪${summary.totalDiff.toFixed(2)}`, color: '#F97316', bg: '#2A1200', isText: true },
+              { label: 'סה"כ הזמנות', val: String(summary.total), color: '#CBD5E1', bg: '#13161F' },
+              { label: '✓ תואמות', val: String(summary.matches), color: '#22C55E', bg: '#0D2818' },
+              { label: '⚠️ פערים', val: String(summary.agentHigher + summary.weHigher), color: '#F59E0B', bg: '#2A1800' },
+              { label: 'עלות סוכן סה"כ', val: `₪${(summary as any).totalAgentCost?.toFixed(2) ?? '0'}`, color: '#60A5FA', bg: '#0D1A2A' },
+              { label: 'עלות שלי סה"כ', val: `₪${(summary as any).totalOurCost?.toFixed(2) ?? '0'}`, color: '#A78BFA', bg: '#150D2A' },
+              { label: 'הפרש כולל', val: `₪${(((summary as any).totalAgentCost ?? 0) - ((summary as any).totalOurCost ?? 0)).toFixed(2)}`, color: '#F97316', bg: '#2A1200' },
             ].map(s => (
               <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
-                <p className="text-2xl font-extrabold" style={{ color: s.color }}>
-                  {s.isText ? s.val : s.val}
-                </p>
+                <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
                 <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
               </div>
             ))}
