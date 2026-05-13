@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
     }))
 
     await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: business.googleSheetsId,
+      spreadsheetId: mainSheetId,
       requestBody: { requests },
     })
   }
