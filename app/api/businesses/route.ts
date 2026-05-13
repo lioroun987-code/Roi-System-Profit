@@ -72,8 +72,12 @@ export async function POST(request: NextRequest) {
       vatPercent: 17,
       paymentMethods: [
         { name: 'Bit', feePercent: 3, enabled: true },
-        { name: 'כרטיס אשראי רגיל', feePercent: 1, enabled: true },
+        { name: 'כרטיס אשראי', feePercent: 1.5, enabled: true },
+        { name: 'Apple Pay', feePercent: 1.5, enabled: true },
+        { name: 'Google Pay', feePercent: 1.5, enabled: true },
         { name: 'PayPal', feePercent: 4.5, enabled: false },
+        { name: 'מזומן', feePercent: 0, enabled: false },
+        { name: 'HYP / Cardcom', feePercent: 1.5, enabled: false },
       ],
     }
 
