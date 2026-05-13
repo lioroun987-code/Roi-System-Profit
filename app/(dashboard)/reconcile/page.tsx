@@ -163,6 +163,8 @@ export default function ReconcilePage() {
       setResults(data.results)
       setSummary({ ...data.summary, totalDiff, totalAgentCost, totalOurCost })
       setDebug(data.debug ?? null)
+      setLastRunAt(new Date())
+      setSettingsChanged(false)
     } catch (e: any) {
       setError(`שגיאה: ${e?.message ?? 'לא ידועה'}`)
     } finally {
