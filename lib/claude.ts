@@ -3,13 +3,17 @@ import { BusinessConfig, ShopifyOrder, AIOrderAnalysis } from '@/types'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Using Haiku 4.5 — 6x cheaper than Sonnet, fast enough for order analysis
+const MODEL = 'claude-haiku-4-5-20251001'
+
 export async function analyzeOrder(
   order: ShopifyOrder,
   config: BusinessConfig
 ): Promise<AIOrderAnalysis> {
   const { productCosts: pc, discountRules: dr, paymentSettings: ps, aiNotes } = config
 
-  const systemPrompt = `You are an e-commerce profitability calculator. Analyze Shopify orders and return exact profit calculations as JSON.
+  // Static system prompt — cached by Anthropic (pays once per 5 min window)
+  const cachedSystemPrompt = `You are an e-commerce profitability calculator. Analyze Shopify orders and return exact profit calculations as JSON.
 
 ## BUSINESS PRODUCT COSTS
 - Deal (בקבוק + 7 קפסולות): $${pc.dealCost} USD
@@ -51,62 +55,36 @@ ${ps.vatEnabled ? `- VAT: ${ps.vatPercent}% (already included in prices)` : '- N
 ${aiNotes || 'No special notes provided.'}
 
 ## RESPONSE FORMAT
-Return ONLY valid JSON matching exactly this structure:
+Return ONLY valid JSON:
 {
-  "order_summary": "Hebrew one-line summary of what was ordered",
-  "line_items_parsed": [
-    {
-      "name": "item name in Hebrew",
-      "quantity": 1,
-      "unitPriceIls": 0,
-      "totalPriceIls": 0,
-      "unitCostUsd": 0,
-      "totalCostUsd": 0,
-      "isGift": false,
-      "isSurprise": false,
-      "type": "deal|coolDeal|bottle|capsule|other"
-    }
-  ],
-  "discounts_applied": [
-    { "name": "discount name", "amount_ils": 0, "type": "quantity|section|coupon|gift" }
-  ],
-  "store_price_breakdown": {
-    "items": [{ "name": "item", "amount": 0 }],
-    "subtotal": 0,
-    "shipping_customer": 0,
-    "pickup_fee": 0,
-    "total": 0
-  },
-  "my_cost_breakdown": {
-    "items": [{ "name": "item", "amount_usd": 0 }],
-    "shipping_cost": 0,
-    "gift_capsule_cost": 0,
-    "total_usd": 0
-  },
-  "my_cost_ils": 0,
-  "gross_profit_ils": 0,
-  "payment_fee_ils": 0,
-  "vat_ils": 0,
-  "net_profit_ils": 0,
-  "net_profit_usd": 0,
-  "exchange_rate_used": ${pc.exchangeRate},
-  "payment_method": "payment method name",
-  "notes": "any clarifications about edge cases handled"
+  "order_summary": "Hebrew one-line summary",
+  "line_items_parsed": [{"name":"","quantity":1,"unitPriceIls":0,"totalPriceIls":0,"unitCostUsd":0,"totalCostUsd":0,"isGift":false,"isSurprise":false,"type":"deal|coolDeal|bottle|capsule|other"}],
+  "discounts_applied": [{"name":"","amount_ils":0,"type":"quantity|section|coupon|gift"}],
+  "store_price_breakdown": {"items":[{"name":"","amount":0}],"subtotal":0,"shipping_customer":0,"pickup_fee":0,"total":0},
+  "my_cost_breakdown": {"items":[{"name":"","amount_usd":0}],"shipping_cost":0,"gift_capsule_cost":0,"total_usd":0},
+  "my_cost_ils":0,"gross_profit_ils":0,"payment_fee_ils":0,"vat_ils":0,"net_profit_ils":0,"net_profit_usd":0,
+  "exchange_rate_used":${pc.exchangeRate},"payment_method":"","notes":""
 }`
 
-  const orderJson = JSON.stringify(order, null, 2)
+  const orderJson = JSON.stringify(order)
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 4096,
-    system: systemPrompt,
+    model: MODEL,
+    max_tokens: 1024,
+    system: [
+      {
+        type: 'text',
+        text: cachedSystemPrompt,
+        cache_control: { type: 'ephemeral' }, // Cache system prompt — paid once per 5 min
+      },
+    ],
     messages: [
       {
         role: 'user',
-        content: `Analyze this Shopify order and return profitability data as JSON:\n\n${orderJson}`,
+        content: `Analyze this Shopify order and return profitability JSON:\n${orderJson}`,
       },
     ],
-  })
+  } as any)
 
   const content = message.content[0]
   if (content.type !== 'text') throw new Error('Unexpected response type from Claude')
