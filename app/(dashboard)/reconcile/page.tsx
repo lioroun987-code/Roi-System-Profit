@@ -323,6 +323,13 @@ export default function ReconcilePage() {
                   </div>
                 </div>
               </div>
+              {debug?.dateRangeParsed && (
+                <div className="mt-3 p-2 rounded text-xs" style={{ background: '#1A1A0A' }}>
+                  <p style={{ color: '#8B8FA8' }}>טווח תאריכים שזוהה: <span className="text-yellow-400">{debug.dateRangeParsed}</span></p>
+                  {debug.rawDateSamples && <p className="mt-1" style={{ color: '#8B8FA8' }}>תאריכים בגיליון שלך: {debug.rawDateSamples.filter(Boolean).map(d => <span key={d} className="text-yellow-300 ml-1 font-mono">{d}</span>)}</p>}
+                  {debug.rawOrderSamples && <p className="mt-1" style={{ color: '#8B8FA8' }}>ערכים בעמודה I: {debug.rawOrderSamples.filter(Boolean).map(d => <span key={d} className="text-yellow-300 ml-1 font-mono">{d}</span>)}</p>}
+                </div>
+              )}
               <p className="text-xs mt-3" style={{ color: '#6B7280' }}>
                 אם הפורמטים שונים (למשל 3525 מול #3525 או 4987...) — שלח לי צילום מסך ואתקן
               </p>
