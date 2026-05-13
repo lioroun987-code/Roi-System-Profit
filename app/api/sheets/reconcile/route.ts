@@ -329,6 +329,7 @@ export async function POST(request: NextRequest) {
       agentTotal:  agentByOrder.size,
       ourTotal:    ourByOrder.size,
       dateRangeParsed: dateRange ? `${dateRange.start.toISOString().split('T')[0]} → ${dateRange.end.toISOString().split('T')[0]}` : 'לא פורסר',
+      detectedCols: `תאריך=עמודה ${colLetter(detectedDateCol)}, מספרהזמנה=עמודה ${colLetter(detectedOrderCol)}, עלות=עמודה ${colLetter(detectedCostCol)}`,
       rawDateSamples,
       rawOrderSamples,
     }
