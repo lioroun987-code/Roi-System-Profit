@@ -1,16 +1,29 @@
+export interface CustomProductCost {
+  productId: string
+  variantId: string
+  productTitle: string
+  variantTitle: string
+  costUsd: number
+  sellingPriceIls: number
+}
+
 export interface ProductCosts {
-  dealCost: number
-  coolDealCost: number
-  bottleCost: number
-  singleCapsuleCost: number
-  pack3Price: number
-  pack7Price: number
-  secondUnitDiscount: number
+  // Dynamic product costs pulled from Shopify
+  customProductCosts?: Record<string, CustomProductCost>
+  // Delivery & exchange rate
   homeDeliveryCostUsd: number
   homeDeliveryChargeIls: number
   pickupFeeThresholdIls: number
   pickupFeeAmountIls: number
   exchangeRate: number
+  secondUnitDiscount: number
+  // Legacy capsule-specific keys (kept for backward compat)
+  dealCost?: number
+  coolDealCost?: number
+  bottleCost?: number
+  singleCapsuleCost?: number
+  pack3Price?: number
+  pack7Price?: number
 }
 
 export interface DiscountRules {
