@@ -9,9 +9,35 @@ const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
 const AGENT_COL_PRICE    = 11  // K — מחיר
 const AGENT_COL_DISCOUNT = 12  // L — הנחה
 const AGENT_COL_HD       = 13  // M — משלוח לבית
+const MAIN_COL_DATE      = 2   // B — תאריך בגיליון שלך
 const MAIN_COL_ORDER     = 9   // I — מספר הזמנה שלך
 const MAIN_COL_OUR_COST  = 7   // G — עלות שלי
 const THRESHOLD          = 0.5
+
+// Parse date range from agent tab name: "הזמנות 01/02 - 28/02" or "01/02 - 28/02"
+function parseDateRange(tabName: string): { start: Date; end: Date } | null {
+  const match = tabName.match(/(\d{2})\/(\d{2})\s*[-–]\s*(\d{2})\/(\d{2})/)
+  if (!match) return null
+  const year = new Date().getFullYear()
+  const [, d1, m1, d2, m2] = match
+  const start = new Date(year, parseInt(m1) - 1, parseInt(d1), 0, 0, 0)
+  const end   = new Date(year, parseInt(m2) - 1, parseInt(d2), 23, 59, 59)
+  // Handle year boundary (e.g. Dec→Jan)
+  if (end < start) end.setFullYear(year + 1)
+  return { start, end }
+}
+
+function parseDate(val: string): Date | null {
+  if (!val) return null
+  // Support: "2026-01-31", "31/01/2026", "2026-01-31 19:..."
+  const clean = val.split(' ')[0].trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(clean)) return new Date(clean)
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(clean)) {
+    const [d, m, y] = clean.split('/')
+    return new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+  }
+  return null
+}
 
 export async function POST(request: NextRequest) {
   try {
