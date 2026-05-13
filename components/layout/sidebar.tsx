@@ -74,14 +74,24 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
           {businessOpen && (
             <div className="mt-1.5 rounded-lg overflow-hidden border" style={{ borderColor: '#1E2130', background: '#0F1119' }}>
               {businesses.map(b => (
-                <button
-                  key={b.id}
-                  onClick={() => { onBusinessChange(b.id); setBusinessOpen(false) }}
-                  className="w-full text-right px-4 py-2.5 text-sm transition-colors"
-                  style={{ color: b.id === activeBusiness ? '#4F6EF7' : '#8B8FA8', background: b.id === activeBusiness ? '#1A2040' : 'transparent' }}
-                >
-                  {b.name}
-                </button>
+                <div key={b.id} className="flex items-center group">
+                  <button
+                    onClick={() => { onBusinessChange(b.id); setBusinessOpen(false) }}
+                    className="flex-1 text-right px-4 py-2.5 text-sm transition-colors"
+                    style={{ color: b.id === activeBusiness ? '#4F6EF7' : '#8B8FA8', background: b.id === activeBusiness ? '#1A2040' : 'transparent' }}
+                  >
+                    {b.name}
+                  </button>
+                  <button
+                    onClick={() => deleteBusiness(b.id, b.name)}
+                    disabled={deletingId === b.id}
+                    className="px-2 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: '#EF4444' }}
+                    title="מחק עסק"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               ))}
               <Link
                 href="/settings/business/new"
