@@ -56,10 +56,15 @@ export default function ReconcilePage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
+  function extractSheetId(input: string): string {
+    const match = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)
+    return match ? match[1] : input.trim()
+  }
+
   async function runReconcile() {
     if (!activeBusiness) { setError('בחר עסק מהתפריט הצדדי'); return }
     if (!agentSheetId.trim()) { setError('יש להכניס את מזהה גיליון הסוכן'); return }
-    if (!ourSheetId.trim()) { setError('יש להכניס את מזהה הגיליון שלך (או לחבר Google Sheets בהגדרות)'); return }
+    if (!ourSheetId.trim()) { setError('יש להכניס את מזהה הגיליון שלך'); return }
     setRunning(true)
     setError('')
     setResults(null)
