@@ -40,7 +40,7 @@ export default function ReconcilePage() {
   const [running, setRunning]             = useState(false)
   const [results, setResults]             = useState<ReconcileResult[] | null>(null)
   const [summary, setSummary]             = useState<Summary | null>(null)
-  const [debug, setDebug]                 = useState<{ agentSample: string[]; ourSample: string[]; agentTotal: number; ourTotal: number; dateRangeParsed?: string; rawDateSamples?: string[]; rawOrderSamples?: string[] } | null>(null)
+  const [debug, setDebug]                 = useState<any | null>(null)
   const [error, setError]                 = useState('')
   const [filter, setFilter]               = useState<'all' | 'issues' | 'match'>('all')
   const [search, setSearch]               = useState('')
