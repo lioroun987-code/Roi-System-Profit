@@ -5,6 +5,7 @@ import { CheckCircle, AlertTriangle, XCircle, Download, Search, ChevronDown, Che
 
 interface ReconcileResult {
   orderNumber: string
+  orderDate?: string
   agentCost: number
   ourCost: number | null
   diff: number
