@@ -11,11 +11,12 @@ import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
 const navItems = [
-  { href: '/dashboard',    label: 'סקירה',       icon: LayoutDashboard },
-  { href: '/orders',       label: 'הזמנות',       icon: ShoppingCart },
-  { href: '/analytics',    label: 'אנליטיקס',     icon: BarChart3 },
-  { href: '/integrations', label: 'אינטגרציות',   icon: Plug },
-  { href: '/settings',     label: 'הגדרות',        icon: Settings },
+  { href: '/dashboard',    label: 'סקירה',         icon: LayoutDashboard },
+  { href: '/orders',       label: 'הזמנות',         icon: ShoppingCart },
+  { href: '/analytics',    label: 'אנליטיקס',       icon: BarChart3 },
+  { href: '/reconcile',    label: 'בדיקת פערים',    icon: Search },
+  { href: '/integrations', label: 'אינטגרציות',     icon: Plug },
+  { href: '/settings',     label: 'הגדרות',          icon: Settings },
 ]
 
 interface SidebarProps {
