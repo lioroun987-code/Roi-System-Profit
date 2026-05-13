@@ -264,12 +264,17 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
-    // Debug: sample order numbers from each sheet
+    // Debug: sample data for diagnosis
+    const rawDateSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_DATE - 1]?.toString() ?? '')
+    const rawOrderSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_ORDER - 1]?.toString() ?? '')
     const debug = {
       agentSample: Array.from(agentByOrder.keys()).slice(0, 5),
       ourSample: Array.from(ourByOrder.keys()).slice(0, 5),
       agentTotal: agentByOrder.size,
       ourTotal: ourByOrder.size,
+      dateRangeParsed: dateRange ? `${dateRange.start.toISOString().split('T')[0]} → ${dateRange.end.toISOString().split('T')[0]}` : 'לא פורסר',
+      rawDateSamples,
+      rawOrderSamples,
     }
 
     return Response.json({ results, summary, debug })
