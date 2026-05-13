@@ -9,9 +9,6 @@ const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
 const AGENT_COL_PRICE    = 11  // K — מחיר
 const AGENT_COL_DISCOUNT = 12  // L — הנחה
 const AGENT_COL_HD       = 13  // M — משלוח לבית
-const MAIN_COL_DATE      = 2   // B — תאריך בגיליון שלך
-const MAIN_COL_ORDER     = 9   // I — מספר הזמנה שלך
-const MAIN_COL_OUR_COST  = 7   // G — עלות שלי
 const THRESHOLD          = 0.5
 
 // Parse date range from agent tab name: "הזמנות 01/02 - 28/02" or "01/02 - 28/02"
