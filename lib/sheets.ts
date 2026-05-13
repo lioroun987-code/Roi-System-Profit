@@ -144,20 +144,31 @@ export async function updateSummarySheet(
   })
 }
 
-export function getOAuthUrl(): string {
+function getRedirectUri(): string {
+  const base = process.env.GOOGLE_SHEETS_REDIRECT_URI
+    || `${process.env.NEXTAUTH_URL}/api/sheets/callback`
+  return base
+}
+
+export function getOAuthUrl(state?: string): string {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_SHEETS_CLIENT_ID,
     process.env.GOOGLE_SHEETS_CLIENT_SECRET,
-    process.env.GOOGLE_SHEETS_REDIRECT_URI
+    getRedirectUri()
   )
-  return oauth2Client.generateAuthUrl({ access_type: 'offline', scope: SCOPES, prompt: 'consent' })
+  return oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES,
+    prompt: 'consent',
+    ...(state && { state }),
+  })
 }
 
 export async function exchangeCodeForTokens(code: string): Promise<{ access_token: string; refresh_token: string }> {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_SHEETS_CLIENT_ID,
     process.env.GOOGLE_SHEETS_CLIENT_SECRET,
-    process.env.GOOGLE_SHEETS_REDIRECT_URI
+    getRedirectUri()
   )
   const { tokens } = await oauth2Client.getToken(code)
   return {
