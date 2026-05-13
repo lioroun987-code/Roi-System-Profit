@@ -442,8 +442,14 @@ export default function ReconcilePage() {
                         {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
                       </span>
 
-                      <span className="text-sm font-bold" style={{ color: r.diff > 0 ? '#F59E0B' : '#22C55E' }}>
-                        {r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
+                      <span className="text-sm font-bold" style={{
+                        color: r.diff <= 0.5 ? '#22C55E'
+                          : r.status === 'agent_higher' ? '#EF4444'
+                          : '#22C55E'
+                      }}>
+                        {r.diff > 0.5
+                          ? `${r.status === 'agent_higher' ? '▲' : '▼'} ₪${r.diff.toFixed(2)}`
+                          : r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
                       </span>
 
                       <div className="flex items-center gap-1.5">
