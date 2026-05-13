@@ -316,8 +316,9 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
-    const rawDateSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_DATE - 1]?.toString() ?? '')
-    const rawOrderSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_ORDER - 1]?.toString() ?? '')
+    const colLetter = (n: number) => n < 0 ? '?' : String.fromCharCode(65 + n)
+    const rawDateSamples = mainRows.slice(0, 5).map(r => r[detectedDateCol]?.toString() ?? '')
+    const rawOrderSamples = mainRows.slice(0, 5).map(r => r[detectedOrderCol]?.toString() ?? '')
     const agentKeys = Array.from(agentByOrder.keys())
     const ourKeys   = Array.from(ourByOrder.keys())
     const debug = {
