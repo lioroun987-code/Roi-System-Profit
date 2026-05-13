@@ -37,12 +37,47 @@ export async function POST(request: NextRequest) {
     // ── 1. Read agent sheet ──
     let agentRows: any[][] = []
     try {
-      const agentRange = agentSheetName ? `'${agentSheetName}'!A2:M2000` : 'A2:M2000'
-      const agentRes = await sheets.spreadsheets.values.get({
-        spreadsheetId: agentSheetId,
-        range: agentRange,
-      })
-      agentRows = agentRes.data.values ?? []
+      // First: get sheet metadata to find the correct sheet name/id
+      const meta = await sheets.spreadsheets.get({ spreadsheetId: agentSheetId })
+      const sheetsList = meta.data.sheets ?? []
+
+      let targetSheetId: number | undefined
+      if (agentSheetName) {
+        // Find sheet by name (case-insensitive, ignore slashes difference)
+        const found = sheetsList.find(s =>
+          s.properties?.title?.replace(/\//g, '') === agentSheetName.replace(/\//g, '') ||
+          s.properties?.title === agentSheetName
+        )
+        targetSheetId = found?.properties?.sheetId ?? sheetsList[0]?.properties?.sheetId
+      } else {
+        targetSheetId = sheetsList[0]?.properties?.sheetId
+      }
+
+      // Use numeric sheetId to avoid name parsing issues
+      const sheetTitle = sheetsList.find(s => s.properties?.sheetId === targetSheetId)?.properties?.title ?? ''
+
+      // Try by title first, fallback to just range
+      let agentRange = 'A2:M2000'
+      if (sheetTitle) {
+        // Escape single quotes in title
+        const escapedTitle = sheetTitle.replace(/'/g, "''")
+        agentRange = `'${escapedTitle}'!A2:M2000`
+      }
+
+      try {
+        const agentRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: agentSheetId,
+          range: agentRange,
+        })
+        agentRows = agentRes.data.values ?? []
+      } catch {
+        // Fallback: try without sheet name
+        const fallbackRes = await sheets.spreadsheets.values.get({
+          spreadsheetId: agentSheetId,
+          range: 'A2:M2000',
+        })
+        agentRows = fallbackRes.data.values ?? []
+      }
     } catch (e: any) {
       const msg = e?.message ?? ''
       if (msg.includes('403') || msg.includes('permission')) {
