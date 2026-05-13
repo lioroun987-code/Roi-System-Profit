@@ -346,9 +346,18 @@ export default function IntegrationsPage() {
       >
         {business?.googleRefreshToken ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#0D2818', border: '1px solid #22C55E30' }}>
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-              <p className="text-emerald-400 font-medium text-sm">Google מחובר</p>
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: '#0D2818', border: '1px solid #22C55E30' }}>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <p className="text-emerald-400 font-medium text-sm">Google מחובר</p>
+              </div>
+              <button
+                onClick={() => { if (confirm('לנתק את Google Sheets?')) disconnect({ googleRefreshToken: null, googleAccessToken: null }) }}
+                className="text-xs px-3 py-1.5 rounded-lg"
+                style={{ background: '#2D0F0F', color: '#EF4444' }}
+              >
+                נתק
+              </button>
             </div>
             <div className="space-y-2">
               <label className="text-sm" style={{ color: '#8B8FA8' }}>מזהה הגיליון (מתוך ה-URL)</label>
