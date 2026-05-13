@@ -36,8 +36,9 @@ export async function POST(request: NextRequest) {
 
   const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
   if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
-  if (!business.googleRefreshToken) return Response.json({ error: 'Google Sheets לא מחובר' }, { status: 400 })
-  if (!business.googleSheetsId) return Response.json({ error: 'גיליון ראשי לא מוגדר' }, { status: 400 })
+  if (!business.googleRefreshToken) return Response.json({ error: 'Google Sheets לא מחובר — חבר ב"אינטגרציות"' }, { status: 400 })
+  const mainSheetId = ourSheetIdOverride || business.googleSheetsId
+  if (!mainSheetId) return Response.json({ error: 'גיליון ראשי לא מוגדר' }, { status: 400 })
 
   const auth = getGoogleAuthClient(business.googleRefreshToken)
   const sheets = google.sheets({ version: 'v4', auth })
