@@ -320,6 +320,21 @@ export default function ReconcilePage() {
               <p className="mt-2" style={{ color: '#8B8FA8' }}>
                 תאריכים: <span className="text-yellow-400">{debug.dateRangeParsed}</span>
               </p>
+              {debug.detectedCols && (
+                <p className="mt-1" style={{ color: '#8B8FA8' }}>
+                  עמודות שזוהו: <span className="text-yellow-400">{debug.detectedCols}</span>
+                </p>
+              )}
+              {debug.directMatchTest && (
+                <div className="mt-2">
+                  <p style={{ color: '#8B8FA8' }}>בדיקת התאמה ישירה:</p>
+                  {debug.directMatchTest.map((t: any) => (
+                    <p key={t.key} style={{ color: t.inOur ? '#22C55E' : '#EF4444' }}>
+                      #{t.key}: {t.inOur ? '✓ נמצא בגיליון שלך' : '✗ לא נמצא בגיליון שלך'}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
