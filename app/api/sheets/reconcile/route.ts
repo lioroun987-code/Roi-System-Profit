@@ -271,25 +271,7 @@ export async function POST(request: NextRequest) {
 
       results.push({ orderNumber: orderNum, agentCost, ourCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate })
 
-      if (ourData && ourData.rowIndex > 0) {
-        const texts: Record<string, string> = {
-          match:            '✓ תואם',
-          agent_higher:     `⚠️ סוכן גבוה ב-₪${diff.toFixed(2)}`,
-          we_higher:        `⚠️ שלנו גבוה ב-₪${diff.toFixed(2)}`,
-          missing_our_cost: '⏳ חסרה עלות',
-        }
-        const colors: Record<string, any> = {
-          match:            { red: 0.2, green: 0.7, blue: 0.2 },
-          agent_higher:     { red: 0.9, green: 0.5, blue: 0.0 },
-          we_higher:        { red: 0.9, green: 0.6, blue: 0.0 },
-          missing_our_cost: { red: 0.5, green: 0.5, blue: 0.5 },
-        }
-        sheetUpdates.push({
-          range: `I${ourData.rowIndex}`,
-          value: texts[status] ?? status,
-          color: colors[status] ?? { red: 0.5, green: 0.5, blue: 0.5 },
-        })
-      }
+      // No longer writing to user's sheet to avoid overwriting columns
     }
 
     for (const [orderNum, ourData] of ourByOrder) {
