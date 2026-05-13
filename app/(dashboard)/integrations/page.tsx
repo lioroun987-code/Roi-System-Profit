@@ -417,6 +417,124 @@ export default function IntegrationsPage() {
         </div>
       )}
 
+      {/* Reconcile — Agent sheet comparison */}
+      <div className="rounded-2xl border p-6" style={{ background: '#0F1A0F', borderColor: '#1A3A1A' }}>
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#1A3A1A' }}>
+            <span className="text-2xl">🔍</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-white font-bold text-lg mb-1">בדיקת פערים מול גיליון הסוכן</h3>
+            <p className="text-sm mb-5" style={{ color: '#8B8FA8' }}>
+              הכנס את מזהה הגיליון של הסוכן. המערכת תחשב את עלות כל הזמנה (K+L+M) ותשווה מול העלות שחישבנו (עמודה G שלך). פערים יסומנו אוטומטית בעמודה I בגיליון שלך.
+            </p>
+
+            {/* How it works */}
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              {[
+                { emoji: '📊', label: 'קורא גיליון סוכן', desc: 'K (מחיר) + L (הנחה) + M (משלוח) לפי מספר הזמנה' },
+                { emoji: '⚖️', label: 'משווה עלויות', desc: 'מול עמודה G בגיליון שלך' },
+                { emoji: '🚨', label: 'מסמן פערים', desc: 'כותב סטטוס בעמודה I: תואם / פער + סכום' },
+              ].map(s => (
+                <div key={s.label} className="p-3 rounded-xl text-center" style={{ background: '#1A2A1A' }}>
+                  <div className="text-xl mb-1">{s.emoji}</div>
+                  <p className="text-white text-xs font-semibold">{s.label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{s.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Inputs */}
+            <div className="grid gap-3 mb-4">
+              <div className="space-y-1.5">
+                <label className="text-sm" style={{ color: '#8B8FA8' }}>מזהה גיליון הסוכן</label>
+                <input
+                  value={agentSheetId}
+                  onChange={e => setAgentSheetId(e.target.value.trim())}
+                  placeholder="1GpfYvjo3KGUuCuwZRE8fs_JZmYUx1AtkOoB-RkktISA"
+                  style={{ background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', outline: 'none', width: '100%', direction: 'ltr' }}
+                />
+                <p className="text-xs" style={{ color: '#4A5174' }}>
+                  מתוך URL הגיליון: docs.google.com/spreadsheets/d/<strong style={{ color: '#6B9F6B' }}>ID_כאן</strong>/edit
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm" style={{ color: '#8B8FA8' }}>שם הגיליון (טאב) — אופציונלי</label>
+                <input
+                  value={agentSheetName}
+                  onChange={e => setAgentSheetName(e.target.value)}
+                  placeholder="הזמנות 01/01 - 31/01"
+                  style={{ background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1', borderRadius: '10px', padding: '10px 14px', fontSize: '13px', outline: 'none', width: '100%' }}
+                />
+                <p className="text-xs" style={{ color: '#4A5174' }}>השאר ריק לשימוש בגיליון הראשון</p>
+              </div>
+            </div>
+
+            {/* Results summary */}
+            {reconcileResult && (
+              <div className="mb-4 rounded-xl p-4 space-y-3" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+                <h4 className="text-white font-semibold text-sm">תוצאות השוואה</h4>
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { label: 'תואמים', val: reconcileResult.summary.matches, color: '#22C55E' },
+                    { label: 'סוכן גבוה', val: reconcileResult.summary.agentHigher, color: '#F59E0B' },
+                    { label: 'חישוב שלנו גבוה', val: reconcileResult.summary.weHigher, color: '#F59E0B' },
+                    { label: 'חסרה עלות', val: reconcileResult.summary.missingCost, color: '#6B7280' },
+                  ].map(s => (
+                    <div key={s.label} className="text-center p-2 rounded-lg" style={{ background: '#1A1D2A' }}>
+                      <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Top discrepancies */}
+                {reconcileResult.results.filter(r => r.status !== 'match' && r.status !== 'missing_our_cost' && r.diff > 0).length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium mb-2" style={{ color: '#8B8FA8' }}>פערים בולטים:</p>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                      {reconcileResult.results
+                        .filter(r => r.diff > 0.5)
+                        .sort((a, b) => b.diff - a.diff)
+                        .slice(0, 10)
+                        .map(r => (
+                          <div key={r.orderNumber} className="flex items-center justify-between px-3 py-2 rounded-lg text-xs" style={{ background: '#1E1A0F', border: '1px solid #3A2A0F' }}>
+                            <span className="font-mono" style={{ color: '#CBD5E1' }}>#{r.orderNumber}</span>
+                            <div className="flex items-center gap-4">
+                              <span style={{ color: '#8B8FA8' }}>סוכן: ₪{r.agentCost.toFixed(2)}</span>
+                              <span style={{ color: '#8B8FA8' }}>שלנו: ₪{(r.ourCost ?? 0).toFixed(2)}</span>
+                              <span className="font-bold" style={{ color: '#F59E0B' }}>פער: ₪{r.diff.toFixed(2)}</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full" style={{
+                                background: r.status === 'agent_higher' ? '#2A1A00' : '#1A2A00',
+                                color: r.status === 'agent_higher' ? '#F59E0B' : '#86EFAC',
+                              }}>
+                                {r.status === 'agent_higher' ? 'סוכן גבוה' : 'חישוב שלנו גבוה'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={runReconcile}
+              disabled={reconciling || !agentSheetId}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50"
+              style={{ background: reconciling ? '#1E2130' : 'linear-gradient(135deg, #16a34a, #15803d)' }}
+            >
+              <span>{reconciling ? '⏳' : '🔍'}</span>
+              {reconciling ? 'מבצע השוואה...' : 'הפעל בדיקת פערים'}
+            </button>
+            <p className="text-xs mt-2" style={{ color: '#4A5174' }}>
+              תוצאות יכתבו בעמודה I בגיליון שלך — ירוק=תואם, כתום=פער
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Webhook info */}
       <div className="rounded-2xl border p-5" style={cardStyle}>
         <h3 className="text-white font-semibold mb-2">Shopify Webhook URL</h3>
