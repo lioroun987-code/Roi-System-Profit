@@ -12,10 +12,22 @@ export async function analyzeOrder(
 ): Promise<AIOrderAnalysis> {
   const { productCosts: pc, discountRules: dr, paymentSettings: ps, aiNotes } = config
 
+  // Build dynamic product catalog section if available
+  const customProducts = pc.customProductCosts
+  const productCatalogSection = customProducts && Object.keys(customProducts).length > 0
+    ? `## YOUR PRODUCT CATALOG (from Shopify — use these costs first)
+Match each order line item to the closest product name below. Use the catalog cost when matched.
+${Object.values(customProducts).map(p => `- "${p.productTitle}"${p.variantTitle && p.variantTitle !== 'Default Title' ? ` / "${p.variantTitle}"` : ''}: costs $${p.costUsd} USD (≈₪${(p.costUsd * pc.exchangeRate).toFixed(2)} ILS) | sells for ₪${p.sellingPriceIls}`).join('\n')}
+
+If a line item does NOT match any product above, fall back to the general rules below.
+
+`
+    : ''
+
   // Static system prompt — cached by Anthropic (pays once per 5 min window)
   const cachedSystemPrompt = `You are an e-commerce profitability calculator. Analyze Shopify orders and return exact profit calculations as JSON.
 
-## BUSINESS PRODUCT COSTS
+${productCatalogSection}## BUSINESS PRODUCT COSTS (fallback / general rules)
 - Deal (בקבוק + 7 קפסולות): $${pc.dealCost} USD
 - Cool Deal (שומר קור): $${pc.coolDealCost} USD
 - Bottle only: $${pc.bottleCost} USD
