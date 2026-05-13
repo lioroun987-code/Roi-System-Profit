@@ -382,6 +382,31 @@ export async function POST(request: NextRequest) {
       rawOrderSamples,
     }
 
+    // ── 7. Save report to DB ──
+    try {
+      // Delete existing report for this businessId + tab (keep one per tab)
+      if (agentSheetName) {
+        await prisma.reconcileReport.deleteMany({ where: { businessId, agentSheetName } })
+      } else {
+        await prisma.reconcileReport.deleteMany({ where: { businessId, agentSheetId, agentSheetName: null } })
+      }
+      await prisma.reconcileReport.create({
+        data: {
+          businessId,
+          agentSheetId,
+          agentSheetName: agentSheetName || null,
+          ourSheetId: mainSheetId,
+          exchangeRate: EXCHANGE_RATE,
+          results,
+          summary,
+          debug,
+          businessUpdatedAt: business.updatedAt,
+        },
+      })
+    } catch (e) {
+      console.error('Save reconcile report failed (non-fatal):', e)
+    }
+
     return Response.json({ results, summary, debug })
 
   } catch (err: any) {
