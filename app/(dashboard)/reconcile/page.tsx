@@ -219,6 +219,33 @@ export default function ReconcilePage() {
         </p>
       </div>
 
+      {/* Settings-changed banner */}
+      {settingsChanged && (
+        <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
+          style={{ background: '#2A1800', border: '1px solid #F59E0B44', color: '#FCD34D' }}>
+          <div className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4 shrink-0" />
+            הגדרות העסק השתנו מאז הבדיקה האחרונה — הדוח יכול להיות לא מעודכן
+          </div>
+          <button
+            onClick={runReconcile}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all"
+            style={{ background: '#F59E0B', color: '#000' }}
+          >
+            <RefreshCw className="w-3 h-3" />
+            עדכן עכשיו
+          </button>
+        </div>
+      )}
+
+      {/* Last run indicator */}
+      {lastRunAt && !settingsChanged && (
+        <div className="flex items-center gap-1.5 text-xs" style={{ color: '#4A5174' }}>
+          <Clock className="w-3 h-3" />
+          הבדיקה האחרונה רצה ב-{lastRunAt.toLocaleDateString('he-IL')} {lastRunAt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      )}
+
       {/* Input card */}
       <div className="rounded-2xl border p-6 space-y-5" style={{ background: '#13161F', borderColor: '#1E2130' }}>
         <h2 className="text-white font-semibold">הגדרת מקורות נתונים</h2>
