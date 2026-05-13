@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import {
   LayoutDashboard, ShoppingCart, TrendingUp, Plug, Settings,
-  LogOut, ChevronDown, Store, BarChart3, Bell, Search,
+  LogOut, ChevronDown, Store, BarChart3, Bell, Search, Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
