@@ -46,11 +46,12 @@ function parseDateRange(tabName: string): { start: Date; end: Date } | null {
 function parseDate(val: string): Date | null {
   if (!val) return null
   const s = val.trim()
+  const currentYear = new Date().getFullYear()
 
   // "2026-01-31" or "2026-01-31 19:30"
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.split(' ')[0])
 
-  // "31/01/2026" or "31/01/26"
+  // "31/01/2026" or "31/01/26" (with optional time after)
   const slashFull = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)
   if (slashFull) {
     const [, d, m, y] = slashFull
@@ -58,7 +59,7 @@ function parseDate(val: string): Date | null {
     return new Date(year, parseInt(m) - 1, parseInt(d))
   }
 
-  // "31.01.2026" or "31.01.26"
+  // "31.01.2026" or "31.01.26" (with optional time after)
   const dotFull = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/)
   if (dotFull) {
     const [, d, m, y] = dotFull
@@ -66,17 +67,15 @@ function parseDate(val: string): Date | null {
     return new Date(year, parseInt(m) - 1, parseInt(d))
   }
 
-  const currentYear = new Date().getFullYear()
-
-  // "31.01" or "1.2" — dot format without year = LAST YEAR
-  const dotShort = s.match(/^(\d{1,2})\.(\d{1,2})$/)
+  // "31.01" or "1.2" (with optional space/time after) — dot = LAST YEAR
+  const dotShort = s.match(/^(\d{1,2})\.(\d{1,2})(?:\s|$)/)
   if (dotShort) {
     const [, d, m] = dotShort
     return new Date(currentYear - 1, parseInt(m) - 1, parseInt(d))
   }
 
-  // "31/01" or "01/02" — slash format without year = THIS YEAR
-  const slashShort = s.match(/^(\d{1,2})\/(\d{1,2})$/)
+  // "31/01" or "01/02" (with optional space/time after) — slash = THIS YEAR
+  const slashShort = s.match(/^(\d{1,2})\/(\d{1,2})(?:\s|$)/)
   if (slashShort) {
     const [, d, m] = slashShort
     return new Date(currentYear, parseInt(m) - 1, parseInt(d))
