@@ -5,12 +5,12 @@ import { prisma } from '@/lib/prisma'
 import { google } from 'googleapis'
 import { getGoogleAuthClient } from '@/lib/sheets'
 
-const AGENT_COL_ORDER    = 2   // B
-const AGENT_COL_PRICE    = 11  // K
-const AGENT_COL_DISCOUNT = 12  // L
-const AGENT_COL_HD       = 13  // M
-const MAIN_COL_ORDER     = 1   // A
-const MAIN_COL_OUR_COST  = 7   // G
+const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
+const AGENT_COL_PRICE    = 11  // K — מחיר
+const AGENT_COL_DISCOUNT = 12  // L — הנחה
+const AGENT_COL_HD       = 13  // M — משלוח לבית
+const MAIN_COL_ORDER     = 9   // I — מספר הזמנה שלך
+const MAIN_COL_OUR_COST  = 7   // G — עלות שלי
 const THRESHOLD          = 0.5
 
 export async function POST(request: NextRequest) {
