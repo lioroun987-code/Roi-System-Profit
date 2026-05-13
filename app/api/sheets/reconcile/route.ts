@@ -29,13 +29,41 @@ function parseDateRange(tabName: string): { start: Date; end: Date } | null {
 
 function parseDate(val: string): Date | null {
   if (!val) return null
-  // Support: "2026-01-31", "31/01/2026", "2026-01-31 19:..."
-  const clean = val.split(' ')[0].trim()
-  if (/^\d{4}-\d{2}-\d{2}/.test(clean)) return new Date(clean)
-  if (/^\d{2}\/\d{2}\/\d{4}/.test(clean)) {
-    const [d, m, y] = clean.split('/')
-    return new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+  const s = val.trim()
+
+  // "2026-01-31" or "2026-01-31 19:30"
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.split(' ')[0])
+
+  // "31/01/2026" or "31/01/26"
+  const slashFull = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)
+  if (slashFull) {
+    const [, d, m, y] = slashFull
+    const year = y.length === 2 ? 2000 + parseInt(y) : parseInt(y)
+    return new Date(year, parseInt(m) - 1, parseInt(d))
   }
+
+  // "31.01.2026" or "31.01.26"
+  const dotFull = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/)
+  if (dotFull) {
+    const [, d, m, y] = dotFull
+    const year = y.length === 2 ? 2000 + parseInt(y) : parseInt(y)
+    return new Date(year, parseInt(m) - 1, parseInt(d))
+  }
+
+  // "31.01" or "16.11" — DD.MM without year, assume current year
+  const dotShort = s.match(/^(\d{1,2})\.(\d{1,2})$/)
+  if (dotShort) {
+    const [, d, m] = dotShort
+    return new Date(new Date().getFullYear(), parseInt(m) - 1, parseInt(d))
+  }
+
+  // "31/01" — DD/MM without year
+  const slashShort = s.match(/^(\d{1,2})\/(\d{1,2})$/)
+  if (slashShort) {
+    const [, d, m] = slashShort
+    return new Date(new Date().getFullYear(), parseInt(m) - 1, parseInt(d))
+  }
+
   return null
 }
 
