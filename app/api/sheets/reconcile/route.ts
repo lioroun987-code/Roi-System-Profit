@@ -199,28 +199,53 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── 4. Build our cost map — filtered by date range from agent tab ──
+    // ── 4. Auto-detect columns: scan first 50 rows to find date & order columns ──
     const dateRange = agentSheetName ? parseDateRange(agentSheetName) : null
+
+    let detectedDateCol = -1
+    let detectedOrderCol = -1
+    let detectedCostCol = -1
+
+    for (const row of mainRows.slice(0, 100)) {
+      for (let c = 0; c < row.length; c++) {
+        const val = row[c]?.toString().trim() ?? ''
+        if (detectedDateCol === -1 && parseDate(val) !== null) {
+          detectedDateCol = c
+        }
+        if (detectedOrderCol === -1 && /^\d{3,5}$/.test(val.replace('#', ''))) {
+          detectedOrderCol = c
+        }
+        if (detectedCostCol === -1 && /^\d{1,4}(\.\d{1,2})?$/.test(val) && parseFloat(val) > 10 && parseFloat(val) < 1000) {
+          if (detectedOrderCol !== -1 && c !== detectedOrderCol && c !== detectedDateCol) {
+            detectedCostCol = c
+          }
+        }
+      }
+      if (detectedDateCol >= 0 && detectedOrderCol >= 0) break
+    }
 
     const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
     for (let i = 0; i < mainRows.length; i++) {
       const row = mainRows[i]
 
       // Filter by month/year from agent tab
-      if (dateRange) {
-        const dateVal = row[MAIN_COL_DATE - 1]?.toString().trim()
-        const rowDate = parseDate(dateVal)
+      if (dateRange && detectedDateCol >= 0) {
+        const dateVal = row[detectedDateCol]?.toString().trim()
+        const rowDate = parseDate(dateVal ?? '')
         if (!rowDate) continue
         const sameMonth = rowDate.getMonth() === dateRange.start.getMonth()
         const sameYear  = rowDate.getFullYear() === dateRange.start.getFullYear()
         if (!sameMonth || !sameYear) continue
       }
 
-      const orderRaw = row[MAIN_COL_ORDER - 1]?.toString().trim()
+      const colIdx = detectedOrderCol >= 0 ? detectedOrderCol : 8
+      const orderRaw = row[colIdx]?.toString().trim()
       if (!orderRaw) continue
       if (!/^\d+$/.test(orderRaw.replace('#', '').trim())) continue
       const orderNum = orderRaw.replace('#', '').trim()
-      const costRaw  = row[MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
+
+      const costIdx = detectedCostCol >= 0 ? detectedCostCol : 6
+      const costRaw = row[costIdx]?.toString().replace(',', '.').trim()
       ourByOrder.set(orderNum, {
         cost: costRaw && costRaw !== '' ? parseFloat(costRaw) : null,
         rowIndex: i + 2,
