@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     try {
       const mainRes = await sheets.spreadsheets.values.get({
         spreadsheetId: mainSheetId,
-        range: 'A2:I1000',
+        range: 'A2:J1000',
       })
       mainRows = mainRes.data.values ?? []
     } catch (e: any) {
