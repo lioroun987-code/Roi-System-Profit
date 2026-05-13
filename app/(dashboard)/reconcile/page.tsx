@@ -114,8 +114,15 @@ export default function ReconcilePage() {
         .filter((r: ReconcileResult) => r.status !== 'match')
         .reduce((s: number, r: ReconcileResult) => s + r.diff, 0)
 
+      const totalAgentCost = data.results
+        .reduce((s: number, r: ReconcileResult) => s + (r.agentCost ?? 0), 0)
+
+      const totalOurCost = data.results
+        .filter((r: ReconcileResult) => r.ourCost != null)
+        .reduce((s: number, r: ReconcileResult) => s + (r.ourCost ?? 0), 0)
+
       setResults(data.results)
-      setSummary({ ...data.summary, totalDiff })
+      setSummary({ ...data.summary, totalDiff, totalAgentCost, totalOurCost })
       setDebug(data.debug ?? null)
     } catch (e: any) {
       setError(`שגיאה: ${e?.message ?? 'לא ידועה'}`)
