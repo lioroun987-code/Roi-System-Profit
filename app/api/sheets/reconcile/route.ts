@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         )
         targetSheetId = (found?.properties?.sheetId ?? sheetsList[0]?.properties?.sheetId) ?? undefined
       } else {
-        targetSheetId = sheetsList[0]?.properties?.sheetId
+        targetSheetId = sheetsList[0]?.properties?.sheetId ?? undefined
       }
 
       // Use numeric sheetId to avoid name parsing issues
