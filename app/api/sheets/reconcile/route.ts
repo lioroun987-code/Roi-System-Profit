@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           s.properties?.title?.replace(/\//g, '') === agentSheetName.replace(/\//g, '') ||
           s.properties?.title === agentSheetName
         )
-        targetSheetId = found?.properties?.sheetId ?? sheetsList[0]?.properties?.sheetId
+        targetSheetId = (found?.properties?.sheetId ?? sheetsList[0]?.properties?.sheetId) ?? undefined
       } else {
         targetSheetId = sheetsList[0]?.properties?.sheetId
       }
