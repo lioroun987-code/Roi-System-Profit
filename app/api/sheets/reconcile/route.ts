@@ -312,14 +312,17 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
-    // Debug: sample data for diagnosis
     const rawDateSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_DATE - 1]?.toString() ?? '')
     const rawOrderSamples = mainRows.slice(0, 5).map(r => r[MAIN_COL_ORDER - 1]?.toString() ?? '')
+    const agentKeys = Array.from(agentByOrder.keys())
+    const ourKeys   = Array.from(ourByOrder.keys())
     const debug = {
-      agentSample: Array.from(agentByOrder.keys()).slice(0, 5),
-      ourSample: Array.from(ourByOrder.keys()).slice(0, 5),
-      agentTotal: agentByOrder.size,
-      ourTotal: ourByOrder.size,
+      agentFirst5: agentKeys.slice(0, 5),
+      agentLast5:  agentKeys.slice(-5),
+      ourFirst5:   ourKeys.slice(0, 5),
+      ourLast5:    ourKeys.slice(-5),
+      agentTotal:  agentByOrder.size,
+      ourTotal:    ourByOrder.size,
       dateRangeParsed: dateRange ? `${dateRange.start.toISOString().split('T')[0]} → ${dateRange.end.toISOString().split('T')[0]}` : 'לא פורסר',
       rawDateSamples,
       rawOrderSamples,
