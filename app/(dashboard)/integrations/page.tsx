@@ -126,6 +126,30 @@ export default function IntegrationsPage() {
     showToast(data.error ? `שגיאה: ${data.error}` : `סנכרנו נתוני ${data.synced} ימים`, data.error ? 'error' : 'success')
   }
 
+  async function syncFromSheet() {
+    if (!activeBusiness) return
+    setSyncingSheets(true)
+    setSyncResult(null)
+    try {
+      const res = await fetch('/api/sheets/sync-from-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: activeBusiness }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        showToast(`שגיאה: ${data.error}`, 'error')
+      } else {
+        setSyncResult({ processed: data.processed, skipped: data.skipped, errors: data.errors })
+        showToast(data.message, 'success')
+      }
+    } catch {
+      showToast('שגיאת חיבור', 'error')
+    } finally {
+      setSyncingSheets(false)
+    }
+  }
+
   async function saveSheets() {
     if (!activeBusiness) return
     setSavingSheets(true)
