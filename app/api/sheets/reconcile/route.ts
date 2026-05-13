@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
       else if (agentCost > ourCost) status = 'agent_higher'
       else status = 'we_higher'
 
-      results.push({ orderNumber: orderNum, agentCost, ourCost, diff, status, rowIndex: ourData?.rowIndex ?? -1 })
+      results.push({ orderNumber: orderNum, agentCost, ourCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate })
 
       if (ourData && ourData.rowIndex > 0) {
         const texts: Record<string, string> = {
