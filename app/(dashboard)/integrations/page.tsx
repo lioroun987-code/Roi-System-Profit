@@ -134,6 +134,26 @@ export default function IntegrationsPage() {
     showToast(data.error ? `שגיאה: ${data.error}` : `סנכרנו נתוני ${data.synced} ימים`, data.error ? 'error' : 'success')
   }
 
+  async function runReconcile() {
+    if (!activeBusiness || !agentSheetId) return
+    setReconciling(true)
+    setReconcileResult(null)
+    try {
+      const res = await fetch('/api/sheets/reconcile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: activeBusiness, agentSheetId, agentSheetName: agentSheetName || undefined }),
+      })
+      const data = await res.json()
+      if (data.error) showToast(`שגיאה: ${data.error}`, 'error')
+      else {
+        setReconcileResult(data)
+        showToast(`הושלם — ${data.summary.matches} תואמים, ${data.summary.agentHigher + data.summary.weHigher} פערים`, 'success')
+      }
+    } catch { showToast('שגיאת חיבור', 'error') }
+    finally { setReconciling(false) }
+  }
+
   async function syncFromSheet() {
     if (!activeBusiness) return
     setSyncingSheets(true)
