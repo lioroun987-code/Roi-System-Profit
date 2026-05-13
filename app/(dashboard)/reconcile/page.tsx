@@ -46,6 +46,9 @@ export default function ReconcilePage() {
   const [search, setSearch]               = useState('')
   const [sortBy, setSortBy]               = useState<'diff' | 'order'>('diff')
   const [sortDir, setSortDir]             = useState<'desc' | 'asc'>('desc')
+  const [lastRunAt, setLastRunAt]         = useState<Date | null>(null)
+  const [settingsChanged, setSettingsChanged] = useState(false)
+  const autoRunRef = useRef(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
