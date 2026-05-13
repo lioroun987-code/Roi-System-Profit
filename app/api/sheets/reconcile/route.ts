@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < mainRows.length; i++) {
       const orderRaw = mainRows[i][MAIN_COL_ORDER - 1]?.toString().trim()
       if (!orderRaw) continue
+      // Skip non-numeric values (headers, names, etc.)
+      if (!/^\d+$/.test(orderRaw.replace('#', '').trim())) continue
       const orderNum = orderRaw.replace('#', '').trim()
       const costRaw  = mainRows[i][MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
       ourByOrder.set(orderNum, {
