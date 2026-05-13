@@ -228,7 +228,15 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
-    return Response.json({ results, summary })
+    // Debug: sample order numbers from each sheet
+    const debug = {
+      agentSample: Array.from(agentByOrder.keys()).slice(0, 5),
+      ourSample: Array.from(ourByOrder.keys()).slice(0, 5),
+      agentTotal: agentByOrder.size,
+      ourTotal: ourByOrder.size,
+    }
+
+    return Response.json({ results, summary, debug })
 
   } catch (err: any) {
     console.error('Reconcile error:', err)
