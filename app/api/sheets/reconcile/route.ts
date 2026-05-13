@@ -200,8 +200,7 @@ export async function POST(request: NextRequest) {
         const rowDate = parseDate(dateVal)
         if (!rowDate) continue
         const sameMonth = rowDate.getMonth() === dateRange.start.getMonth()
-        const sameYear  = rowDate.getFullYear() === dateRange.start.getFullYear() ||
-                          rowDate.getFullYear() === dateRange.start.getFullYear() - 1 // allow prev year short format
+        const sameYear  = rowDate.getFullYear() === dateRange.start.getFullYear()
         if (!sameMonth || !sameYear) continue
       }
 
