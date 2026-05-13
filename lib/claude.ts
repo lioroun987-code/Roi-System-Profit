@@ -41,7 +41,19 @@ export async function analyzeOrder(
 
 ## PAYMENT & VAT
 ${ps.vatEnabled ? `- VAT: ${ps.vatPercent}% (already included in prices)` : '- No VAT'}
-- Payment methods: ${ps.paymentMethods.filter(m => m.enabled).map(m => `${m.name}: ${m.feePercent}%`).join(', ')}
+- Payment methods configured: ${ps.paymentMethods.filter(m => m.enabled).map(m => `${m.name}: ${m.feePercent}%`).join(', ')}
+
+## PAYMENT METHOD DETECTION FROM SHOPIFY
+Identify the payment method from order.gateway and order.payment_gateway_names:
+- "bit" / "bit_payment" / "pay_me" → Bit (use Bit fee)
+- "shopify_payments" + Apple Pay wallet → Apple Pay (use credit card fee or configured rate)
+- "shopify_payments" + Google Pay wallet → Google Pay (use credit card fee)
+- "shopify_payments" + credit → Credit Card
+- "paypal" → PayPal
+- "cardcom" / "tranzila" / "icredit" / "grow" / "neodeal" / "hyp" / "meshulam" → Credit Card external gateway
+- "manual" / "cash_on_delivery" → Cash (0% fee)
+- Look at payment_gateway_names array and order.gateway for the actual method used
+- When uncertain, use the closest matching configured payment method
 
 ## PARSING RULES
 1. "דיל (בקבוק + 7 קפסולות)" = one deal. The parentheses are just a description.
