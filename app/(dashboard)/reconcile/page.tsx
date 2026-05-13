@@ -35,6 +35,7 @@ export default function ReconcilePage() {
   const [agentSheetName, setAgentSheetName] = useState('')
   const [agentTabs, setAgentTabs]         = useState<string[]>([])
   const [loadingTabs, setLoadingTabs]     = useState(false)
+  const [exchangeRate, setExchangeRate]   = useState(3.4)
   const [running, setRunning]             = useState(false)
   const [results, setResults]             = useState<ReconcileResult[] | null>(null)
   const [summary, setSummary]             = useState<Summary | null>(null)
