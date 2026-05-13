@@ -2,275 +2,222 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react'
 
-type Stage = 'intro' | 'fake' | 'reality' | 'reveal' | 'features' | 'cta'
-
-function useCountUp(target: number, duration: number, active: boolean) {
-  const [val, setVal] = useState(0)
+function useAnimatedNumber(from: number, to: number, duration: number, active: boolean) {
+  const [val, setVal] = useState(from)
   useEffect(() => {
     if (!active) return
-    let start = 0
-    const steps = 60
-    const increment = target / steps
-    const interval = duration / steps
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= target) { setVal(target); clearInterval(timer) }
-      else setVal(Math.floor(start))
-    }, interval)
-    return () => clearInterval(timer)
-  }, [active, target, duration])
+    const start = performance.now()
+    const diff = to - from
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 3)
+    const frame = (now: number) => {
+      const elapsed = now - start
+      const progress = Math.min(elapsed / duration, 1)
+      setVal(Math.round(from + diff * easeOut(progress)))
+      if (progress < 1) requestAnimationFrame(frame)
+    }
+    requestAnimationFrame(frame)
+  }, [active, from, to, duration])
   return val
 }
 
-const FEATURES = [
-  { icon: '🎯', title: 'רווח נקי לכל הזמנה', desc: 'ברמת האגורה — אחרי כל עלות' },
-  { icon: '🤖', title: 'AI מבין את הכללים שלך', desc: 'הנחות, קופונים, קפסולות מתנה' },
-  { icon: '💳', title: 'עמלות לפי אמצעי תשלום', desc: 'Bit, אשראי, Apple Pay ועוד' },
-  { icon: '📊', title: 'פרסום מול רווח אמיתי', desc: 'ROAS על בסיס רווח, לא הכנסות' },
-]
+type Phase = 'enter' | 'low' | 'turning' | 'climbing' | 'peak' | 'tagline' | 'cta'
 
 export default function WelcomePage() {
   const router = useRouter()
-  const [stage, setStage] = useState<Stage>('intro')
-  const [featureIdx, setFeatureIdx] = useState(0)
-  const [exit, setExit] = useState(false)
-
-  const fakeActive  = stage === 'fake' || stage === 'reality' || stage === 'reveal' || stage === 'features' || stage === 'cta'
-  const realActive  = stage === 'reveal' || stage === 'features' || stage === 'cta'
-  const fakeProfit  = useCountUp(850, 1200, fakeActive)
-  const realProfit  = useCountUp(312, 1000, realActive)
+  const [phase, setPhase] = useState<Phase>('enter')
+  const [exiting, setExiting] = useState(false)
+  const climbActive = phase === 'climbing' || phase === 'peak' || phase === 'tagline' || phase === 'cta'
+  const profit = useAnimatedNumber(8250, 17270, 2200, climbActive)
 
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = []
-    timers.push(setTimeout(() => setStage('fake'),     1200))
-    timers.push(setTimeout(() => setStage('reality'),  3800))
-    timers.push(setTimeout(() => setStage('reveal'),   5800))
-    timers.push(setTimeout(() => setStage('features'), 8000))
-    timers.push(setTimeout(() => setStage('cta'),      11000))
-    return () => timers.forEach(clearTimeout)
+    const t: ReturnType<typeof setTimeout>[] = []
+    t.push(setTimeout(() => setPhase('low'),      800))
+    t.push(setTimeout(() => setPhase('turning'),  2200))
+    t.push(setTimeout(() => setPhase('climbing'), 3400))
+    t.push(setTimeout(() => setPhase('peak'),     5800))
+    t.push(setTimeout(() => setPhase('tagline'),  6600))
+    t.push(setTimeout(() => setPhase('cta'),      8200))
+    return () => t.forEach(clearTimeout)
   }, [])
 
-  useEffect(() => {
-    if (stage !== 'features') return
-    const t = setInterval(() => setFeatureIdx(i => (i + 1) % FEATURES.length), 1800)
-    return () => clearInterval(t)
-  }, [stage])
-
-  function handleStart() {
-    setExit(true)
-    setTimeout(() => router.push('/onboarding'), 600)
+  function go(path: string) {
+    setExiting(true)
+    setTimeout(() => router.push(path), 500)
   }
 
-  function handleSkip() {
-    router.push('/dashboard')
-  }
+  const numberColor =
+    phase === 'low' || phase === 'enter'        ? '#FFFFFF' :
+    phase === 'turning'                          ? '#EF4444' :
+    phase === 'climbing'                         ? '#F97316' :
+    '#22C55E'
 
-  const visible = (s: Stage) =>
-    stage === s || (s === 'fake' && ['fake','reality','reveal','features','cta'].includes(stage)) ||
-    (s === 'reality' && ['reality','reveal','features','cta'].includes(stage)) ||
-    (s === 'reveal' && ['reveal','features','cta'].includes(stage))
+  const showNumber   = ['low','turning','climbing','peak','tagline','cta'].includes(phase)
+  const showSubtitle = ['turning','climbing','peak','tagline','cta'].includes(phase)
+  const showTagline  = ['tagline','cta'].includes(phase)
+  const showCta      = phase === 'cta'
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden"
+    <div className="fixed inset-0 flex flex-col items-center justify-center"
       style={{
-        background: 'radial-gradient(ellipse at 50% 0%, #0f1a3a 0%, #030712 60%)',
-        transition: 'opacity 0.6s ease',
-        opacity: exit ? 0 : 1,
+        background: '#030712',
+        transition: 'opacity 0.5s ease',
+        opacity: exiting ? 0 : 1,
       }}
     >
-      {/* Stars background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(40)].map((_, i) => (
-          <div key={i} className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() * 2 + 1,
-              height: Math.random() * 2 + 1,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.5 + 0.1,
-              animation: `pulse ${Math.random() * 3 + 2}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 3}s`,
-            }}
-          />
-        ))}
+      {/* Ambient glow behind number */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="rounded-full blur-3xl transition-all duration-1000"
+          style={{
+            width: 600, height: 400,
+            background: phase === 'low' || phase === 'enter'  ? 'rgba(99,102,241,0.06)' :
+                        phase === 'turning'                    ? 'rgba(239,68,68,0.08)' :
+                        phase === 'climbing'                   ? 'rgba(249,115,22,0.1)' :
+                                                                 'rgba(34,197,94,0.08)',
+          }}
+        />
       </div>
 
-      {/* Logo */}
-      <div className="absolute top-8 flex items-center gap-3"
-        style={{ opacity: stage === 'intro' ? 0 : 1, transition: 'opacity 0.8s ease', transitionDelay: '0.3s' }}>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}>
-          <TrendingUp className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-white font-bold text-lg">רווחיות</span>
-      </div>
-
-      {/* Skip button */}
-      {stage !== 'intro' && (
-        <button onClick={handleSkip}
-          className="absolute top-8 left-8 text-sm transition-colors"
-          style={{ color: '#4A5174' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#CBD5E1')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#4A5174')}
+      {/* Skip */}
+      {phase !== 'enter' && (
+        <button onClick={() => go('/dashboard')}
+          className="absolute top-6 left-6 text-xs px-3 py-1.5 rounded-full transition-colors"
+          style={{ color: '#374151', border: '1px solid #1F2937' }}
+          onMouseEnter={e => (e.currentTarget.style.color = '#9CA3AF')}
+          onMouseLeave={e => (e.currentTarget.style.color = '#374151')}
         >
-          דלג →
+          דלג
         </button>
       )}
 
-      {/* Stage: INTRO */}
-      {stage === 'intro' && (
-        <div className="text-center"
-          style={{ animation: 'fadeInUp 0.8s ease forwards' }}>
-          <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)', boxShadow: '0 0 60px rgba(99,102,241,0.4)' }}>
-            <TrendingUp className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-extrabold text-white mb-3">ברוך הבא לרווחיות</h1>
-          <p className="text-lg" style={{ color: '#6B7280' }}>רק 20 שניות שישנו את הדרך שאתה מנהל את העסק שלך</p>
+      {/* Logo */}
+      <div className="absolute top-6 flex items-center gap-2.5"
+        style={{ opacity: phase === 'enter' ? 0 : 0.6, transition: 'opacity 1s ease 0.5s' }}>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg,#3b82f6,#6366f1)' }}>
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M16 7h6v6M22 7l-8.5 8.5-5-5L2 17"/>
+          </svg>
         </div>
-      )}
+        <span className="text-white font-semibold text-sm tracking-tight">רווחיות</span>
+      </div>
 
-      {/* Main animation area */}
-      {stage !== 'intro' && stage !== 'features' && stage !== 'cta' && (
-        <div className="text-center max-w-2xl px-6 w-full">
+      {/* Main content */}
+      <div className="text-center px-6 max-w-2xl w-full">
 
-          {/* Question */}
-          <div style={{
-            opacity: visible('fake') ? 1 : 0,
-            transform: visible('fake') ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 0.8s ease',
-          }}>
-            <p className="text-xl font-medium mb-2" style={{ color: '#9CA3AF' }}>
-              על הזמנה אחת — כמה אתה חושב שהרווחת?
-            </p>
-            <div className="relative inline-block">
-              <span className="text-8xl font-black"
-                style={{
-                  color: stage === 'reality' || stage === 'reveal' ? '#6B7280' : '#FFFFFF',
-                  textDecoration: stage === 'reality' || stage === 'reveal' ? 'line-through' : 'none',
-                  transition: 'color 0.5s ease',
-                }}>
-                ₪{fakeProfit.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          {/* Reality label */}
-          {(stage === 'reality' || stage === 'reveal') && (
-            <div className="mt-6" style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
-              <p className="text-base font-medium" style={{ color: '#EF4444' }}>
-                אחרי עמלות סליקה, הנחות, עלויות משלוח וקפסולות מתנה...
-              </p>
-              <div className="flex items-center justify-center gap-2 mt-1" style={{ color: '#6B7280', fontSize: 13 }}>
-                <span>💳 עמלת Bit 3%</span>
-                <span>•</span>
-                <span>🎁 קפסולת הפתעה</span>
-                <span>•</span>
-                <span>🚚 עלות משלוח</span>
-                <span>•</span>
-                <span>💰 עלות מוצר</span>
-              </div>
-            </div>
-          )}
-
-          {/* Real profit */}
-          {stage === 'reveal' && (
-            <div className="mt-6" style={{ animation: 'fadeInUp 0.8s ease forwards' }}>
-              <p className="text-lg font-medium mb-2" style={{ color: '#9CA3AF' }}>הרווח האמיתי שלך:</p>
-              <span className="text-8xl font-black" style={{ color: '#22C55E' }}>
-                ₪{realProfit.toLocaleString()}
-              </span>
-              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full"
-                style={{ background: '#1A0A0A', border: '1px solid #EF444440' }}>
-                <span style={{ color: '#EF4444' }}>⚠️</span>
-                <span className="text-sm" style={{ color: '#FCA5A5' }}>
-                  פער של ₪{(850 - 312).toLocaleString()} — {Math.round((538/850)*100)}% מהמה שחשבת
-                </span>
-              </div>
-            </div>
-          )}
+        {/* Label above number */}
+        <div style={{
+          opacity: showNumber ? 1 : 0,
+          transform: showNumber ? 'translateY(0)' : 'translateY(12px)',
+          transition: 'all 0.6s ease',
+          marginBottom: '12px',
+        }}>
+          <span className="text-sm font-medium tracking-widest uppercase"
+            style={{ color: '#4B5563', letterSpacing: '0.15em' }}>
+            {phase === 'low' ? 'הרווח החודשי שאתה מכיר' :
+             phase === 'turning' ? 'רגע... בואו נסתכל מקרוב' :
+             phase === 'climbing' ? 'עלויות שלא חישבת מתגלות...' :
+             'הרווח האמיתי שלך'}
+          </span>
         </div>
-      )}
 
-      {/* Features carousel */}
-      {stage === 'features' && (
-        <div className="text-center max-w-xl px-6 w-full"
-          style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
-          <p className="text-sm font-medium mb-8 uppercase tracking-widest" style={{ color: '#4F6EF7' }}>
-            עם רווחיות תקבל
-          </p>
-          <div className="relative h-40 flex items-center justify-center">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="absolute text-center transition-all duration-500"
-                style={{
-                  opacity: i === featureIdx ? 1 : 0,
-                  transform: i === featureIdx ? 'scale(1) translateY(0)' : 'scale(0.8) translateY(20px)',
-                }}>
-                <div className="text-5xl mb-3">{f.icon}</div>
-                <h3 className="text-2xl font-bold text-white mb-2">{f.title}</h3>
-                <p style={{ color: '#6B7280' }}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-center gap-2 mt-8">
-            {FEATURES.map((_, i) => (
-              <div key={i} className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === featureIdx ? 24 : 6,
-                  height: 6,
-                  background: i === featureIdx ? '#4F6EF7' : '#1E2130',
-                }}
+        {/* The big number */}
+        <div style={{
+          opacity: showNumber ? 1 : 0,
+          transition: 'opacity 0.8s ease',
+        }}>
+          <div className="relative inline-block">
+            {/* Strikethrough for "turning" phase */}
+            {phase === 'turning' && (
+              <div className="absolute inset-x-0 top-1/2 h-1 rounded-full"
+                style={{ background: '#EF4444', transform: 'translateY(-50%)', animation: 'strikethrough 0.4s ease forwards' }}
               />
-            ))}
+            )}
+            <span className="font-black tabular-nums transition-colors duration-500"
+              style={{
+                fontSize: 'clamp(72px, 12vw, 120px)',
+                lineHeight: 1,
+                color: numberColor,
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.03em',
+              }}>
+              ₪{phase === 'low' || phase === 'turning' ? '8,250' : profit.toLocaleString()}
+            </span>
           </div>
         </div>
-      )}
 
-      {/* CTA */}
-      {stage === 'cta' && (
-        <div className="text-center max-w-lg px-6 w-full"
-          style={{ animation: 'fadeInUp 0.8s ease forwards' }}>
-          <div className="text-6xl mb-6">🎯</div>
-          <h2 className="text-4xl font-extrabold text-white mb-4 leading-tight">
-            מוכן לדעת את הרווח<br/>
-            <span style={{ color: '#4F6EF7' }}>האמיתי שלך?</span>
-          </h2>
-          <p className="text-lg mb-8" style={{ color: '#6B7280' }}>
-            5 דקות הגדרה — ותדע בדיוק כמה נשאר בכיס מכל הזמנה
+        {/* Subtitle */}
+        <div style={{
+          marginTop: '20px',
+          opacity: showSubtitle ? 1 : 0,
+          transform: showSubtitle ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'all 0.6s ease 0.1s',
+          minHeight: 28,
+        }}>
+          {phase === 'turning' && (
+            <p className="text-lg" style={{ color: '#EF4444' }}>
+              ⚠️ עלויות שחישבת בצורה לא מדויקת
+            </p>
+          )}
+          {phase === 'climbing' && (
+            <p className="text-lg" style={{ color: '#F97316' }}>
+              המספר הנכון מתחיל לעלות...
+            </p>
+          )}
+          {(phase === 'peak' || phase === 'tagline' || phase === 'cta') && (
+            <p className="text-lg" style={{ color: '#22C55E' }}>
+              ✓ זה הרווח האמיתי שלך
+            </p>
+          )}
+        </div>
+
+        {/* Tagline */}
+        <div style={{
+          marginTop: '40px',
+          opacity: showTagline ? 1 : 0,
+          transform: showTagline ? 'translateY(0)' : 'translateY(16px)',
+          transition: 'all 0.7s ease',
+        }}>
+          <p className="text-xl font-semibold" style={{ color: '#F9FAFB', lineHeight: 1.5 }}>
+            זה מה שקורה כשאתה יודע בדיוק כמה עולה לך כל הזמנה
           </p>
+          <p className="mt-3 text-base" style={{ color: '#6B7280' }}>
+            המערכת היחידה שמחשבת את הרווח הסופי שלך ברמה המדויקת ביותר
+            <br />
+            באמצעות בינה מלאכותית מותאמת אישית לחנות שלך
+          </p>
+        </div>
+
+        {/* CTA */}
+        <div style={{
+          marginTop: '48px',
+          opacity: showCta ? 1 : 0,
+          transform: showCta ? 'translateY(0)' : 'translateY(16px)',
+          transition: 'all 0.6s ease',
+        }}>
           <button
-            onClick={handleStart}
-            className="group flex items-center gap-3 mx-auto px-10 py-5 rounded-2xl text-xl font-bold text-white transition-all hover:-translate-y-1"
+            onClick={() => go('/onboarding')}
+            className="group inline-flex items-center gap-3 px-10 py-4 rounded-2xl text-lg font-bold text-white transition-all hover:-translate-y-0.5 active:translate-y-0"
             style={{
-              background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-              boxShadow: '0 20px 60px rgba(99,102,241,0.4)',
+              background: 'linear-gradient(135deg, #22C55E, #16A34A)',
+              boxShadow: '0 0 40px rgba(34,197,94,0.3)',
             }}
           >
-            בואו נתחיל
-            <ArrowLeft className="w-6 h-6 transition-transform group-hover:-translate-x-1" />
+            גלה את הרווח האמיתי שלך
+            <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M19 12H5M12 5l-7 7 7 7"/>
+            </svg>
           </button>
-          <p className="text-sm mt-4" style={{ color: '#374151' }}>לוקח 5 דקות • ניתן לדלג על שלבים</p>
+          <p className="mt-3 text-sm" style={{ color: '#374151' }}>
+            5 דקות הגדרה • ללא כרטיס אשראי
+          </p>
         </div>
-      )}
-
-      {/* Progress dots */}
-      {stage !== 'intro' && stage !== 'cta' && (
-        <div className="absolute bottom-10 flex gap-2">
-          {(['fake','reality','reveal','features'] as Stage[]).map(s => (
-            <div key={s} className="w-2 h-2 rounded-full transition-all duration-500"
-              style={{ background: stage === s ? '#4F6EF7' : '#1E2130' }}
-            />
-          ))}
-        </div>
-      )}
+      </div>
 
       <style jsx>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes strikethrough {
+          from { transform: translateY(-50%) scaleX(0); }
+          to   { transform: translateY(-50%) scaleX(1); }
         }
       `}</style>
     </div>
