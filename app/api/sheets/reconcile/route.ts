@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
   if (sheetUpdates.length > 0) {
     // Write values
     await sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId: business.googleSheetsId,
+      spreadsheetId: mainSheetId,
       requestBody: {
         valueInputOption: 'RAW',
         data: sheetUpdates.map(u => ({ range: u.range, values: [[u.value]] })),
