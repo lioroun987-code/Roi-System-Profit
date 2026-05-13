@@ -71,6 +71,8 @@ export default function IntegrationsPage() {
   const [business, setBusiness] = useState<Business | null>(null)
   const [activeBusiness, setActiveBusiness] = useState<string | null>(null)
   const [syncing, setSyncing] = useState(false)
+  const [syncingSheets, setSyncingSheets] = useState(false)
+  const [syncResult, setSyncResult] = useState<{ processed: number; skipped: number; errors: number } | null>(null)
   const [sheetsId, setSheetsId] = useState('')
   const [savingSheets, setSavingSheets] = useState(false)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
