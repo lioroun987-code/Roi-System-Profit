@@ -192,11 +192,15 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < mainRows.length; i++) {
       const row = mainRows[i]
 
-      // Filter by date if we have a range
+      // Filter by month/year from agent tab
       if (dateRange) {
         const dateVal = row[MAIN_COL_DATE - 1]?.toString().trim()
         const rowDate = parseDate(dateVal)
-        if (!rowDate || rowDate < dateRange.start || rowDate > dateRange.end) continue
+        if (!rowDate) continue
+        const sameMonth = rowDate.getMonth() === dateRange.start.getMonth()
+        const sameYear  = rowDate.getFullYear() === dateRange.start.getFullYear() ||
+                          rowDate.getFullYear() === dateRange.start.getFullYear() - 1 // allow prev year short format
+        if (!sameMonth || !sameYear) continue
       }
 
       const orderRaw = row[MAIN_COL_ORDER - 1]?.toString().trim()
