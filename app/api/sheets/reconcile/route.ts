@@ -19,7 +19,8 @@ export async function POST(request: NextRequest) {
     if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
     const userId = (session.user as any).id
-    const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride } = await request.json()
+    const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride, exchangeRate } = await request.json()
+    const EXCHANGE_RATE = parseFloat(exchangeRate) || 3.4
 
     if (!businessId) return Response.json({ error: 'businessId חסר' }, { status: 400 })
     if (!agentSheetId) return Response.json({ error: 'מזהה גיליון הסוכן חסר' }, { status: 400 })
