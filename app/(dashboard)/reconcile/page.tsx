@@ -301,6 +301,34 @@ export default function ReconcilePage() {
             ))}
           </div>
 
+          {/* Debug panel */}
+          {debug && summary && summary.matches === 0 && (
+            <div className="rounded-xl border p-4" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
+              <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין הזמנות תואמות — בדיקת פורמט מספרי הזמנה</p>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <p className="font-medium mb-1" style={{ color: '#8B8FA8' }}>גיליון הסוכן (עמודה B) — {debug.agentTotal} הזמנות:</p>
+                  <div className="space-y-1">
+                    {debug.agentSample.map(n => (
+                      <span key={n} className="inline-block px-2 py-0.5 rounded font-mono ml-1" style={{ background: '#2A2000', color: '#FCD34D' }}>{n}</span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium mb-1" style={{ color: '#8B8FA8' }}>הגיליון שלך (עמודה I) — {debug.ourTotal} הזמנות:</p>
+                  <div className="space-y-1">
+                    {debug.ourSample.map(n => (
+                      <span key={n} className="inline-block px-2 py-0.5 rounded font-mono ml-1" style={{ background: '#2A2000', color: '#FCD34D' }}>{n}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs mt-3" style={{ color: '#6B7280' }}>
+                אם הפורמטים שונים (למשל 3525 מול #3525 או 4987...) — שלח לי צילום מסך ואתקן
+              </p>
+            </div>
+          )}
+
           {/* Table controls */}
           <div className="flex flex-wrap items-center gap-3 justify-between">
             <div className="flex gap-2">
