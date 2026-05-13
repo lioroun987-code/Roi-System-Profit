@@ -287,12 +287,21 @@ export default function IntegrationsPage() {
       >
         {business?.fbAdAccountId && business?.fbAccessToken ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#0D2818', border: '1px solid #22C55E30' }}>
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <p className="text-emerald-400 font-medium text-sm">מחובר בהצלחה</p>
-                <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>Ad Account: {business.fbAdAccountId}</p>
+            <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: '#0D2818', border: '1px solid #22C55E30' }}>
+              <div className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <p className="text-emerald-400 font-medium text-sm">מחובר בהצלחה</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>Ad Account: {business.fbAdAccountId}</p>
+                </div>
               </div>
+              <button
+                onClick={() => { if (confirm('לנתק את Facebook Ads?')) disconnect({ fbAdAccountId: null, fbAccessToken: null }) }}
+                className="text-xs px-3 py-1.5 rounded-lg"
+                style={{ background: '#2D0F0F', color: '#EF4444' }}
+              >
+                נתק
+              </button>
             </div>
             <div className="flex items-center gap-3">
               <button
