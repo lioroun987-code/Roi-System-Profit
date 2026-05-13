@@ -184,9 +184,31 @@ export default function ReconcilePage() {
               style={inputStyle}
             />
             <p className="text-xs" style={{ color: '#4A5174' }}>
-              עמודה A = מספר הזמנה • עמודה G = עלות שלי
+              עמודה A = מספר הזמנה • עמודה G = עלות שלי (₪)
             </p>
           </div>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5">
+          <div className="space-y-2">
+            <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
+              💱 שער המרה ($ → ₪)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.01"
+                value={exchangeRate}
+                onChange={e => setExchangeRate(parseFloat(e.target.value) || 3.4)}
+                style={{ ...inputStyle, paddingLeft: '48px' }}
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium" style={{ color: '#4A5174' }}>$/₪</span>
+            </div>
+            <p className="text-xs" style={{ color: '#4A5174' }}>
+              עלות הסוכן ($) × שער = עלות בשקל להשוואה
+            </p>
+          </div>
+          <div />
 
           {/* Agent sheet */}
           <div className="space-y-2">
