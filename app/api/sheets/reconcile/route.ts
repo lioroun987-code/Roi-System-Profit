@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   // ── 3. Read our main sheet ──
   const mainRes = await sheets.spreadsheets.values.get({
-    spreadsheetId: business.googleSheetsId,
+    spreadsheetId: mainSheetId,
     range: 'A2:I1000',
   })
   const mainRows = mainRes.data.values ?? []
