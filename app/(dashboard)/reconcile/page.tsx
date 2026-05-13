@@ -372,10 +372,14 @@ export default function ReconcilePage() {
                   return (
                     <div
                       key={r.orderNumber}
-                      className="grid grid-cols-5 gap-4 px-5 py-4 items-center transition-colors"
+                      className="grid grid-cols-6 gap-4 px-5 py-4 items-center transition-colors"
                       style={{ background: r.status !== 'match' ? `${meta?.bg}88` : 'transparent', borderBottom: '1px solid #1A1D2A' }}
                     >
                       <span className="font-mono font-semibold text-sm text-white">#{r.orderNumber}</span>
+
+                      <span className="text-xs" style={{ color: '#6B7280' }}>
+                        {r.orderDate ? r.orderDate.split(' ')[0] : '—'}
+                      </span>
 
                       <span className="text-sm" style={{ color: '#CBD5E1' }}>
                         ₪{r.agentCost.toFixed(2)}
