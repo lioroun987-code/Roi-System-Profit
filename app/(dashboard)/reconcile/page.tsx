@@ -206,15 +206,33 @@ export default function ReconcilePage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
-            שם טאב בגיליון הסוכן (אופציונלי)
+            בחר טאב בגיליון הסוכן
           </label>
-          <input
-            value={agentSheetName}
-            onChange={e => setAgentSheetName(e.target.value)}
-            placeholder="למשל: הזמנות 01/01 - 31/01"
-            style={{ ...inputStyle, direction: 'rtl' }}
-          />
-          <p className="text-xs" style={{ color: '#4A5174' }}>השאר ריק לשימוש בגיליון הראשון</p>
+          {loadingTabs ? (
+            <div className="flex items-center gap-2 text-sm" style={{ color: '#4A5174' }}>
+              <span className="animate-spin">⏳</span> טוען טאבים...
+            </div>
+          ) : agentTabs.length > 0 ? (
+            <select
+              value={agentSheetName}
+              onChange={e => setAgentSheetName(e.target.value)}
+              style={{ ...inputStyle, direction: 'rtl' }}
+            >
+              {agentTabs.map(tab => (
+                <option key={tab} value={tab}>{tab}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={agentSheetName}
+              onChange={e => setAgentSheetName(e.target.value)}
+              placeholder="הכנס URL הגיליון למעלה לבחירת טאב אוטומטית"
+              style={{ ...inputStyle, direction: 'rtl' }}
+            />
+          )}
+          <p className="text-xs" style={{ color: '#4A5174' }}>
+            {agentTabs.length > 0 ? `${agentTabs.length} טאבים נמצאו` : 'השאר ריק לשימוש בגיליון הראשון'}
+          </p>
         </div>
 
         {error && (
