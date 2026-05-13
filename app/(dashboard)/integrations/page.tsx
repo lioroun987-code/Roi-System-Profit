@@ -75,6 +75,14 @@ export default function IntegrationsPage() {
   const [syncResult, setSyncResult] = useState<{ processed: number; skipped: number; errors: number } | null>(null)
   const [sheetsId, setSheetsId] = useState('')
   const [savingSheets, setSavingSheets] = useState(false)
+  // Reconcile
+  const [agentSheetId, setAgentSheetId] = useState('')
+  const [agentSheetName, setAgentSheetName] = useState('')
+  const [reconciling, setReconciling] = useState(false)
+  const [reconcileResult, setReconcileResult] = useState<{
+    summary: { total: number; matches: number; agentHigher: number; weHigher: number; missingCost: number }
+    results: Array<{ orderNumber: string; agentCost: number; ourCost: number | null; diff: number; status: string }>
+  } | null>(null)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const searchParams = useSearchParams()
 
