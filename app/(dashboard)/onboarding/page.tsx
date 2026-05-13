@@ -2,46 +2,46 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle, ChevronLeft, ChevronRight, Store, DollarSign, Megaphone, CreditCard, Bot, Rocket, Loader2, ExternalLink } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import {
+  CheckCircle, ChevronLeft, ChevronRight, Store, DollarSign, Megaphone,
+  CreditCard, Bot, Rocket, Loader2, ExternalLink, Package, Truck,
+  TrendingUp, AlertCircle,
+} from 'lucide-react'
 
 /* ── Types ── */
 interface ShopifyVariant { id: string; title: string; sku: string; price: string }
 interface ShopifyProduct { id: string; title: string; image: string | null; variants: ShopifyVariant[] }
-interface ProductCost { productId: string; variantId: string; title: string; variantTitle: string; costUsd: number }
 
 const STEPS = [
-  { id: 'welcome',  label: 'ברוך הבא',        icon: Rocket },
-  { id: 'shopify',  label: 'חיבור Shopify',   icon: Store },
-  { id: 'products', label: 'עלויות מוצרים',   icon: DollarSign },
-  { id: 'ads',      label: 'חיבור פרסום',     icon: Megaphone },
-  { id: 'payment',  label: 'תשלום ומע"מ',     icon: CreditCard },
-  { id: 'ai',       label: 'הנחיות AI',        icon: Bot },
+  { id: 'welcome',  label: 'ברוך הבא',       icon: Rocket },
+  { id: 'shopify',  label: 'Shopify',         icon: Store },
+  { id: 'products', label: 'עלויות מוצרים',  icon: DollarSign },
+  { id: 'ads',      label: 'פרסום',           icon: Megaphone },
+  { id: 'payment',  label: 'תשלום',           icon: CreditCard },
+  { id: 'ai',       label: 'הנחיות AI',       icon: Bot },
 ]
 
-/* ── Step indicator ── */
+/* ─────────────────────── Step indicator ─────────────────────── */
 function StepBar({ current }: { current: number }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="flex items-center justify-center gap-1.5 mb-10">
       {STEPS.map((s, i) => {
         const Icon = s.icon
-        const done = i < current
+        const done   = i < current
         const active = i === current
         return (
-          <div key={s.id} className="flex items-center gap-2">
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              active ? 'bg-blue-600 text-white' :
-              done ? 'bg-emerald-100 text-emerald-700' :
-              'bg-gray-100 text-gray-400'
-            }`}>
+          <div key={s.id} className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+              style={{
+                background:   active ? '#3B82F6' : done ? '#052E16' : '#0D0F14',
+                color:        active ? '#fff'    : done ? '#22C55E' : '#374151',
+                border: `1px solid ${active ? '#3B82F6' : done ? '#166534' : '#1E2130'}`,
+              }}>
               {done ? <CheckCircle className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
               <span className="hidden sm:block">{s.label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`w-6 h-0.5 ${done ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+              <div className="w-4 h-px" style={{ background: done ? '#166534' : '#1E2130' }} />
             )}
           </div>
         )
@@ -50,59 +50,84 @@ function StepBar({ current }: { current: number }) {
   )
 }
 
-/* ── Main Wizard ── */
+/* ─────────────────────── Live margin badge ─────────────────────── */
+function MarginBadge({ costUsd, sellingPriceIls, exchangeRate }: {
+  costUsd: number; sellingPriceIls: number; exchangeRate: number
+}) {
+  if (!costUsd || !sellingPriceIls) return null
+  const costIls  = costUsd * exchangeRate
+  const profit   = sellingPriceIls - costIls
+  const margin   = (profit / sellingPriceIls) * 100
+  const color    = margin >= 30 ? '#22C55E' : margin >= 15 ? '#F59E0B' : '#EF4444'
+  const bg       = margin >= 30 ? '#0D2818'  : margin >= 15 ? '#2A1800' : '#2D0F0F'
+  return (
+    <div className="flex items-center gap-2 mt-2.5 text-xs">
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#1E2130' }}>
+        <div className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${Math.min(Math.max(margin, 0), 100)}%`, background: color }} />
+      </div>
+      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold" style={{ background: bg, color }}>
+        <TrendingUp className="w-3 h-3" />
+        {margin.toFixed(0)}%
+      </div>
+      <span style={{ color: '#4A5174' }}>₪{profit.toFixed(0)} רווח גולמי</span>
+    </div>
+  )
+}
+
+/* ─────────────────────── Main Wizard ─────────────────────── */
 export default function OnboardingPage() {
   const router = useRouter()
-  const [step, setStep] = useState(0)
-  const [saving, setSaving] = useState(false)
+  const [step, setStep]       = useState(0)
+  const [saving, setSaving]   = useState(false)
   const [businessId, setBusinessId] = useState<string | null>(null)
 
-  // Step 0 — Welcome
+  // Step 0
   const [businessName, setBusinessName] = useState('')
+  const [exchangeRate, setExchangeRate] = useState(3.7)
 
   // Step 1 — Shopify
-  const [shopifyDomain, setShopifyDomain] = useState('')
-  const [shopifyToken, setShopifyToken] = useState('')
+  const [shopifyDomain, setShopifyDomain]       = useState('')
+  const [shopifyToken, setShopifyToken]         = useState('')
   const [shopifyConnecting, setShopifyConnecting] = useState(false)
   const [shopifyConnected, setShopifyConnected] = useState(false)
-  const [shopifyError, setShopifyError] = useState('')
+  const [shopifyError, setShopifyError]         = useState('')
 
   // Step 2 — Products
-  const [products, setProducts] = useState<ShopifyProduct[]>([])
-  const [productCosts, setProductCosts] = useState<Record<string, number>>({})
+  const [products, setProducts]               = useState<ShopifyProduct[]>([])
+  const [productCosts, setProductCosts]       = useState<Record<string, number>>({})
   const [loadingProducts, setLoadingProducts] = useState(false)
-  const [exchangeRate, setExchangeRate] = useState(3.7)
+  const [homeDeliveryCostUsd, setHomeDeliveryCostUsd]         = useState(3)
+  const [homeDeliveryChargeIls, setHomeDeliveryChargeIls]     = useState(25)
+  const [pickupFeeThresholdIls, setPickupFeeThresholdIls]     = useState(200)
+  const [pickupFeeAmountIls, setPickupFeeAmountIls]           = useState(10)
 
   // Step 3 — Ads
   const [fbAdAccountId, setFbAdAccountId] = useState('')
   const [fbAccessToken, setFbAccessToken] = useState('')
-  const [tiktokAdAccountId, setTiktokAdAccountId] = useState('')
-  const [tiktokAccessToken, setTiktokAccessToken] = useState('')
 
   // Step 4 — Payment
   const [vatEnabled, setVatEnabled] = useState(false)
   const [vatPercent, setVatPercent] = useState(17)
   const [paymentMethods, setPaymentMethods] = useState([
-    { name: 'Bit', feePercent: 3, enabled: true },
-    { name: 'כרטיס אשראי', feePercent: 1, enabled: true },
-    { name: 'PayPal', feePercent: 4.5, enabled: false },
-    { name: 'Cash', feePercent: 0, enabled: false },
+    { name: 'Bit',          feePercent: 3,   enabled: true  },
+    { name: 'כרטיס אשראי', feePercent: 1.5, enabled: true  },
+    { name: 'Apple Pay',    feePercent: 1.5, enabled: true  },
+    { name: 'Google Pay',   feePercent: 1.5, enabled: true  },
+    { name: 'PayPal',       feePercent: 4.5, enabled: false },
+    { name: 'מזומן',        feePercent: 0,   enabled: false },
+    { name: 'HYP / Cardcom', feePercent: 1.5, enabled: false },
   ])
 
   // Step 5 — AI
   const [aiNotes, setAiNotes] = useState('')
-  const [homeDeliveryCostUsd, setHomeDeliveryCostUsd] = useState(3)
-  const [homeDeliveryChargeIls, setHomeDeliveryChargeIls] = useState(25)
-  const [pickupFeeThresholdIls, setPickupFeeThresholdIls] = useState(200)
-  const [pickupFeeAmountIls, setPickupFeeAmountIls] = useState(10)
 
-  // Load businessId from localStorage
   useEffect(() => {
     const id = localStorage.getItem('activeBusiness')
     if (id) setBusinessId(id)
   }, [])
 
-  /* ── Create business if not exists ── */
+  /* ── Create business ── */
   async function createBusiness() {
     if (!businessName.trim()) return null
     setSaving(true)
@@ -135,7 +160,8 @@ export default function OnboardingPage() {
       })
       if (res.ok) {
         setShopifyConnected(true)
-        await fetchProducts(businessId)
+        await fetchProducts(businessId!)
+        setTimeout(() => setStep(2), 900)
       } else {
         setShopifyError('שגיאה בחיבור — בדוק דומיין וטוקן')
       }
@@ -150,55 +176,51 @@ export default function OnboardingPage() {
       const data = await res.json()
       if (data.products) {
         setProducts(data.products)
-        // Init costs to 0
-        const initial: Record<string, number> = {}
+        const init: Record<string, number> = {}
         data.products.forEach((p: ShopifyProduct) =>
-          p.variants.forEach(v => { initial[`${p.id}_${v.id}`] = 0 })
+          p.variants.forEach(v => { init[`${p.id}_${v.id}`] = 0 })
         )
-        setProductCosts(initial)
+        setProductCosts(init)
       }
     } finally { setLoadingProducts(false) }
   }
 
-  /* ── Save all & finish ── */
+  /* ── Save & finish ── */
   async function finish() {
     if (!businessId) return
     setSaving(true)
 
-    // Build product costs config
-    const productCostsConfig: Record<string, number> = {}
+    const customProductCosts: Record<string, any> = {}
     products.forEach(p => p.variants.forEach(v => {
       const key = `${p.id}_${v.id}`
-      productCostsConfig[key] = productCosts[key] ?? 0
+      customProductCosts[key] = {
+        productId:      p.id,
+        variantId:      v.id,
+        productTitle:   p.title,
+        variantTitle:   v.title,
+        costUsd:        productCosts[key] ?? 0,
+        sellingPriceIls: parseFloat(v.price) || 0,
+      }
     }))
-
-    const patches: Record<string, unknown> = {
-      productCosts: {
-        dealCost: 8.5,
-        coolDealCost: 9.5,
-        bottleCost: 6,
-        singleCapsuleCost: 0.85,
-        pack3Price: 69,
-        pack7Price: 139,
-        secondUnitDiscount: 2,
-        homeDeliveryCostUsd,
-        homeDeliveryChargeIls,
-        pickupFeeThresholdIls,
-        pickupFeeAmountIls,
-        exchangeRate,
-        customProductCosts: productCostsConfig,
-      },
-      paymentSettings: { vatEnabled, vatPercent, paymentMethods },
-      aiNotes,
-    }
-
-    if (fbAdAccountId) patches.fbAdAccountId = fbAdAccountId
-    if (fbAccessToken) patches.fbAccessToken = fbAccessToken
 
     await fetch(`/api/businesses/${businessId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patches),
+      body: JSON.stringify({
+        productCosts: {
+          customProductCosts,
+          homeDeliveryCostUsd,
+          homeDeliveryChargeIls,
+          pickupFeeThresholdIls,
+          pickupFeeAmountIls,
+          exchangeRate,
+          secondUnitDiscount: 2,
+        },
+        paymentSettings: { vatEnabled, vatPercent, paymentMethods },
+        aiNotes,
+        ...(fbAdAccountId ? { fbAdAccountId } : {}),
+        ...(fbAccessToken ? { fbAccessToken } : {}),
+      }),
     })
 
     setSaving(false)
@@ -215,118 +237,127 @@ export default function OnboardingPage() {
     if (step === STEPS.length - 1) { finish(); return }
     setStep(s => s + 1)
   }
-
   function prev() { setStep(s => Math.max(0, s - 1)) }
 
-  /* ── Render ── */
+  /* ── Shared styles ── */
+  const inputStyle: React.CSSProperties = {
+    background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+    borderRadius: '10px', padding: '10px 14px', fontSize: '14px',
+    outline: 'none', width: '100%',
+  }
+
+  const filledCount   = Object.values(productCosts).filter(v => v > 0).length
+  const totalVariants = products.reduce((s, p) => s + p.variants.length, 0)
+
+  /* ─────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center px-4 py-8" style={{ background: '#030712' }}>
       <div className="w-full max-w-2xl">
+
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
-              <Rocket className="w-4.5 h-4.5 text-white" />
-            </div>
-            <span className="text-white font-bold text-xl">רווחיות</span>
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg,#3b82f6,#6366f1)' }}>
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path d="M16 7h6v6M22 7l-8.5 8.5-5-5L2 17" />
+            </svg>
           </div>
+          <span className="text-white font-bold text-xl tracking-tight">רווחיות</span>
         </div>
 
         <StepBar current={step} />
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+        <div className="rounded-2xl border" style={{ background: '#0D0F14', borderColor: '#1E2130' }}>
 
           {/* ── Step 0: Welcome ── */}
           {step === 0 && (
-            <div className="space-y-6">
+            <div className="p-8 space-y-6">
               <div>
-                <h2 className="text-white text-2xl font-bold mb-2">ברוך הבא ל-רווחיות 👋</h2>
-                <p className="text-gray-400">נגדיר את העסק שלך תוך 3 דקות. נתחיל עם הפרטים הבסיסיים.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">ברוך הבא 👋</h2>
+                <p style={{ color: '#6B7280' }}>בוא נגדיר את העסק שלך תוך כמה דקות.</p>
               </div>
+
               <div className="space-y-2">
-                <Label>שם העסק / החנות</Label>
-                <Input
-                  value={businessName}
-                  onChange={e => setBusinessName(e.target.value)}
-                  placeholder="חנות הקפסולות שלי"
-                  autoFocus
-                />
+                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>שם העסק / החנות</label>
+                <input style={inputStyle} value={businessName}
+                  onChange={e => setBusinessName(e.target.value)} placeholder="חנות הקפסולות שלי" autoFocus />
               </div>
+
               <div className="space-y-2">
-                <Label>שער חליפין דולר–שקל</Label>
+                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>שער חליפין דולר–שקל</label>
                 <div className="relative max-w-xs">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={exchangeRate}
-                    onChange={e => setExchangeRate(parseFloat(e.target.value) || 3.7)}
-                  />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₪/$</span>
+                  <input style={{ ...inputStyle, paddingLeft: '48px' }} type="number" step="0.01"
+                    value={exchangeRate} onChange={e => setExchangeRate(parseFloat(e.target.value) || 3.7)} dir="ltr" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>₪/$</span>
                 </div>
-                <p className="text-gray-500 text-xs">כל החישובים יתבצעו לפי שער זה</p>
+                <p className="text-xs" style={{ color: '#4A5174' }}>כל חישובי הרווח יתבצעו לפי שער זה</p>
               </div>
             </div>
           )}
 
           {/* ── Step 1: Shopify ── */}
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="p-8 space-y-6">
               <div>
-                <h2 className="text-white text-2xl font-bold mb-2">חיבור Shopify</h2>
-                <p className="text-gray-400">חבר את החנות שלך כדי שנמשוך מוצרים והזמנות אוטומטית.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">חיבור Shopify</h2>
+                <p style={{ color: '#6B7280' }}>חבר את החנות שלך — נמשוך מוצרים והזמנות אוטומטית.</p>
               </div>
 
               {shopifyConnected ? (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-emerald-400" />
-                  <div>
-                    <p className="text-emerald-400 font-medium">Shopify מחובר!</p>
-                    <p className="text-gray-500 text-sm">{shopifyDomain} — משכנו {products.length} מוצרים</p>
+                <div className="flex items-center gap-3 p-4 rounded-xl"
+                  style={{ background: '#0D2818', border: '1px solid #166534' }}>
+                  <CheckCircle className="w-6 h-6" style={{ color: '#22C55E' }} />
+                  <div className="flex-1">
+                    <p className="font-medium" style={{ color: '#22C55E' }}>Shopify מחובר!</p>
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      משכנו {products.length} מוצרים — עוברים לקביעת עלויות...
+                    </p>
                   </div>
+                  <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#22C55E' }} />
                 </div>
               ) : (
                 <>
                   <div className="space-y-2">
-                    <Label>דומיין החנות</Label>
-                    <Input
-                      value={shopifyDomain}
-                      onChange={e => setShopifyDomain(e.target.value)}
-                      placeholder="your-store.myshopify.com"
-                      dir="ltr"
-                    />
+                    <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>דומיין החנות</label>
+                    <input style={inputStyle} dir="ltr" value={shopifyDomain}
+                      onChange={e => setShopifyDomain(e.target.value)} placeholder="your-store.myshopify.com" />
                   </div>
+
                   <div className="space-y-2">
-                    <Label>Admin API Access Token</Label>
-                    <Input
-                      type="password"
-                      value={shopifyToken}
-                      onChange={e => setShopifyToken(e.target.value)}
-                      placeholder="shpat_xxxx..."
-                      dir="ltr"
-                    />
-                    <a
-                      href="https://help.shopify.com/en/manual/apps/app-types/custom-apps"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-400 text-xs hover:underline"
-                    >
+                    <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>Admin API Access Token</label>
+                    <input style={inputStyle} dir="ltr" type="password" value={shopifyToken}
+                      onChange={e => setShopifyToken(e.target.value)} placeholder="shpat_xxxx..." />
+                    <a href="https://help.shopify.com/en/manual/apps/app-types/custom-apps"
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs hover:underline" style={{ color: '#3B82F6' }}>
                       <ExternalLink className="w-3 h-3" />
                       איך מקבלים Access Token?
                     </a>
                   </div>
+
                   {shopifyError && (
-                    <p className="text-red-400 text-sm">{shopifyError}</p>
+                    <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
+                      style={{ background: '#2D0F0F', color: '#FCA5A5', border: '1px solid #7F1D1D44' }}>
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      {shopifyError}
+                    </div>
                   )}
-                  <Button onClick={connectShopify} loading={shopifyConnecting} className="w-full">
-                    חבר את Shopify ומשוך מוצרים
-                  </Button>
+
+                  <button onClick={connectShopify}
+                    disabled={shopifyConnecting || !shopifyDomain || !shopifyToken}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                    style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
+                    {shopifyConnecting
+                      ? <><Loader2 className="w-4 h-4 animate-spin" />מחבר...</>
+                      : <><Store className="w-4 h-4" />חבר את Shopify ומשוך מוצרים</>}
+                  </button>
                 </>
               )}
 
-              <div className="border-t border-white/10 pt-4">
-                <p className="text-gray-500 text-sm text-center">
+              <div className="pt-4" style={{ borderTop: '1px solid #1E2130' }}>
+                <p className="text-sm text-center" style={{ color: '#4A5174' }}>
                   אין לך Shopify עדיין?{' '}
-                  <button onClick={() => setStep(s => s + 1)} className="text-blue-400 hover:underline">
+                  <button onClick={() => setStep(2)} className="hover:underline" style={{ color: '#3B82F6' }}>
                     דלג לשלב הבא
                   </button>
                 </p>
@@ -334,63 +365,127 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── Step 2: Product Costs ── */}
+          {/* ── Step 2: Products ── */}
           {step === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-white text-2xl font-bold mb-2">עלויות מוצרים</h2>
-                <p className="text-gray-400">
-                  הכנס את העלות שאתה משלם לכל מוצר. זה ישמש לחישוב הרווח הנקי.
-                </p>
+            <div className="p-8 space-y-6">
+
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">עלויות המוצרים שלך</h2>
+                  <p style={{ color: '#6B7280' }}>
+                    כמה עולה לך כל מוצר? נשתמש בזה לחישוב הרווח הנקי על כל הזמנה.
+                  </p>
+                </div>
+                {totalVariants > 0 && (
+                  <div className="text-xs px-3 py-1.5 rounded-full font-medium shrink-0"
+                    style={{
+                      background: filledCount === totalVariants ? '#0D2818' : '#13161F',
+                      color:      filledCount === totalVariants ? '#22C55E' : '#6B7280',
+                      border: `1px solid ${filledCount === totalVariants ? '#166534' : '#1E2130'}`,
+                    }}>
+                    {filledCount}/{totalVariants} מוצרים
+                  </div>
+                )}
               </div>
 
+              {/* Products list */}
               {loadingProducts ? (
-                <div className="flex items-center justify-center py-8 gap-3">
-                  <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
-                  <span className="text-gray-400">טוען מוצרים מ-Shopify...</span>
+                <div className="flex items-center justify-center py-16 gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#3B82F6' }} />
+                  <span style={{ color: '#6B7280' }}>טוען מוצרים מ-Shopify...</span>
                 </div>
+
               ) : products.length > 0 ? (
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pl-1">
+                <div className="space-y-3 max-h-[460px] overflow-y-auto" style={{ paddingLeft: '2px', paddingRight: '2px' }}>
                   {products.map(product => (
-                    <div key={product.id} className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                      <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
+                    <div key={product.id} className="rounded-2xl overflow-hidden"
+                      style={{ border: '1px solid #1E2130' }}>
+
+                      {/* Product header */}
+                      <div className="flex items-center gap-3 px-4 py-3"
+                        style={{ background: '#13161F', borderBottom: '1px solid #1E2130' }}>
                         {product.image ? (
-                          <img src={product.image} alt={product.title} className="w-10 h-10 rounded-lg object-cover" />
+                          <img src={product.image} alt={product.title}
+                            className="w-12 h-12 rounded-xl object-cover"
+                            style={{ border: '1px solid #1E2130' }} />
                         ) : (
-                          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                            <Store className="w-4 h-4 text-gray-500" />
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+                            style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+                            <Package className="w-5 h-5" style={{ color: '#374151' }} />
                           </div>
                         )}
-                        <h4 className="text-white font-medium text-sm">{product.title}</h4>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-white text-sm leading-tight">{product.title}</h4>
+                          <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>
+                            {product.variants.length} וריאנט{product.variants.length !== 1 ? 'ים' : ''}
+                          </p>
+                        </div>
                       </div>
-                      <div className="divide-y divide-white/5">
-                        {product.variants.map(variant => {
-                          const key = `${product.id}_${variant.id}`
+
+                      {/* Variant rows */}
+                      <div style={{ background: '#0D0F14' }}>
+                        {product.variants.map((variant, vi) => {
+                          const key      = `${product.id}_${variant.id}`
+                          const cost     = productCosts[key] || 0
+                          const sellIls  = parseFloat(variant.price) || 0
+                          const isLast   = vi === product.variants.length - 1
                           return (
-                            <div key={variant.id} className="flex items-center justify-between px-4 py-3">
-                              <div>
-                                <p className="text-gray-300 text-sm">
-                                  {variant.title === 'Default Title' ? 'מוצר בודד' : variant.title}
-                                </p>
-                                {variant.sku && <p className="text-gray-600 text-xs">SKU: {variant.sku}</p>}
-                                <p className="text-gray-500 text-xs">מחיר מכירה: ₪{variant.price}</p>
+                            <div key={variant.id} className="px-4 py-4"
+                              style={{ borderBottom: isLast ? 'none' : '1px solid #13161F' }}>
+
+                              {/* Top row: name + price + input */}
+                              <div className="flex items-center gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-white leading-tight">
+                                    {variant.title === 'Default Title' ? product.title : variant.title}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1">
+                                    <span className="text-xs" style={{ color: '#6B7280' }}>
+                                      מחיר מכירה:&nbsp;
+                                      <strong className="text-white">₪{sellIls}</strong>
+                                    </span>
+                                    {variant.sku && (
+                                      <span className="text-xs" style={{ color: '#374151' }}>
+                                        SKU: {variant.sku}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Cost input */}
+                                <div className="shrink-0 flex items-center gap-2">
+                                  <div className="relative">
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold"
+                                      style={{ color: '#4A5174' }}>$</span>
+                                    <input
+                                      type="number" step="0.01" min="0" placeholder="0.00"
+                                      value={cost || ''}
+                                      onChange={e => setProductCosts(prev => ({
+                                        ...prev,
+                                        [key]: parseFloat(e.target.value) || 0,
+                                      }))}
+                                      style={{
+                                        ...inputStyle,
+                                        width: '110px',
+                                        paddingRight: '26px',
+                                        paddingLeft: '10px',
+                                        textAlign: 'left',
+                                        fontSize: '15px',
+                                        fontWeight: '600',
+                                        color: cost > 0 ? '#F9FAFB' : '#374151',
+                                      }}
+                                      dir="ltr"
+                                    />
+                                  </div>
+                                  <span className="text-xs" style={{ color: '#374151' }}>USD</span>
+                                </div>
                               </div>
-                              <div className="relative w-32">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  placeholder="0.00"
-                                  value={productCosts[key] || ''}
-                                  onChange={e => setProductCosts(prev => ({
-                                    ...prev,
-                                    [key]: parseFloat(e.target.value) || 0,
-                                  }))}
-                                  className="text-left pl-7 pr-2 h-9"
-                                  dir="ltr"
-                                />
-                              </div>
+
+                              {/* Live margin bar */}
+                              {cost > 0 && (
+                                <MarginBadge costUsd={cost} sellingPriceIls={sellIls} exchangeRate={exchangeRate} />
+                              )}
                             </div>
                           )
                         })}
@@ -398,27 +493,63 @@ export default function OnboardingPage() {
                     </div>
                   ))}
                 </div>
+
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Store className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p>לא נמצאו מוצרים — חבר Shopify בשלב הקודם</p>
-                  <p className="text-xs mt-2">או הגדר עלויות ידנית בהגדרות לאחר מכן</p>
+                <div className="text-center py-16 rounded-2xl" style={{ border: '1px dashed #1E2130' }}>
+                  <Store className="w-12 h-12 mx-auto mb-4 text-white opacity-10" />
+                  <p className="text-white font-medium mb-2">לא נמצאו מוצרים</p>
+                  <p className="text-sm" style={{ color: '#4A5174' }}>
+                    חבר Shopify בשלב הקודם כדי למשוך מוצרים אוטומטית
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: '#374151' }}>
+                    ניתן לדלג ולהגדיר עלויות מאוחר יותר בהגדרות
+                  </p>
                 </div>
               )}
 
-              <div className="border-t border-white/10 pt-4 grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">עלות משלוח לבית ($)</Label>
-                  <div className="relative">
-                    <Input type="number" step="0.01" value={homeDeliveryCostUsd} onChange={e => setHomeDeliveryCostUsd(parseFloat(e.target.value) || 0)} className="h-9" />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">$</span>
-                  </div>
+              {/* Delivery settings */}
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Truck className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                  <h4 className="font-semibold text-white text-sm">הגדרות משלוח</h4>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">חיוב משלוח ללקוח (₪)</Label>
-                  <div className="relative">
-                    <Input type="number" value={homeDeliveryChargeIls} onChange={e => setHomeDeliveryChargeIls(parseFloat(e.target.value) || 0)} className="h-9" />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₪</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs" style={{ color: '#6B7280' }}>עלות משלוח לבית (לעסק)</label>
+                    <div className="relative">
+                      <input type="number" step="0.01" value={homeDeliveryCostUsd}
+                        onChange={e => setHomeDeliveryCostUsd(parseFloat(e.target.value) || 0)}
+                        style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>$</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs" style={{ color: '#6B7280' }}>חיוב משלוח ללקוח</label>
+                    <div className="relative">
+                      <input type="number" value={homeDeliveryChargeIls}
+                        onChange={e => setHomeDeliveryChargeIls(parseFloat(e.target.value) || 0)}
+                        style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs" style={{ color: '#6B7280' }}>סף לעמלת איסוף עצמי</label>
+                    <div className="relative">
+                      <input type="number" value={pickupFeeThresholdIls}
+                        onChange={e => setPickupFeeThresholdIls(parseFloat(e.target.value) || 0)}
+                        style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                    </div>
+                    <p className="text-xs" style={{ color: '#374151' }}>הזמנות מתחת לסף = חיוב עמלה</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs" style={{ color: '#6B7280' }}>עמלת איסוף עצמי</label>
+                    <div className="relative">
+                      <input type="number" value={pickupFeeAmountIls}
+                        onChange={e => setPickupFeeAmountIls(parseFloat(e.target.value) || 0)}
+                        style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -427,54 +558,51 @@ export default function OnboardingPage() {
 
           {/* ── Step 3: Ads ── */}
           {step === 3 && (
-            <div className="space-y-6">
+            <div className="p-8 space-y-6">
               <div>
-                <h2 className="text-white text-2xl font-bold mb-2">חיבור פרסום</h2>
-                <p className="text-gray-400">חבר את פלטפורמות הפרסום שלך כדי לחשב ROAS אמיתי על בסיס רווח.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">חיבור פרסום</h2>
+                <p style={{ color: '#6B7280' }}>חבר פלטפורמות פרסום לחישוב ROAS אמיתי על בסיס רווח נקי.</p>
               </div>
 
-              {/* Facebook */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/20 flex items-center justify-center">
-                    <span className="text-blue-400 font-bold text-sm">f</span>
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#1E3A5F' }}>
+                    <span className="font-bold text-sm" style={{ color: '#3B82F6' }}>f</span>
                   </div>
                   <div>
                     <h4 className="text-white font-medium">Facebook / Meta Ads</h4>
-                    <p className="text-gray-500 text-xs">משוך הוצאות יומיות אוטומטית</p>
+                    <p className="text-xs" style={{ color: '#4A5174' }}>משוך הוצאות יומיות אוטומטית</p>
                   </div>
                 </div>
-                <div className="grid gap-3">
+                <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Ad Account ID</Label>
-                    <Input value={fbAdAccountId} onChange={e => setFbAdAccountId(e.target.value)} placeholder="123456789" dir="ltr" className="h-9" />
+                    <label className="text-xs" style={{ color: '#6B7280' }}>Ad Account ID</label>
+                    <input style={inputStyle} dir="ltr" value={fbAdAccountId}
+                      onChange={e => setFbAdAccountId(e.target.value)} placeholder="123456789" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Access Token</Label>
-                    <Input type="password" value={fbAccessToken} onChange={e => setFbAccessToken(e.target.value)} placeholder="EAAx..." dir="ltr" className="h-9" />
+                    <label className="text-xs" style={{ color: '#6B7280' }}>Access Token</label>
+                    <input style={inputStyle} dir="ltr" type="password" value={fbAccessToken}
+                      onChange={e => setFbAccessToken(e.target.value)} placeholder="EAAx..." />
                   </div>
                 </div>
               </div>
 
-              {/* TikTok */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-pink-600/20 flex items-center justify-center">
-                    <span className="text-pink-400 font-bold text-sm">T</span>
+              <div className="rounded-2xl p-5" style={{ background: '#13161F', border: '1px solid #1E2130', opacity: 0.5 }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#2D1B2E' }}>
+                    <span className="font-bold text-sm" style={{ color: '#C084FC' }}>T</span>
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="text-white font-medium">TikTok Ads</h4>
-                    <p className="text-gray-500 text-xs">בקרוב — בשלב ה-Beta</p>
+                    <p className="text-xs" style={{ color: '#4A5174' }}>בקרוב</p>
                   </div>
-                  <span className="mr-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">בקרוב</span>
-                </div>
-                <div className="grid gap-3 opacity-50 pointer-events-none">
-                  <Input placeholder="Ad Account ID" dir="ltr" className="h-9" disabled />
-                  <Input placeholder="Access Token" dir="ltr" className="h-9" disabled />
+                  <span className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: '#2A1800', color: '#F59E0B' }}>בקרוב</span>
                 </div>
               </div>
 
-              <p className="text-gray-500 text-sm text-center">
+              <p className="text-sm text-center" style={{ color: '#4A5174' }}>
                 ניתן לדלג ולחבר מאוחר יותר מדף האינטגרציות
               </p>
             </div>
@@ -482,51 +610,46 @@ export default function OnboardingPage() {
 
           {/* ── Step 4: Payment ── */}
           {step === 4 && (
-            <div className="space-y-6">
+            <div className="p-8 space-y-6">
               <div>
-                <h2 className="text-white text-2xl font-bold mb-2">הגדרות תשלום ומע"מ</h2>
-                <p className="text-gray-400">הגדר אמצעי תשלום ועמלות — אלה יורדו מהרווח אוטומטית.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">הגדרות תשלום ומע"מ</h2>
+                <p style={{ color: '#6B7280' }}>עמלות אמצעי התשלום יורדו אוטומטית מהרווח בכל הזמנה.</p>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
                 <h4 className="text-white font-medium">מע"מ</h4>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={vatEnabled} onChange={e => setVatEnabled(e.target.checked)} className="w-4 h-4" />
-                  <span className="text-gray-300 text-sm">העסק גובה מע"מ</span>
+                  <input type="checkbox" checked={vatEnabled}
+                    onChange={e => setVatEnabled(e.target.checked)} className="w-4 h-4 rounded accent-blue-500" />
+                  <span className="text-sm" style={{ color: '#CBD5E1' }}>העסק גובה מע"מ</span>
                 </label>
                 {vatEnabled && (
-                  <div className="relative max-w-xs mr-7">
-                    <Input type="number" value={vatPercent} onChange={e => setVatPercent(parseFloat(e.target.value) || 17)} className="h-9" />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                  <div className="relative max-w-xs">
+                    <input type="number" value={vatPercent}
+                      onChange={e => setVatPercent(parseFloat(e.target.value) || 17)}
+                      style={{ ...inputStyle, paddingLeft: '32px' }} dir="ltr" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
                   </div>
                 )}
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
                 <h4 className="text-white font-medium">אמצעי תשלום ועמלות</h4>
                 <div className="space-y-3">
                   {paymentMethods.map((m, i) => (
                     <div key={m.name} className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 w-36 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={m.enabled}
+                      <label className="flex items-center gap-2 min-w-[140px] cursor-pointer">
+                        <input type="checkbox" checked={m.enabled}
                           onChange={() => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, enabled: !p.enabled } : p))}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-gray-300 text-sm">{m.name}</span>
+                          className="w-4 h-4 rounded accent-blue-500" />
+                        <span className="text-sm" style={{ color: m.enabled ? '#CBD5E1' : '#4A5174' }}>{m.name}</span>
                       </label>
                       {m.enabled && (
-                        <div className="relative max-w-xs">
-                          <Input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            value={m.feePercent}
+                        <div className="relative">
+                          <input type="number" step="0.1" min="0" value={m.feePercent}
                             onChange={e => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, feePercent: parseFloat(e.target.value) || 0 } : p))}
-                            className="h-9 max-w-24"
-                          />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                            style={{ ...inputStyle, width: '96px', paddingLeft: '28px' }} dir="ltr" />
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
                         </div>
                       )}
                     </div>
@@ -538,77 +661,71 @@ export default function OnboardingPage() {
 
           {/* ── Step 5: AI Notes ── */}
           {step === 5 && (
-            <div className="space-y-6">
+            <div className="p-8 space-y-6">
               <div>
-                <h2 className="text-white text-2xl font-bold mb-2">הנחיות לבינה המלאכותית</h2>
-                <p className="text-gray-400">
-                  כתוב כאן כל כלל עסקי מיוחד, מקרה קצה, או משהו שלא ניתן להסביר דרך הממשק הרגיל.
-                  ה-AI יקרא את זה עם כל ניתוח הזמנה.
-                </p>
+                <h2 className="text-2xl font-bold text-white mb-2">הנחיות ל-AI</h2>
+                <p style={{ color: '#6B7280' }}>כתוב כאן כל כלל עסקי מיוחד שה-AI צריך לדעת בעת ניתוח הזמנות.</p>
               </div>
 
-              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                <p className="text-blue-300 text-sm font-medium mb-2">💡 דוגמאות למה לכתוב:</p>
-                <ul className="space-y-1 text-gray-400 text-sm">
-                  <li>• "כשקונים 2 דילים עם 10% הנחה, ההנחה מחליפה הנחת כמות — אין כפל"</li>
-                  <li>• "קפסולות הפתעה עולות לי 0.85$ כל אחת גם אם חינם ללקוח"</li>
-                  <li>• "קופון 50₪ תמיד מצטבר עם הנחת כמות"</li>
+              <div className="rounded-xl p-4" style={{ background: '#0D1A2A', border: '1px solid #1E3A5F' }}>
+                <p className="text-sm font-medium mb-2" style={{ color: '#60A5FA' }}>💡 דוגמאות:</p>
+                <ul className="space-y-1 text-sm" style={{ color: '#4A5174' }}>
+                  <li>• "קפסולות הפתעה עולות לי $0.85 גם אם חינם ללקוח"</li>
+                  <li>• "קופון 50₪ מצטבר עם הנחת כמות"</li>
                   <li>• "מוצר X הוא בעצם Y — עלות ₪12 לא ₪8"</li>
                 </ul>
               </div>
 
               <div className="space-y-2">
-                <Label>הנחיות מיוחדות (עברית מועדפת)</Label>
-                <Textarea
+                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>הנחיות מיוחדות</label>
+                <textarea
                   value={aiNotes}
                   onChange={e => setAiNotes(e.target.value)}
-                  placeholder="כתוב כאן כל כלל עסקי מיוחד שה-AI צריך לדעת..."
-                  rows={8}
-                  className="min-h-48 resize-none"
+                  placeholder="כתוב כאן כל כלל עסקי מיוחד..."
+                  rows={7}
+                  style={{ ...inputStyle, resize: 'none', lineHeight: '1.6' }}
                 />
-                <p className="text-gray-500 text-xs">
-                  {aiNotes.length} תווים — אפשר להוסיף ולערוך בכל עת מדף ההגדרות
+                <p className="text-xs" style={{ color: '#374151' }}>
+                  {aiNotes.length} תווים — ניתן לערוך בכל עת מדף ההגדרות
                 </p>
               </div>
 
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
-                ✓ הכל מוכן! לחץ על "סיים והתחל" כדי להיכנס לדשבורד.
+              <div className="flex items-center gap-3 p-4 rounded-xl"
+                style={{ background: '#0D2818', border: '1px solid #166534' }}>
+                <CheckCircle className="w-5 h-5 shrink-0" style={{ color: '#22C55E' }} />
+                <p className="text-sm font-medium" style={{ color: '#22C55E' }}>
+                  הכל מוכן! לחץ "סיים והתחל" כדי לעבור לדשבורד.
+                </p>
               </div>
             </div>
           )}
 
-          {/* ── Navigation buttons ── */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-white/10">
-            <Button
-              variant="ghost"
-              onClick={prev}
-              disabled={step === 0}
-              className="flex items-center gap-2"
-            >
+          {/* ── Navigation ── */}
+          <div className="flex items-center justify-between px-8 py-5"
+            style={{ borderTop: '1px solid #1E2130' }}>
+            <button onClick={prev} disabled={step === 0}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 hover:opacity-80"
+              style={{ background: '#13161F', color: '#CBD5E1', border: '1px solid #1E2130' }}>
               <ChevronRight className="w-4 h-4" />
               הקודם
-            </Button>
+            </button>
 
-            <span className="text-gray-500 text-sm">{step + 1} / {STEPS.length}</span>
+            <span className="text-sm" style={{ color: '#374151' }}>{step + 1} / {STEPS.length}</span>
 
-            <Button
-              onClick={next}
-              loading={saving}
-              disabled={step === 0 && !businessName.trim()}
-              className="flex items-center gap-2"
-            >
-              {step === STEPS.length - 1 ? (
-                <>
-                  <Rocket className="w-4 h-4" />
-                  סיים והתחל
-                </>
-              ) : (
-                <>
-                  הבא
-                  <ChevronLeft className="w-4 h-4" />
-                </>
-              )}
-            </Button>
+            <button onClick={next}
+              disabled={(step === 0 && !businessName.trim()) || saving}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 hover:-translate-y-0.5"
+              style={{
+                background: step === STEPS.length - 1
+                  ? 'linear-gradient(135deg, #22C55E, #16A34A)'
+                  : 'linear-gradient(135deg, #3B82F6, #6366F1)',
+              }}>
+              {saving
+                ? <><Loader2 className="w-4 h-4 animate-spin" />שומר...</>
+                : step === STEPS.length - 1
+                  ? <><Rocket className="w-4 h-4" />סיים והתחל</>
+                  : <>הבא <ChevronLeft className="w-4 h-4" /></>}
+            </button>
           </div>
         </div>
       </div>
