@@ -284,7 +284,7 @@ export default function ReconcilePage() {
             </div>
 
             {/* Rows */}
-            <div className="divide-y" style={{ divideColor: '#1E2130' }}>
+            <div className="divide-y divide-white/5">
               {filtered.length === 0 ? (
                 <div className="py-12 text-center text-sm" style={{ color: '#4A5174' }}>
                   אין תוצאות עבור הסינון הנוכחי
