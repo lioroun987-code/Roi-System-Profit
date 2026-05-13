@@ -157,15 +157,25 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── 4. Build our cost map ──
+    // ── 4. Build our cost map — filtered by date range from agent tab ──
+    const dateRange = agentSheetName ? parseDateRange(agentSheetName) : null
+
     const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
     for (let i = 0; i < mainRows.length; i++) {
-      const orderRaw = mainRows[i][MAIN_COL_ORDER - 1]?.toString().trim()
+      const row = mainRows[i]
+
+      // Filter by date if we have a range
+      if (dateRange) {
+        const dateVal = row[MAIN_COL_DATE - 1]?.toString().trim()
+        const rowDate = parseDate(dateVal)
+        if (!rowDate || rowDate < dateRange.start || rowDate > dateRange.end) continue
+      }
+
+      const orderRaw = row[MAIN_COL_ORDER - 1]?.toString().trim()
       if (!orderRaw) continue
-      // Skip non-numeric values (headers, names, etc.)
       if (!/^\d+$/.test(orderRaw.replace('#', '').trim())) continue
       const orderNum = orderRaw.replace('#', '').trim()
-      const costRaw  = mainRows[i][MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
+      const costRaw  = row[MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
       ourByOrder.set(orderNum, {
         cost: costRaw && costRaw !== '' ? parseFloat(costRaw) : null,
         rowIndex: i + 2,
