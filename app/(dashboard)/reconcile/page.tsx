@@ -116,6 +116,7 @@ export default function ReconcilePage() {
 
       setResults(data.results)
       setSummary({ ...data.summary, totalDiff })
+      setDebug(data.debug ?? null)
     } catch (e: any) {
       setError(`שגיאה: ${e?.message ?? 'לא ידועה'}`)
     } finally {
