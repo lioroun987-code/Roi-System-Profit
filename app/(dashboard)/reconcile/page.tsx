@@ -140,8 +140,9 @@ export default function ReconcilePage() {
 
   const filtered = (results ?? [])
     .filter(r => {
-      if (filter === 'issues') return r.status !== 'match'
-      if (filter === 'match')  return r.status === 'match'
+      if (filter === 'issues')  return r.status === 'agent_higher' || r.status === 'we_higher'
+      if (filter === 'match')   return r.status === 'match'
+      if (filter === 'missing') return r.status === 'missing_our_cost'
       return true
     })
     .filter(r => !search || r.orderNumber.includes(search))
