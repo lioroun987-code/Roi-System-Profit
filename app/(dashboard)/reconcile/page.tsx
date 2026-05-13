@@ -58,6 +58,18 @@ export default function ReconcilePage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
+  async function loadAgentTabs(url: string) {
+    const id = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)?.[1] ?? url.trim()
+    if (!id || !activeBusiness) return
+    setLoadingTabs(true)
+    try {
+      const res = await fetch(`/api/sheets/tabs?businessId=${activeBusiness}&sheetId=${id}`)
+      const data = await res.json()
+      setAgentTabs(data.tabs ?? [])
+      if (data.tabs?.length > 0) setAgentSheetName(data.tabs[0])
+    } finally { setLoadingTabs(false) }
+  }
+
   function extractSheetId(input: string): string {
     const match = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)
     return match ? match[1] : input.trim()
