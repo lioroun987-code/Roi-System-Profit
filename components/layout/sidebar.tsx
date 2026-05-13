@@ -29,7 +29,17 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
   const pathname = usePathname()
   const { data: session } = useSession()
   const [businessOpen, setBusinessOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const currentBusiness = businesses.find(b => b.id === activeBusiness)
+
+  async function deleteBusiness(id: string, name: string) {
+    if (!confirm(`למחוק את "${name}"?\n\nכל ההזמנות והנתונים יימחקו לצמיתות.`)) return
+    setDeletingId(id)
+    await fetch(`/api/businesses/${id}`, { method: 'DELETE' })
+    setDeletingId(null)
+    localStorage.removeItem('activeBusiness')
+    window.location.href = '/dashboard'
+  }
 
   return (
     <aside className="w-60 shrink-0 flex flex-col h-full border-l" style={{ background: '#0C0E14', borderColor: '#1E2130' }}>
