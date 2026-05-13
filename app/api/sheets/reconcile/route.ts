@@ -316,6 +316,14 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
+    // Direct match test
+    const agentSample3 = agentKeys.slice(0, 3)
+    const directMatchTest = agentSample3.map(k => ({
+      key: k,
+      inOur: ourByOrder.has(k),
+      ourRaw: JSON.stringify([...ourByOrder.entries()].find(([ok]) => ok === k)?.[0] ?? 'not found'),
+    }))
+
     const colLetter = (n: number) => n < 0 ? '?' : String.fromCharCode(65 + n)
     const rawDateSamples = mainRows.slice(0, 5).map(r => r[detectedDateCol]?.toString() ?? '')
     const rawOrderSamples = mainRows.slice(0, 5).map(r => r[detectedOrderCol]?.toString() ?? '')
