@@ -344,8 +344,9 @@ export default function ReconcilePage() {
             <div className="flex gap-2">
               {[
                 { key: 'all', label: 'הכל' },
-                { key: 'issues', label: '⚠️ פערים בלבד' },
+                { key: 'issues', label: '⚠️ פערים' },
                 { key: 'match', label: '✓ תואמים' },
+                { key: 'missing', label: '⏳ חסרה עלות' },
               ].map(f => (
                 <button
                   key={f.key}
