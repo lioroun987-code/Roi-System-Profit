@@ -327,6 +327,68 @@ export default function IntegrationsPage() {
         )}
       </IntegrationCard>
 
+      {/* Sheet Sync — The main feature */}
+      {business?.googleRefreshToken && business?.googleSheetsId && (
+        <div className="rounded-2xl border p-6" style={{ background: '#0F1A2E', borderColor: '#1E3A5F' }}>
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#1E3A5F' }}>
+              <Zap className="w-6 h-6 text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-white font-bold text-lg mb-1">סנכרון אוטומטי מהגיליון</h3>
+              <p className="text-sm mb-4" style={{ color: '#8B8FA8' }}>
+                המערכת תסרוק את הגיליון שלך, תזהה הזמנות שטרם חושב עבורן מחיר (עמודה G ריקה),
+                תמשוך את פרטיהן משופיפיי, תחשב עם AI את העלות האמיתית — ותמלא אוטומטית עמודות G ו-H.
+              </p>
+
+              <div className="grid grid-cols-3 gap-3 mb-5 text-center">
+                {[
+                  { step: '1', label: 'קורא את הגיליון', desc: 'מוצא שורות עם עמודה G ריקה' },
+                  { step: '2', label: 'מושך מ-Shopify', desc: 'מאתר את ההזמנה לפי מספר' },
+                  { step: '3', label: 'AI מחשב ומעדכן', desc: 'ממלא עלות ורווח אוטומטית' },
+                ].map(s => (
+                  <div key={s.step} className="p-3 rounded-xl" style={{ background: '#1A2540' }}>
+                    <div className="w-7 h-7 rounded-full mx-auto mb-2 flex items-center justify-center text-sm font-bold text-white" style={{ background: '#4F6EF7' }}>{s.step}</div>
+                    <p className="text-white text-xs font-semibold">{s.label}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {syncResult && (
+                <div className="flex gap-4 mb-4 p-3 rounded-xl" style={{ background: '#1A2540' }}>
+                  <div className="text-center">
+                    <p className="text-emerald-400 font-bold text-xl">{syncResult.processed}</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>עודכנו</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-400 font-bold text-xl">{syncResult.skipped}</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>דולגו</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-red-400 font-bold text-xl">{syncResult.errors}</p>
+                    <p className="text-xs" style={{ color: '#6B7280' }}>שגיאות</p>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={syncFromSheet}
+                disabled={syncingSheets}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: syncingSheets ? '#1E2130' : 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}
+              >
+                <RefreshCw className={`w-4 h-4 ${syncingSheets ? 'animate-spin' : ''}`} />
+                {syncingSheets ? 'מחשב ומעדכן את הגיליון...' : 'סנכרן והשלם עלויות בגיליון'}
+              </button>
+              <p className="text-xs mt-2" style={{ color: '#4A5174' }}>
+                רק שורות עם עמודה G ריקה יעובדו. שורות קיימות לא יידרסו.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Webhook info */}
       <div className="rounded-2xl border p-5" style={cardStyle}>
         <h3 className="text-white font-semibold mb-2">Shopify Webhook URL</h3>
