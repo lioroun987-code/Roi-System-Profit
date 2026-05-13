@@ -198,8 +198,8 @@ export default function ReconcilePage() {
 
         <button
           onClick={runReconcile}
-          disabled={running || !agentSheetId}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={running}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50"
           style={{ background: running ? '#1E2130' : 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}
         >
           <span className={running ? 'animate-spin' : ''}>🔍</span>
