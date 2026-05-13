@@ -108,6 +108,8 @@ export async function POST(request: NextRequest) {
     for (const row of agentRows) {
       const orderRaw = row[AGENT_COL_ORDER - 1]?.toString().trim()
       if (!orderRaw) continue
+      // Skip rows where column B is not a number (e.g., customer names, headers)
+      if (!/^\d+$/.test(orderRaw.replace('#', '').trim())) continue
       const orderNum = orderRaw.replace('#', '').trim()
       const date     = row[0]?.toString().trim() ?? ''  // Column A = Order Creation Date
       const price    = parseFloat(row[AGENT_COL_PRICE    - 1]?.toString().replace(',', '.') ?? '0') || 0
