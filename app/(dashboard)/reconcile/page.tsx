@@ -76,9 +76,9 @@ export default function ReconcilePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           businessId: activeBusiness,
-          agentSheetId,
+          agentSheetId: extractSheetId(agentSheetId),
           agentSheetName: agentSheetName || undefined,
-          ourSheetId: ourSheetId || undefined,
+          ourSheetId: extractSheetId(ourSheetId),
         }),
       })
 
