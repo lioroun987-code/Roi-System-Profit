@@ -178,6 +178,17 @@ export default function IntegrationsPage() {
     }
   }
 
+  async function disconnect(fields: Record<string, null>) {
+    if (!activeBusiness) return
+    await fetch(`/api/businesses/${activeBusiness}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields),
+    })
+    fetchBusiness()
+    showToast('הניתוק בוצע בהצלחה', 'success')
+  }
+
   async function saveSheets() {
     if (!activeBusiness) return
     setSavingSheets(true)
