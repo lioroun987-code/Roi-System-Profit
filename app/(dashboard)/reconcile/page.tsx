@@ -303,35 +303,22 @@ export default function ReconcilePage() {
 
           {/* Debug panel */}
           {debug && summary && summary.matches === 0 && (
-            <div className="rounded-xl border p-4" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
-              <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין הזמנות תואמות — בדיקת פורמט מספרי הזמנה</p>
-              <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="rounded-xl border p-4 text-xs" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
+              <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין התאמות — טווחי מספרי הזמנה</p>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="font-medium mb-1" style={{ color: '#8B8FA8' }}>גיליון הסוכן (עמודה B) — {debug.agentTotal} הזמנות:</p>
-                  <div className="space-y-1">
-                    {debug.agentSample.map(n => (
-                      <span key={n} className="inline-block px-2 py-0.5 rounded font-mono ml-1" style={{ background: '#2A2000', color: '#FCD34D' }}>{n}</span>
-                    ))}
-                  </div>
+                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>סוכן ({debug.agentTotal} הזמנות)</p>
+                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.agentFirst5?.join(', ')}</p>
+                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.agentLast5?.join(', ')}</p>
                 </div>
                 <div>
-                  <p className="font-medium mb-1" style={{ color: '#8B8FA8' }}>הגיליון שלך (עמודה I) — {debug.ourTotal} הזמנות:</p>
-                  <div className="space-y-1">
-                    {debug.ourSample.map(n => (
-                      <span key={n} className="inline-block px-2 py-0.5 rounded font-mono ml-1" style={{ background: '#2A2000', color: '#FCD34D' }}>{n}</span>
-                    ))}
-                  </div>
+                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>שלך ({debug.ourTotal} הזמנות)</p>
+                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.ourFirst5?.join(', ')}</p>
+                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.ourLast5?.join(', ')}</p>
                 </div>
               </div>
-              {debug?.dateRangeParsed && (
-                <div className="mt-3 p-2 rounded text-xs" style={{ background: '#1A1A0A' }}>
-                  <p style={{ color: '#8B8FA8' }}>טווח תאריכים שזוהה: <span className="text-yellow-400">{debug.dateRangeParsed}</span></p>
-                  {debug.rawDateSamples && <p className="mt-1" style={{ color: '#8B8FA8' }}>תאריכים בגיליון שלך: {debug.rawDateSamples.filter(Boolean).map(d => <span key={d} className="text-yellow-300 ml-1 font-mono">{d}</span>)}</p>}
-                  {debug.rawOrderSamples && <p className="mt-1" style={{ color: '#8B8FA8' }}>ערכים בעמודה I: {debug.rawOrderSamples.filter(Boolean).map(d => <span key={d} className="text-yellow-300 ml-1 font-mono">{d}</span>)}</p>}
-                </div>
-              )}
-              <p className="text-xs mt-3" style={{ color: '#6B7280' }}>
-                אם הפורמטים שונים (למשל 3525 מול #3525 או 4987...) — שלח לי צילום מסך ואתקן
+              <p className="mt-2" style={{ color: '#8B8FA8' }}>
+                תאריכים: <span className="text-yellow-400">{debug.dateRangeParsed}</span>
               </p>
             </div>
           )}
