@@ -16,13 +16,29 @@ const THRESHOLD          = 0.5
 
 // Parse date range from agent tab name: "הזמנות 01/02 - 28/02" or "01/02 - 28/02"
 function parseDateRange(tabName: string): { start: Date; end: Date } | null {
-  const match = tabName.match(/(\d{2})\/(\d{2})\s*[-–]\s*(\d{2})\/(\d{2})/)
-  if (!match) return null
   const year = new Date().getFullYear()
-  const [, d1, m1, d2, m2] = match
-  const start = new Date(year, parseInt(m1) - 1, parseInt(d1), 0, 0, 0)
-  const end   = new Date(year, parseInt(m2) - 1, parseInt(d2), 23, 59, 59)
-  // Handle year boundary (e.g. Dec→Jan)
+  // Find all DD/MM pairs in the string
+  const allMatches = [...tabName.matchAll(/(\d{1,2})\/(\d{1,2})/g)]
+  if (allMatches.length < 2) {
+    // Try to extract just the month from a single date
+    if (allMatches.length === 1) {
+      const [, d, m] = allMatches[0]
+      const date = new Date(year, parseInt(m) - 1, parseInt(d))
+      return {
+        start: new Date(year, date.getMonth(), 1),
+        end: new Date(year, date.getMonth() + 1, 0, 23, 59, 59),
+      }
+    }
+    return null
+  }
+  // Build two dates and take the earlier as start
+  const dates = allMatches.map(m => new Date(year, parseInt(m[2]) - 1, parseInt(m[1])))
+  const dateA = dates[0]
+  const dateB = dates[1]
+  const start = dateA < dateB ? dateA : dateB
+  const end   = dateA < dateB ? dateB : dateA
+  end.setHours(23, 59, 59)
+  // Handle year boundary (Dec→Jan)
   if (end < start) end.setFullYear(year + 1)
   return { start, end }
 }
