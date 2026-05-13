@@ -206,6 +206,7 @@ export async function POST(request: NextRequest) {
     let detectedOrderCol = -1
     let detectedCostCol = -1
 
+    // Pass 1: find date and order columns from first 100 rows
     for (const row of mainRows.slice(0, 100)) {
       for (let c = 0; c < row.length; c++) {
         const val = row[c]?.toString().trim() ?? ''
@@ -215,13 +216,31 @@ export async function POST(request: NextRequest) {
         if (detectedOrderCol === -1 && /^\d{3,5}$/.test(val.replace('#', ''))) {
           detectedOrderCol = c
         }
-        if (detectedCostCol === -1 && /^\d{1,4}(\.\d{1,2})?$/.test(val) && parseFloat(val) > 10 && parseFloat(val) < 1000) {
-          if (detectedOrderCol !== -1 && c !== detectedOrderCol && c !== detectedDateCol) {
-            detectedCostCol = c
-          }
-        }
       }
       if (detectedDateCol >= 0 && detectedOrderCol >= 0) break
+    }
+
+    // Pass 2: find cost column — look BETWEEN date and order cols (or nearby)
+    // Search in all rows (including 2026 rows) to find a column with cost values
+    const lo = Math.min(detectedDateCol, detectedOrderCol)
+    const hi = Math.max(detectedDateCol, detectedOrderCol)
+    const costCandidates = new Map<number, number>() // col → count of valid cost values
+
+    for (const row of mainRows.slice(0, 200)) {
+      for (let c = lo; c <= hi; c++) {
+        if (c === detectedDateCol || c === detectedOrderCol) continue
+        const raw = row[c]?.toString().replace(/[₪,]/g, '').trim() ?? ''
+        const num = parseFloat(raw)
+        if (/^\d{1,5}(\.\d{1,2})?$/.test(raw) && num > 5 && num < 2000) {
+          costCandidates.set(c, (costCandidates.get(c) ?? 0) + 1)
+        }
+      }
+    }
+
+    // Pick the column with the most cost-like values
+    let bestCostCount = 0
+    for (const [col, count] of costCandidates) {
+      if (count > bestCostCount) { bestCostCount = count; detectedCostCol = col }
     }
 
     const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
