@@ -76,8 +76,16 @@ export default function ReconcilePage() {
           ourSheetId: ourSheetId || undefined,
         }),
       })
-      const data = await res.json()
-      if (!res.ok || data.error) { setError(data.error ?? 'שגיאה לא ידועה'); return }
+
+      let data: any
+      try {
+        data = await res.json()
+      } catch {
+        setError(`שגיאת שרת (${res.status}) — נסה שוב`)
+        return
+      }
+
+      if (!res.ok || data.error) { setError(data.error ?? `שגיאה (${res.status})`); return }
 
       const totalDiff = data.results
         .filter((r: ReconcileResult) => r.status !== 'match')
