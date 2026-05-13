@@ -146,7 +146,9 @@ export async function POST(request: NextRequest) {
     const results: any[] = []
     const sheetUpdates: { range: string; value: string; color: any }[] = []
 
-    for (const [orderNum, agentCost] of agentByOrder) {
+    for (const [orderNum, agentData] of agentByOrder) {
+      const agentCost = agentData.costIls
+      const orderDate = agentData.date
       const ourData = ourByOrder.get(orderNum)
       const ourCost = ourData?.cost ?? null
       const diff = ourCost != null ? Math.abs(agentCost - ourCost) : 0
