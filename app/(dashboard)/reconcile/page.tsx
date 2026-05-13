@@ -193,8 +193,9 @@ export default function ReconcilePage() {
             </label>
             <input
               value={agentSheetId}
-              onChange={e => setAgentSheetId(e.target.value.trim())}
-              placeholder="מזהה גיליון הסוכן"
+              onChange={e => setAgentSheetId(e.target.value)}
+              onBlur={e => loadAgentTabs(e.target.value)}
+              placeholder="URL מלא או מזהה גיליון הסוכן"
               style={inputStyle}
             />
             <p className="text-xs" style={{ color: '#4A5174' }}>
