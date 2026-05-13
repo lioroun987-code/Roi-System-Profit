@@ -104,21 +104,29 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 3. Group agent by order number: SUM(K+L+M) in USD → convert to ILS ──
-    const agentByOrderUsd = new Map<string, number>()
+    const agentByOrderUsd = new Map<string, { total: number; date: string }>()
     for (const row of agentRows) {
       const orderRaw = row[AGENT_COL_ORDER - 1]?.toString().trim()
       if (!orderRaw) continue
       const orderNum = orderRaw.replace('#', '').trim()
+      const date     = row[0]?.toString().trim() ?? ''  // Column A = Order Creation Date
       const price    = parseFloat(row[AGENT_COL_PRICE    - 1]?.toString().replace(',', '.') ?? '0') || 0
       const discount = parseFloat(row[AGENT_COL_DISCOUNT - 1]?.toString().replace(',', '.') ?? '0') || 0
       const hd       = parseFloat(row[AGENT_COL_HD       - 1]?.toString().replace(',', '.') ?? '0') || 0
-      agentByOrderUsd.set(orderNum, (agentByOrderUsd.get(orderNum) ?? 0) + price + discount + hd)
+      const existing = agentByOrderUsd.get(orderNum)
+      agentByOrderUsd.set(orderNum, {
+        total: (existing?.total ?? 0) + price + discount + hd,
+        date: existing?.date || date,
+      })
     }
 
     // Convert USD → ILS
-    const agentByOrder = new Map<string, number>()
-    for (const [order, usd] of agentByOrderUsd) {
-      agentByOrder.set(order, parseFloat((usd * EXCHANGE_RATE).toFixed(2)))
+    const agentByOrder = new Map<string, { costIls: number; date: string }>()
+    for (const [order, data] of agentByOrderUsd) {
+      agentByOrder.set(order, {
+        costIls: parseFloat((data.total * EXCHANGE_RATE).toFixed(2)),
+        date: data.date,
+      })
     }
 
     // ── 4. Build our cost map ──
