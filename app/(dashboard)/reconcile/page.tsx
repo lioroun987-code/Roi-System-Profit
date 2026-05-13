@@ -44,11 +44,13 @@ export default function ReconcilePage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
-    if (stored) setActiveBusiness(stored)
-    // Pre-fill our sheet from business config
-    fetch(`/api/businesses/${stored}`).then(r => r.json()).then(b => {
-      if (b.googleSheetsId) setOurSheetId(b.googleSheetsId)
-    }).catch(() => {})
+    if (stored) {
+      setActiveBusiness(stored)
+      fetch(`/api/businesses/${stored}`)
+        .then(r => r.json())
+        .then(b => { if (b.googleSheetsId) setOurSheetId(b.googleSheetsId) })
+        .catch(() => {})
+    }
     const handler = (e: CustomEvent) => setActiveBusiness(e.detail)
     window.addEventListener('businessChange', handler as EventListener)
     return () => window.removeEventListener('businessChange', handler as EventListener)
