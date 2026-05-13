@@ -57,7 +57,9 @@ export default function ReconcilePage() {
   }, [])
 
   async function runReconcile() {
-    if (!activeBusiness || !agentSheetId) return
+    if (!activeBusiness) { setError('בחר עסק מהתפריט הצדדי'); return }
+    if (!agentSheetId.trim()) { setError('יש להכניס את מזהה גיליון הסוכן'); return }
+    if (!ourSheetId.trim()) { setError('יש להכניס את מזהה הגיליון שלך (או לחבר Google Sheets בהגדרות)'); return }
     setRunning(true)
     setError('')
     setResults(null)
