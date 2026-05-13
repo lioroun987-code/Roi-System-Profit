@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: `שגיאה בקריאת הגיליון שלך: ${msg}` }, { status: 400 })
     }
 
-    // ── 3. Group agent by order number: SUM(K) + SUM(L) + SUM(M) ──
-    const agentByOrder = new Map<string, number>()
+    // ── 3. Group agent by order number: SUM(K+L+M) in USD → convert to ILS ──
+    const agentByOrderUsd = new Map<string, number>()
     for (const row of agentRows) {
       const orderRaw = row[AGENT_COL_ORDER - 1]?.toString().trim()
       if (!orderRaw) continue
@@ -112,7 +112,13 @@ export async function POST(request: NextRequest) {
       const price    = parseFloat(row[AGENT_COL_PRICE    - 1]?.toString().replace(',', '.') ?? '0') || 0
       const discount = parseFloat(row[AGENT_COL_DISCOUNT - 1]?.toString().replace(',', '.') ?? '0') || 0
       const hd       = parseFloat(row[AGENT_COL_HD       - 1]?.toString().replace(',', '.') ?? '0') || 0
-      agentByOrder.set(orderNum, (agentByOrder.get(orderNum) ?? 0) + price + discount + hd)
+      agentByOrderUsd.set(orderNum, (agentByOrderUsd.get(orderNum) ?? 0) + price + discount + hd)
+    }
+
+    // Convert USD → ILS
+    const agentByOrder = new Map<string, number>()
+    for (const [order, usd] of agentByOrderUsd) {
+      agentByOrder.set(order, parseFloat((usd * EXCHANGE_RATE).toFixed(2)))
     }
 
     // ── 4. Build our cost map ──
