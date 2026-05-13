@@ -5,6 +5,28 @@ import { prisma } from '@/lib/prisma'
 import { google } from 'googleapis'
 import { getGoogleAuthClient } from '@/lib/sheets'
 
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const userId = (session.user as any).id
+  const { searchParams } = new URL(request.url)
+  const businessId = searchParams.get('businessId')
+
+  if (!businessId) return Response.json({ error: 'businessId חסר' }, { status: 400 })
+
+  const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
+  if (!business) return Response.json({ error: 'לא נמצא' }, { status: 404 })
+
+  const reports = await prisma.reconcileReport.findMany({
+    where: { businessId },
+    orderBy: { runAt: 'desc' },
+    take: 20,
+  })
+
+  return Response.json({ reports, businessUpdatedAt: business.updatedAt })
+}
+
 const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
 const AGENT_COL_PRICE    = 11  // K — מחיר
 const AGENT_COL_DISCOUNT = 13  // M — הנחה (L=WAR ריק, M=DISCOUNT)
