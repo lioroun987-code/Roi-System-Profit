@@ -64,6 +64,42 @@ export default function ReconcilePage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
+  // Load saved reconcile report from DB whenever active business changes
+  useEffect(() => {
+    if (!activeBusiness) return
+    autoRunRef.current = false
+    fetch(`/api/sheets/reconcile?businessId=${activeBusiness}`)
+      .then(r => r.json())
+      .then(data => {
+        const report = data.reports?.[0]
+        if (!report) return
+
+        // Pre-populate form fields from saved report
+        setAgentSheetId(report.agentSheetId)
+        if (report.agentSheetName) setAgentSheetName(report.agentSheetName)
+        setOurSheetId(report.ourSheetId)
+        setExchangeRate(report.exchangeRate)
+
+        // Compute summary totals from stored results
+        const savedResults: ReconcileResult[] = report.results as ReconcileResult[]
+        const totalAgentCost = savedResults.reduce((s, r) => s + (r.agentCost ?? 0), 0)
+        const totalOurCost   = savedResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+        const totalDiff      = savedResults.filter(r => r.status !== 'match').reduce((s, r) => s + r.diff, 0)
+
+        setResults(savedResults)
+        setSummary({ ...(report.summary as any), totalDiff, totalAgentCost, totalOurCost })
+        setDebug(report.debug ?? null)
+        setLastRunAt(new Date(report.runAt))
+
+        // Check if business settings changed since this report was created
+        const bizUpdatedAt = data.businessUpdatedAt ? new Date(data.businessUpdatedAt) : null
+        const reportRunAt  = new Date(report.runAt)
+        const stale = bizUpdatedAt ? bizUpdatedAt > reportRunAt : false
+        setSettingsChanged(stale)
+      })
+      .catch(() => {})
+  }, [activeBusiness])
+
   async function loadAgentTabs(url: string) {
     const id = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/)?.[1] ?? url.trim()
     if (!id || !activeBusiness) return
