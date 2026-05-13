@@ -50,18 +50,20 @@ function parseDate(val: string): Date | null {
     return new Date(year, parseInt(m) - 1, parseInt(d))
   }
 
-  // "31.01" or "16.11" — DD.MM without year, assume current year
+  const currentYear = new Date().getFullYear()
+
+  // "31.01" or "1.2" — dot format without year = LAST YEAR
   const dotShort = s.match(/^(\d{1,2})\.(\d{1,2})$/)
   if (dotShort) {
     const [, d, m] = dotShort
-    return new Date(new Date().getFullYear(), parseInt(m) - 1, parseInt(d))
+    return new Date(currentYear - 1, parseInt(m) - 1, parseInt(d))
   }
 
-  // "31/01" — DD/MM without year
+  // "31/01" or "01/02" — slash format without year = THIS YEAR
   const slashShort = s.match(/^(\d{1,2})\/(\d{1,2})$/)
   if (slashShort) {
     const [, d, m] = slashShort
-    return new Date(new Date().getFullYear(), parseInt(m) - 1, parseInt(d))
+    return new Date(currentYear, parseInt(m) - 1, parseInt(d))
   }
 
   return null
