@@ -81,8 +81,30 @@ model Business {
   paymentSettings Json @default("{}")
   aiNotes         String? @db.Text
 
-  orders   Order[]
-  adSpends AdSpend[]
+  orders           Order[]
+  adSpends         AdSpend[]
+  reconcileReports ReconcileReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReconcileReport {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  agentSheetId   String
+  agentSheetName String?
+  ourSheetId     String
+  exchangeRate   Float
+
+  results Json
+  summary Json
+  debug   Json?
+
+  businessUpdatedAt DateTime?
+  runAt             DateTime  @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
