@@ -86,7 +86,7 @@ export default function ReconcilePage() {
       setResults(data.results)
       setSummary({ ...data.summary, totalDiff })
     } catch (e: any) {
-      setError('שגיאת חיבור — בדוק שה-Google Sheets מחובר')
+      setError(`שגיאה: ${e?.message ?? 'לא ידועה'}`)
     } finally {
       setRunning(false)
     }
