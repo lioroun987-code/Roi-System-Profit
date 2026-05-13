@@ -5,196 +5,177 @@ import { prisma } from '@/lib/prisma'
 import { google } from 'googleapis'
 import { getGoogleAuthClient } from '@/lib/sheets'
 
-// Agent sheet columns (1-based)
-const AGENT_COL_ORDER   = 2   // B — Order Number
-const AGENT_COL_PRICE   = 11  // K — PRICE
-const AGENT_COL_DISCOUNT = 12 // L — DISCOUNT
-const AGENT_COL_HD      = 13  // M — Home Delivery surcharge
-
-// Our main sheet columns
-const MAIN_COL_ORDER    = 1   // A — מספר הזמנה
-const MAIN_COL_OUR_COST = 7   // G — עלות שלי
-const MAIN_COL_STATUS   = 9   // I — סטטוס פערים (נכתוב לשם)
-
-const THRESHOLD = 0.5 // פער קטן מ-0.5₪ נחשב זהה
-
-export interface ReconcileResult {
-  orderNumber: string
-  agentCost: number
-  ourCost: number | null
-  diff: number
-  status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent'
-  rowIndex: number
-}
+const AGENT_COL_ORDER    = 2   // B
+const AGENT_COL_PRICE    = 11  // K
+const AGENT_COL_DISCOUNT = 12  // L
+const AGENT_COL_HD       = 13  // M
+const MAIN_COL_ORDER     = 1   // A
+const MAIN_COL_OUR_COST  = 7   // G
+const THRESHOLD          = 0.5
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride } = await request.json()
+    const userId = (session.user as any).id
+    const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride } = await request.json()
 
-  const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
-  if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
-  if (!business.googleRefreshToken) return Response.json({ error: 'Google Sheets לא מחובר — חבר ב"אינטגרציות"' }, { status: 400 })
-  const mainSheetId = ourSheetIdOverride || business.googleSheetsId
-  if (!mainSheetId) return Response.json({ error: 'גיליון ראשי לא מוגדר' }, { status: 400 })
+    if (!businessId) return Response.json({ error: 'businessId חסר' }, { status: 400 })
+    if (!agentSheetId) return Response.json({ error: 'מזהה גיליון הסוכן חסר' }, { status: 400 })
 
-  const auth = getGoogleAuthClient(business.googleRefreshToken)
-  const sheets = google.sheets({ version: 'v4', auth })
+    const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
+    if (!business) return Response.json({ error: 'העסק לא נמצא' }, { status: 404 })
+    if (!business.googleRefreshToken) return Response.json({ error: 'Google Sheets לא מחובר — חבר באינטגרציות' }, { status: 400 })
 
-  // ── 1. Read agent sheet ──
-  const agentRange = agentSheetName ? `${agentSheetName}!A2:M2000` : 'A2:M2000'
-  const agentRes = await sheets.spreadsheets.values.get({
-    spreadsheetId: agentSheetId,
-    range: agentRange,
-  })
-  const agentRows = agentRes.data.values ?? []
+    const mainSheetId = ourSheetIdOverride || business.googleSheetsId
+    if (!mainSheetId) return Response.json({ error: 'הכנס מזהה גיליון שלך בשדה למעלה' }, { status: 400 })
 
-  // ── 2. Group agent rows by order number ──
-  const agentByOrder = new Map<string, { price: number; discount: number; hd: number }>()
+    const auth = getGoogleAuthClient(business.googleRefreshToken)
+    const sheets = google.sheets({ version: 'v4', auth })
 
-  for (const row of agentRows) {
-    const orderRaw = row[AGENT_COL_ORDER - 1]?.toString().trim()
-    if (!orderRaw) continue
-    const orderNum = orderRaw.replace('#', '').trim()
-
-    const price    = parseFloat(row[AGENT_COL_PRICE - 1]?.toString().replace(',', '.') ?? '0') || 0
-    const discount = parseFloat(row[AGENT_COL_DISCOUNT - 1]?.toString().replace(',', '.') ?? '0') || 0
-    const hd       = parseFloat(row[AGENT_COL_HD - 1]?.toString().replace(',', '.') ?? '0') || 0
-
-    const existing = agentByOrder.get(orderNum) ?? { price: 0, discount: 0, hd: 0 }
-    agentByOrder.set(orderNum, {
-      price:    existing.price + price,
-      discount: existing.discount + discount,
-      hd:       existing.hd + (hd || 0),
-    })
-  }
-
-  // ── 3. Read our main sheet ──
-  const mainRes = await sheets.spreadsheets.values.get({
-    spreadsheetId: mainSheetId,
-    range: 'A2:I1000',
-  })
-  const mainRows = mainRes.data.values ?? []
-
-  // Build map: orderNumber → { ourCost, rowIndex }
-  const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
-  for (let i = 0; i < mainRows.length; i++) {
-    const orderRaw = mainRows[i][MAIN_COL_ORDER - 1]?.toString().trim()
-    if (!orderRaw) continue
-    const orderNum = orderRaw.replace('#', '').trim()
-    const costRaw  = mainRows[i][MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
-    ourByOrder.set(orderNum, {
-      cost: costRaw ? parseFloat(costRaw) : null,
-      rowIndex: i + 2,
-    })
-  }
-
-  // ── 4. Compare ──
-  const results: ReconcileResult[] = []
-  const sheetUpdates: { range: string; value: string; color: { red: number; green: number; blue: number } }[] = []
-
-  // Check all agent orders against ours
-  for (const [orderNum, agentData] of agentByOrder) {
-    const agentCost = agentData.price + agentData.discount + agentData.hd
-    const ourData = ourByOrder.get(orderNum)
-
-    if (!ourData) {
-      results.push({ orderNumber: orderNum, agentCost, ourCost: null, diff: 0, status: 'missing_our_cost', rowIndex: -1 })
-      continue
-    }
-
-    const ourCost = ourData.cost
-    const diff = ourCost != null ? Math.abs(agentCost - ourCost) : 0
-
-    let status: ReconcileResult['status']
-    if (ourCost == null) {
-      status = 'missing_our_cost'
-    } else if (diff <= THRESHOLD) {
-      status = 'match'
-    } else if (agentCost > ourCost) {
-      status = 'agent_higher'
-    } else {
-      status = 'we_higher'
-    }
-
-    results.push({ orderNumber: orderNum, agentCost, ourCost, diff, status, rowIndex: ourData.rowIndex })
-
-    // Prepare sheet update for column I
-    if (ourData.rowIndex > 0) {
-      let statusText = ''
-      let color = { red: 0, green: 0.8, blue: 0 }
-
-      if (status === 'match') {
-        statusText = '✓ תואם'
-        color = { red: 0.2, green: 0.7, blue: 0.2 }
-      } else if (status === 'agent_higher') {
-        statusText = `⚠️ סוכן גבוה ב-₪${diff.toFixed(2)}`
-        color = { red: 0.9, green: 0.4, blue: 0 }
-      } else if (status === 'we_higher') {
-        statusText = `⚠️ חישוב שלנו גבוה ב-₪${diff.toFixed(2)}`
-        color = { red: 0.9, green: 0.6, blue: 0 }
-      } else if (status === 'missing_our_cost') {
-        statusText = '⏳ עלות לא חושבה'
-        color = { red: 0.7, green: 0.7, blue: 0.7 }
+    // ── 1. Read agent sheet ──
+    let agentRows: any[][] = []
+    try {
+      const agentRange = agentSheetName ? `'${agentSheetName}'!A2:M2000` : 'A2:M2000'
+      const agentRes = await sheets.spreadsheets.values.get({
+        spreadsheetId: agentSheetId,
+        range: agentRange,
+      })
+      agentRows = agentRes.data.values ?? []
+    } catch (e: any) {
+      const msg = e?.message ?? ''
+      if (msg.includes('403') || msg.includes('permission')) {
+        return Response.json({ error: 'אין גישה לגיליון הסוכן — ודא שהגיליון משותף עם החשבון שלך' }, { status: 400 })
       }
-
-      sheetUpdates.push({ range: `I${ourData.rowIndex}`, value: statusText, color })
+      if (msg.includes('404') || msg.includes('not found')) {
+        return Response.json({ error: 'גיליון הסוכן לא נמצא — בדוק את המזהה' }, { status: 400 })
+      }
+      return Response.json({ error: `שגיאה בקריאת גיליון הסוכן: ${msg}` }, { status: 400 })
     }
-  }
 
-  // Check orders in our sheet missing from agent
-  for (const [orderNum, ourData] of ourByOrder) {
-    if (!agentByOrder.has(orderNum) && ourData.cost != null) {
-      results.push({ orderNumber: orderNum, agentCost: 0, ourCost: ourData.cost, diff: 0, status: 'missing_in_agent', rowIndex: ourData.rowIndex })
+    // ── 2. Read main sheet ──
+    let mainRows: any[][] = []
+    try {
+      const mainRes = await sheets.spreadsheets.values.get({
+        spreadsheetId: mainSheetId,
+        range: 'A2:I1000',
+      })
+      mainRows = mainRes.data.values ?? []
+    } catch (e: any) {
+      const msg = e?.message ?? ''
+      return Response.json({ error: `שגיאה בקריאת הגיליון שלך: ${msg}` }, { status: 400 })
     }
-  }
 
-  // ── 5. Write status column back to main sheet ──
-  if (sheetUpdates.length > 0) {
-    // Write values
-    await sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId: mainSheetId,
-      requestBody: {
-        valueInputOption: 'RAW',
-        data: sheetUpdates.map(u => ({ range: u.range, values: [[u.value]] })),
-      },
-    })
+    // ── 3. Group agent by order number: SUM(K) + SUM(L) + SUM(M) ──
+    const agentByOrder = new Map<string, number>()
+    for (const row of agentRows) {
+      const orderRaw = row[AGENT_COL_ORDER - 1]?.toString().trim()
+      if (!orderRaw) continue
+      const orderNum = orderRaw.replace('#', '').trim()
+      const price    = parseFloat(row[AGENT_COL_PRICE    - 1]?.toString().replace(',', '.') ?? '0') || 0
+      const discount = parseFloat(row[AGENT_COL_DISCOUNT - 1]?.toString().replace(',', '.') ?? '0') || 0
+      const hd       = parseFloat(row[AGENT_COL_HD       - 1]?.toString().replace(',', '.') ?? '0') || 0
+      agentByOrder.set(orderNum, (agentByOrder.get(orderNum) ?? 0) + price + discount + hd)
+    }
 
-    // Color cells based on status
-    const requests = sheetUpdates.map(u => ({
-      repeatCell: {
-        range: {
-          sheetId: 0,
-          startRowIndex: parseInt(u.range.replace(/\D/g, '')) - 1,
-          endRowIndex: parseInt(u.range.replace(/\D/g, '')),
-          startColumnIndex: 8, // Column I
-          endColumnIndex: 9,
-        },
-        cell: {
-          userEnteredFormat: {
-            backgroundColor: { ...u.color, alpha: 1 },
-            textFormat: { foregroundColor: { red: 1, green: 1, blue: 1, alpha: 1 }, bold: true },
+    // ── 4. Build our cost map ──
+    const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
+    for (let i = 0; i < mainRows.length; i++) {
+      const orderRaw = mainRows[i][MAIN_COL_ORDER - 1]?.toString().trim()
+      if (!orderRaw) continue
+      const orderNum = orderRaw.replace('#', '').trim()
+      const costRaw  = mainRows[i][MAIN_COL_OUR_COST - 1]?.toString().replace(',', '.').trim()
+      ourByOrder.set(orderNum, {
+        cost: costRaw && costRaw !== '' ? parseFloat(costRaw) : null,
+        rowIndex: i + 2,
+      })
+    }
+
+    // ── 5. Compare ──
+    const results: any[] = []
+    const sheetUpdates: { range: string; value: string; color: any }[] = []
+
+    for (const [orderNum, agentCost] of agentByOrder) {
+      const ourData = ourByOrder.get(orderNum)
+      const ourCost = ourData?.cost ?? null
+      const diff = ourCost != null ? Math.abs(agentCost - ourCost) : 0
+
+      let status: string
+      if (ourCost == null) status = 'missing_our_cost'
+      else if (diff <= THRESHOLD) status = 'match'
+      else if (agentCost > ourCost) status = 'agent_higher'
+      else status = 'we_higher'
+
+      results.push({ orderNumber: orderNum, agentCost, ourCost, diff, status, rowIndex: ourData?.rowIndex ?? -1 })
+
+      if (ourData && ourData.rowIndex > 0) {
+        const texts: Record<string, string> = {
+          match:            '✓ תואם',
+          agent_higher:     `⚠️ סוכן גבוה ב-₪${diff.toFixed(2)}`,
+          we_higher:        `⚠️ שלנו גבוה ב-₪${diff.toFixed(2)}`,
+          missing_our_cost: '⏳ חסרה עלות',
+        }
+        const colors: Record<string, any> = {
+          match:            { red: 0.2, green: 0.7, blue: 0.2 },
+          agent_higher:     { red: 0.9, green: 0.5, blue: 0.0 },
+          we_higher:        { red: 0.9, green: 0.6, blue: 0.0 },
+          missing_our_cost: { red: 0.5, green: 0.5, blue: 0.5 },
+        }
+        sheetUpdates.push({
+          range: `I${ourData.rowIndex}`,
+          value: texts[status] ?? status,
+          color: colors[status] ?? { red: 0.5, green: 0.5, blue: 0.5 },
+        })
+      }
+    }
+
+    for (const [orderNum, ourData] of ourByOrder) {
+      if (!agentByOrder.has(orderNum) && ourData.cost != null) {
+        results.push({ orderNumber: orderNum, agentCost: 0, ourCost: ourData.cost, diff: 0, status: 'missing_in_agent', rowIndex: ourData.rowIndex })
+      }
+    }
+
+    // ── 6. Write status back to main sheet ──
+    if (sheetUpdates.length > 0) {
+      try {
+        await sheets.spreadsheets.values.batchUpdate({
+          spreadsheetId: mainSheetId,
+          requestBody: {
+            valueInputOption: 'RAW',
+            data: sheetUpdates.map(u => ({ range: u.range, values: [[u.value]] })),
           },
-        },
-        fields: 'userEnteredFormat(backgroundColor,textFormat)',
-      },
-    }))
+        })
 
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: mainSheetId,
-      requestBody: { requests },
-    })
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: mainSheetId,
+          requestBody: {
+            requests: sheetUpdates.map(u => ({
+              repeatCell: {
+                range: { sheetId: 0, startRowIndex: parseInt(u.range.replace(/\D/g, '')) - 1, endRowIndex: parseInt(u.range.replace(/\D/g, '')), startColumnIndex: 8, endColumnIndex: 9 },
+                cell: { userEnteredFormat: { backgroundColor: { ...u.color, alpha: 1 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1, alpha: 1 }, bold: true } } },
+                fields: 'userEnteredFormat(backgroundColor,textFormat)',
+              },
+            })),
+          },
+        })
+      } catch (e) {
+        console.error('Sheet write error (non-fatal):', e)
+      }
+    }
+
+    const summary = {
+      total: results.length,
+      matches: results.filter(r => r.status === 'match').length,
+      agentHigher: results.filter(r => r.status === 'agent_higher').length,
+      weHigher: results.filter(r => r.status === 'we_higher').length,
+      missingCost: results.filter(r => r.status === 'missing_our_cost').length,
+    }
+
+    return Response.json({ results, summary })
+
+  } catch (err: any) {
+    console.error('Reconcile error:', err)
+    return Response.json({ error: `שגיאה: ${err?.message ?? 'לא ידועה'}` }, { status: 500 })
   }
-
-  const summary = {
-    total: results.length,
-    matches: results.filter(r => r.status === 'match').length,
-    agentHigher: results.filter(r => r.status === 'agent_higher').length,
-    weHigher: results.filter(r => r.status === 'we_higher').length,
-    missingCost: results.filter(r => r.status === 'missing_our_cost').length,
-  }
-
-  return Response.json({ results, summary })
 }
