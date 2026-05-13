@@ -7,8 +7,8 @@ import { getGoogleAuthClient } from '@/lib/sheets'
 
 const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
 const AGENT_COL_PRICE    = 11  // K — מחיר
-const AGENT_COL_DISCOUNT = 12  // L — הנחה
-const AGENT_COL_HD       = 13  // M — משלוח לבית
+const AGENT_COL_DISCOUNT = 13  // M — הנחה (L=WAR ריק, M=DISCOUNT)
+const AGENT_COL_HD       = 14  // N — משלוח לבית
 const THRESHOLD          = 0.5
 
 // Parse date range from agent tab name: "הזמנות 01/02 - 28/02" or "01/02 - 28/02"
