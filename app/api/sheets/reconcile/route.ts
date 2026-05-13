@@ -264,9 +264,9 @@ export async function POST(request: NextRequest) {
       const orderNum = orderRaw.replace('#', '').trim()
 
       const costIdx = detectedCostCol >= 0 ? detectedCostCol : 6
-      const costRaw = row[costIdx]?.toString().replace(',', '.').trim()
+      const costRaw = row[costIdx]?.toString().replace(/[₪,]/g, '').replace(',', '.').trim()
       ourByOrder.set(orderNum, {
-        cost: costRaw && costRaw !== '' ? parseFloat(costRaw) : null,
+        cost: costRaw && costRaw !== '' && !isNaN(parseFloat(costRaw)) ? parseFloat(costRaw) : null,
         rowIndex: i + 2,
       })
     }
