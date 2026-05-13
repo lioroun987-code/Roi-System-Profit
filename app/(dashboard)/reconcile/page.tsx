@@ -94,6 +94,7 @@ export default function ReconcilePage() {
           agentSheetId: extractSheetId(agentSheetId),
           agentSheetName: agentSheetName || undefined,
           ourSheetId: extractSheetId(ourSheetId),
+          exchangeRate,
         }),
       })
 
