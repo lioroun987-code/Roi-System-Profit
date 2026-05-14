@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   })
 
   const apiKey = process.env.SHOPIFY_API_KEY
-  const scopes = 'read_orders,read_products'
+  const scopes = 'read_orders,read_products,write_webhooks'
   const redirectUri = `${process.env.NEXTAUTH_URL}/api/shopify/callback`
   const state = `${businessId}_${crypto.randomBytes(8).toString('hex')}`
   const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`
