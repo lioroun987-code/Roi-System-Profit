@@ -21,8 +21,10 @@ export async function POST(request: NextRequest) {
 
   if (!business) return new Response('Business not found', { status: 404 })
 
-  if (business.shopifyWebhookSecret) {
-    const valid = verifyWebhookSignature(rawBody, hmac, business.shopifyWebhookSecret)
+  // Verify HMAC — use per-business secret if set, otherwise use app-level secret
+  const secret = business.shopifyWebhookSecret || process.env.SHOPIFY_API_SECRET
+  if (secret) {
+    const valid = verifyWebhookSignature(rawBody, hmac, secret)
     if (!valid) return new Response('Invalid signature', { status: 401 })
   }
 
