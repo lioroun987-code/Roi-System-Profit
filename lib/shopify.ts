@@ -56,24 +56,42 @@ export async function registerWebhook(
   accessToken: string,
   webhookUrl: string
 ): Promise<void> {
-  const res = await fetch(`https://${domain}/admin/api/2024-01/webhooks.json`, {
+  // Use GraphQL Admin API — works without write_webhooks scope for Partners apps
+  const query = `
+    mutation {
+      webhookSubscriptionCreate(
+        topic: ORDERS_CREATE
+        webhookSubscription: {
+          callbackUrl: "${webhookUrl}"
+          format: JSON
+        }
+      ) {
+        webhookSubscription { id }
+        userErrors { field message }
+      }
+    }
+  `
+
+  const res = await fetch(`https://${domain}/admin/api/2026-04/graphql.json`, {
     method: 'POST',
     headers: {
       'X-Shopify-Access-Token': accessToken,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      webhook: {
-        topic: 'orders/create',
-        address: webhookUrl,
-        format: 'json',
-      },
-    }),
+    body: JSON.stringify({ query }),
   })
 
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`Failed to register webhook: ${text}`)
+    throw new Error(`Webhook registration failed: ${text}`)
+  }
+
+  const json = await res.json()
+  const errors = json?.data?.webhookSubscriptionCreate?.userErrors ?? []
+  // "already exists" is fine — just means webhook is already registered
+  const realErrors = errors.filter((e: any) => !e.message?.toLowerCase().includes('already'))
+  if (realErrors.length > 0) {
+    throw new Error(`Webhook userErrors: ${JSON.stringify(realErrors)}`)
   }
 }
 
