@@ -79,8 +79,8 @@ async function analyzeAndUpdateSheet(orderId: string, businessId: string, order:
       aiNotes: business.aiNotes ?? '',
     }
 
-    // 1. Analyze with AI
-    const analysis = await analyzeOrder(order, config)
+    // 1. Try deterministic calculator first (free), fall back to AI for unknowns
+    const analysis = calculateOrderCost(order, config) ?? await analyzeOrder(order, config)
 
     // 2. Save to DB
     await prisma.order.update({
