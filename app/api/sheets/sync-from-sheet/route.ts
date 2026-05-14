@@ -6,6 +6,7 @@ import { google } from 'googleapis'
 import { getGoogleAuthClient } from '@/lib/sheets'
 import { fetchShopifyOrder } from '@/lib/shopify'
 import { analyzeOrder } from '@/lib/claude'
+import { calculateOrderCost } from '@/lib/calculator'
 import { BusinessConfig, ShopifyOrder } from '@/types'
 
 // Column config — A=1, G=7, H=8
