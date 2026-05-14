@@ -36,7 +36,14 @@ export async function GET(request: NextRequest) {
       where: { id: businessId },
       data: { shopifyDomain: shop, shopifyAccessToken: access_token },
     })
-    // Webhook is configured via Shopify Partners dashboard (orders/create → /api/shopify/webhook)
+
+    // Auto-register orders/create webhook
+    try {
+      const webhookUrl = `${process.env.NEXTAUTH_URL}/api/shopify/webhook`
+      await registerWebhook(shop, access_token, webhookUrl)
+    } catch (e) {
+      console.error('Webhook registration failed (non-fatal):', e)
+    }
   } catch (error) {
     console.error('Shopify OAuth error:', error)
     redirect(`/integrations?error=shopify&business=${businessId}`)
