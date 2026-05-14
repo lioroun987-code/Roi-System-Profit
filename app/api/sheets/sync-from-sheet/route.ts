@@ -114,8 +114,8 @@ export async function POST(request: NextRequest) {
 
       if (!shopifyOrder) { errors++; continue }
 
-      // 3. Run AI analysis
-      const analysis = await analyzeOrder(shopifyOrder, config)
+      // 3. Try deterministic calculator first, fall back to AI for unknowns
+      const analysis = calculateOrderCost(shopifyOrder, config) ?? await analyzeOrder(shopifyOrder, config)
 
       // 4. Save to our DB
       await prisma.order.upsert({
