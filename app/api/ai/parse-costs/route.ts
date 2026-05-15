@@ -69,16 +69,35 @@ ${productList || 'לא נטענו מוצרים'}
   "warnings": ["<אזהרות אם יש — למשל: לא הוזכרה עלות למוצר X>"]
 }`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
-    messages: [{ role: 'user', content: prompt }],
-  })
+  let message
+  try {
+    message = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  } catch (e: any) {
+    console.error('Anthropic API error:', e)
+    return Response.json({ error: `שגיאת AI: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
+  }
 
   const text = (message.content[0] as any).text?.trim() ?? ''
-  const match = text.match(/```json\n?([\s\S]+?)\n?```/) || text.match(/(\{[\s\S]+\})/)
-  if (!match) return Response.json({ error: 'AI לא החזיר JSON תקין' }, { status: 500 })
+  if (!text) return Response.json({ error: 'AI החזיר תגובה ריקה' }, { status: 500 })
 
-  const parsed = JSON.parse(match[1] || match[0])
+  // Try to extract JSON — first from code block, then bare object
+  const match = text.match(/```json\n?([\s\S]+?)\n?```/) || text.match(/(\{[\s\S]+\})/)
+  if (!match) {
+    console.error('No JSON in AI response:', text.slice(0, 200))
+    return Response.json({ error: 'AI לא החזיר JSON — נסה לנסח את התיאור מחדש' }, { status: 500 })
+  }
+
+  let parsed
+  try {
+    parsed = JSON.parse(match[1] || match[0])
+  } catch (e) {
+    console.error('JSON parse failed. Raw:', (match[1] || match[0]).slice(0, 300))
+    return Response.json({ error: 'AI החזיר JSON לא תקין — נסה שוב' }, { status: 500 })
+  }
+
   return Response.json({ success: true, parsed })
 }
