@@ -300,57 +300,63 @@ export default function OnboardingPage() {
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">חיבור Shopify</h2>
-                <p style={{ color: '#6B7280' }}>חבר את החנות שלך — נמשוך מוצרים והזמנות אוטומטית.</p>
+                <p style={{ color: '#6B7280' }}>חבר את החנות — נמשוך מוצרים, נגדיר כללים אוטומטית ונעבד את כל ההיסטוריה.</p>
               </div>
 
               {shopifyConnected ? (
                 <div className="flex items-center gap-3 p-4 rounded-xl"
                   style={{ background: '#0D2818', border: '1px solid #166534' }}>
-                  <CheckCircle className="w-6 h-6" style={{ color: '#22C55E' }} />
+                  <CheckCircle className="w-6 h-6 shrink-0" style={{ color: '#22C55E' }} />
                   <div className="flex-1">
-                    <p className="font-medium" style={{ color: '#22C55E' }}>Shopify מחובר!</p>
-                    <p className="text-sm" style={{ color: '#6B7280' }}>
-                      משכנו {products.length} מוצרים — עוברים לקביעת עלויות...
+                    <p className="font-semibold" style={{ color: '#22C55E' }}>Shopify מחובר בהצלחה!</p>
+                    <p className="text-sm mt-0.5" style={{ color: '#6B7280' }}>
+                      מוצרים ברקע — ממשיכים להגדרת עלויות
                     </p>
                   </div>
-                  <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#22C55E' }} />
                 </div>
               ) : (
                 <>
+                  {/* What happens explanation */}
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                    <p className="text-sm font-medium text-white">מה קורה לאחר החיבור:</p>
+                    {[
+                      { icon: '📦', text: 'מושכים את כל המוצרים שלך אוטומטית' },
+                      { icon: '🤖', text: 'AI מנתח את דפוסי ההנחה ואמצעי התשלום שלך' },
+                      { icon: '📊', text: 'מעבדים את כל היסטוריית ההזמנות שלך' },
+                    ].map(item => (
+                      <div key={item.text} className="flex items-center gap-3 text-sm" style={{ color: '#6B7280' }}>
+                        <span>{item.icon}</span>
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>דומיין החנות</label>
-                    <input style={inputStyle} dir="ltr" value={shopifyDomain}
-                      onChange={e => setShopifyDomain(e.target.value)} placeholder="your-store.myshopify.com" />
+                    <input
+                      style={inputStyle} dir="ltr"
+                      value={shopifyDomain}
+                      onChange={e => setShopifyDomain(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && connectShopify()}
+                      placeholder="your-store.myshopify.com"
+                    />
+                    <p className="text-xs" style={{ color: '#4A5174' }}>
+                      הכתובת שמופיעה ב-URL של אדמין שופיפיי שלך
+                    </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>Admin API Access Token</label>
-                    <input style={inputStyle} dir="ltr" type="password" value={shopifyToken}
-                      onChange={e => setShopifyToken(e.target.value)} placeholder="shpat_xxxx..." />
-                    <a href="https://help.shopify.com/en/manual/apps/app-types/custom-apps"
-                      target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs hover:underline" style={{ color: '#3B82F6' }}>
-                      <ExternalLink className="w-3 h-3" />
-                      איך מקבלים Access Token?
-                    </a>
-                  </div>
-
-                  {shopifyError && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl text-sm"
-                      style={{ background: '#2D0F0F', color: '#FCA5A5', border: '1px solid #7F1D1D44' }}>
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      {shopifyError}
-                    </div>
-                  )}
-
-                  <button onClick={connectShopify}
-                    disabled={shopifyConnecting || !shopifyDomain || !shopifyToken}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                  <button
+                    onClick={connectShopify}
+                    disabled={!shopifyDomain.trim() || !businessId}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
                     style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
-                    {shopifyConnecting
-                      ? <><Loader2 className="w-4 h-4 animate-spin" />מחבר...</>
-                      : <><Store className="w-4 h-4" />חבר את Shopify ומשוך מוצרים</>}
+                    <Store className="w-5 h-5" />
+                    התחבר עם Shopify
                   </button>
+
+                  <p className="text-xs text-center" style={{ color: '#374151' }}>
+                    תועבר לדף אישור Shopify ותחזור אוטומטית
+                  </p>
                 </>
               )}
 
