@@ -44,6 +44,12 @@ export async function GET(request: NextRequest) {
     } catch (e) {
       console.error('Webhook registration failed (non-fatal):', e)
     }
+
+    // Kick off background: fetch products → AI setup → sync all history
+    // Fire-and-forget (don't await — redirect happens immediately)
+    triggerFullSetup(businessId, shop, access_token).catch(e =>
+      console.error('Full setup failed (non-fatal):', e)
+    )
   } catch (error) {
     console.error('Shopify OAuth error:', error)
     redirect(`/integrations?error=shopify&business=${businessId}`)
