@@ -97,6 +97,12 @@ export default function OnboardingPage() {
   const [homeDeliveryChargeIls, setHomeDeliveryChargeIls]     = useState(25)
   const [pickupFeeThresholdIls, setPickupFeeThresholdIls]     = useState(200)
   const [pickupFeeAmountIls, setPickupFeeAmountIls]           = useState(10)
+  // AI description mode
+  const [aiMode, setAiMode]             = useState(false)
+  const [aiDescription, setAiDescription] = useState('')
+  const [aiParsing, setAiParsing]       = useState(false)
+  const [aiResult, setAiResult]         = useState<any>(null)
+  const [aiError, setAiError]           = useState('')
 
   // Step 3 — Ads
   const [fbAdAccountId, setFbAdAccountId] = useState('')
