@@ -6,6 +6,40 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Find first complete JSON object in text using bracket counting
+function extractJson(text: string): any | null {
+  // Strip code fences first
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]+?)```/)
+  const candidate = fenceMatch ? fenceMatch[1] : text
+
+  const start = candidate.indexOf('{')
+  if (start === -1) return null
+
+  let depth = 0
+  let inString = false
+  let escape = false
+
+  for (let i = start; i < candidate.length; i++) {
+    const ch = candidate[i]
+    if (escape) { escape = false; continue }
+    if (ch === '\\' && inString) { escape = true; continue }
+    if (ch === '"') { inString = !inString; continue }
+    if (inString) continue
+    if (ch === '{') depth++
+    if (ch === '}') {
+      depth--
+      if (depth === 0) {
+        try {
+          return JSON.parse(candidate.slice(start, i + 1))
+        } catch {
+          return null
+        }
+      }
+    }
+  }
+  return null
+}
+
 export async function POST(request: NextRequest) {
   try {
   const session = await getServerSession(authOptions)
