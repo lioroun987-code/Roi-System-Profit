@@ -128,8 +128,9 @@ export default function OnboardingPage() {
     const id = localStorage.getItem('activeBusiness')
     if (id) setBusinessId(id)
 
-    // Detect return from Shopify OAuth
     const params = new URLSearchParams(window.location.search)
+
+    // Detect return from Shopify OAuth
     if (params.get('shopify') === 'connected') {
       const bid = params.get('business') ?? id
       if (bid) {
@@ -138,9 +139,17 @@ export default function OnboardingPage() {
         setShopifyConnected(true)
         setStep(2)
         fetchProducts(bid)
-        // Clean URL
         window.history.replaceState({}, '', window.location.pathname)
+        return
       }
+    }
+
+    // Resume from saved step
+    const savedStep = params.get('step')
+    if (savedStep) {
+      const s = parseInt(savedStep)
+      if (!isNaN(s) && s > 0) setStep(s)
+      window.history.replaceState({}, '', window.location.pathname)
     }
   }, [])
 
