@@ -48,11 +48,12 @@ const DEFAULT_PAYMENT: PaymentSettings = {
 }
 
 const TABS = [
-  { id: 'general', label: 'כללי' },
-  { id: 'costs', label: 'עלויות מוצרים' },
-  { id: 'discounts', label: 'כללי הנחה' },
-  { id: 'payment', label: 'תשלום ומע"מ' },
-  { id: 'ai', label: 'הנחיות AI' },
+  { id: 'general',    label: 'כללי' },
+  { id: 'costs',      label: 'עלויות מוצרים' },
+  { id: 'discounts',  label: 'כללי הנחה' },
+  { id: 'payment',    label: 'תשלום ומע"מ' },
+  { id: 'simulation', label: '📈 סימולציה ומחירים' },
+  { id: 'ai',         label: 'הנחיות AI' },
 ]
 
 export default function SettingsPage() {
