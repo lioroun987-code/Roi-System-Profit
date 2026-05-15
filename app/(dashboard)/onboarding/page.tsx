@@ -159,25 +159,13 @@ export default function OnboardingPage() {
     return null
   }
 
-  /* ── Connect Shopify ── */
-  async function connectShopify() {
-    if (!shopifyDomain || !shopifyToken || !businessId) return
-    setShopifyConnecting(true)
-    setShopifyError('')
-    try {
-      const res = await fetch(`/api/businesses/${businessId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopifyDomain, shopifyAccessToken: shopifyToken }),
-      })
-      if (res.ok) {
-        setShopifyConnected(true)
-        await fetchProducts(businessId!)
-        setTimeout(() => setStep(2), 900)
-      } else {
-        setShopifyError('שגיאה בחיבור — בדוק דומיין וטוקן')
-      }
-    } finally { setShopifyConnecting(false) }
+  /* ── Connect Shopify via OAuth ── */
+  function connectShopify() {
+    if (!shopifyDomain.trim() || !businessId) return
+    const domain = shopifyDomain.includes('.myshopify.com')
+      ? shopifyDomain.trim()
+      : `${shopifyDomain.trim()}.myshopify.com`
+    window.location.href = `/api/shopify/auth?shop=${encodeURIComponent(domain)}&businessId=${businessId}&returnTo=onboarding`
   }
 
   /* ── Fetch products ── */
