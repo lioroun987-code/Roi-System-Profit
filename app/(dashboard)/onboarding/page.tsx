@@ -443,6 +443,173 @@ export default function OnboardingPage() {
                 )}
               </div>
 
+              {/* AI / Manual toggle */}
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                {[
+                  { id: false, label: '✏️ מלא ידנית' },
+                  { id: true,  label: '🤖 תאר ל-AI' },
+                ].map(opt => (
+                  <button key={String(opt.id)} onClick={() => { setAiMode(opt.id); setAiResult(null) }}
+                    className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{
+                      background: aiMode === opt.id ? '#1E2846' : 'transparent',
+                      color:      aiMode === opt.id ? '#4F6EF7' : '#6B7280',
+                    }}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── AI Mode ── */}
+              {aiMode && (
+                <div className="space-y-4">
+                  <div className="rounded-xl p-3" style={{ background: '#0D1A2A', border: '1px solid #1E3A5F' }}>
+                    <p className="text-sm font-medium mb-1" style={{ color: '#60A5FA' }}>💡 תאר בחופשיות — לדוגמה:</p>
+                    <p className="text-xs leading-relaxed" style={{ color: '#4A5174' }}>
+                      "דיל עולה לי 8.5$, קול דיל 9.5$, בקבוק בלבד 6$, קפסולה 0.85 סנט.
+                      הנחה: 2 דילים = 10%, 3 דילים = 15%. קופון 50₪ מצטבר.
+                      משלוח עולה לי 3$ ואני גובה 25₪. איסוף עצמי מתחת 200₪ = עמלה 10₪."
+                    </p>
+                  </div>
+
+                  <textarea
+                    value={aiDescription}
+                    onChange={e => setAiDescription(e.target.value)}
+                    placeholder="תאר את העסק שלך — עלויות מוצרים, הנחות, כמה עולה לך משלוח..."
+                    rows={6}
+                    style={{ ...inputStyle, resize: 'none', lineHeight: '1.7' }}
+                  />
+
+                  {aiError && (
+                    <p className="text-sm px-3 py-2 rounded-xl" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                      {aiError}
+                    </p>
+                  )}
+
+                  <button onClick={parseWithAI} disabled={aiParsing || !aiDescription.trim()}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
+                    style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                    {aiParsing
+                      ? <><Loader2 className="w-4 h-4 animate-spin" />מנתח...</>
+                      : <>🤖 נתח ומלא אוטומטית</>}
+                  </button>
+
+                  {/* AI Result Summary */}
+                  {aiResult && (
+                    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #166534' }}>
+                      <div className="px-4 py-3 flex items-center gap-2" style={{ background: '#0D2818' }}>
+                        <span style={{ color: '#22C55E' }}>✓</span>
+                        <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>AI מילא את הפרטים — בדוק ואשר</p>
+                      </div>
+
+                      <div className="p-4 space-y-4" style={{ background: '#0A1A0A' }}>
+                        {/* Summary text */}
+                        <p className="text-sm leading-relaxed" style={{ color: '#86EFAC' }}>
+                          {aiResult.summary}
+                        </p>
+
+                        {/* Product costs */}
+                        {aiResult.productCosts && Object.keys(aiResult.productCosts).length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>עלויות שזוהו</p>
+                            <div className="space-y-1.5">
+                              {Object.entries(aiResult.productCosts as Record<string, any>).map(([key, val]) => {
+                                const product = products.find(p =>
+                                  p.variants.some(v => `${p.id}_${v.id}` === key)
+                                )
+                                const variant = product?.variants.find(v => `${product.id}_${v.id}` === key)
+                                const name = product
+                                  ? `${product.title}${variant?.title !== 'Default Title' ? ` / ${variant?.title}` : ''}`
+                                  : key
+                                return (
+                                  <div key={key} className="flex items-center justify-between text-sm">
+                                    <span style={{ color: '#CBD5E1' }}>{name}</span>
+                                    <div className="flex items-center gap-3">
+                                      <span className="font-bold" style={{ color: '#22C55E' }}>${val.costUsd}</span>
+                                      {val.reasoning && (
+                                        <span className="text-xs" style={{ color: '#4A5174' }}>{val.reasoning}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Discount rules */}
+                        {aiResult.discountRules && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>כללי הנחה</p>
+                            <div className="flex flex-wrap gap-2">
+                              {aiResult.discountRules.qty2Percent > 0 && (
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                  {aiResult.discountRules.qty2Percent}% על 2+
+                                </span>
+                              )}
+                              {aiResult.discountRules.qty3Percent > 0 && (
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                  {aiResult.discountRules.qty3Percent}% על 3+
+                                </span>
+                              )}
+                              {aiResult.discountRules.coupon50Ils && (
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                  קופון ₪50
+                                </span>
+                              )}
+                              {aiResult.discountRules.section10Percent && (
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                  סקשן 10%
+                                </span>
+                              )}
+                              {aiResult.discountRules.section15Percent && (
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                  סקשן 15%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Shipping */}
+                        {aiResult.shippingSettings && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>משלוח</p>
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              {aiResult.shippingSettings.homeDeliveryCostUsd > 0 && (
+                                <span style={{ color: '#86EFAC' }}>עלות לבית: ${aiResult.shippingSettings.homeDeliveryCostUsd}</span>
+                              )}
+                              {aiResult.shippingSettings.homeDeliveryChargeIls > 0 && (
+                                <span style={{ color: '#86EFAC' }}>חיוב לקוח: ₪{aiResult.shippingSettings.homeDeliveryChargeIls}</span>
+                              )}
+                              {aiResult.shippingSettings.pickupFeeThresholdIls > 0 && (
+                                <span style={{ color: '#86EFAC' }}>סף איסוף: ₪{aiResult.shippingSettings.pickupFeeThresholdIls}</span>
+                              )}
+                              {aiResult.shippingSettings.pickupFeeAmountIls > 0 && (
+                                <span style={{ color: '#86EFAC' }}>עמלת איסוף: ₪{aiResult.shippingSettings.pickupFeeAmountIls}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Warnings */}
+                        {aiResult.warnings?.length > 0 && (
+                          <div className="rounded-lg px-3 py-2" style={{ background: '#2A1800' }}>
+                            {aiResult.warnings.map((w: string, i: number) => (
+                              <p key={i} className="text-xs" style={{ color: '#F59E0B' }}>⚠️ {w}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        <p className="text-xs" style={{ color: '#4A5174' }}>
+                          הערכים מולאו בטופס למטה — תוכל לעדכן ידנית לפני שמירה
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Products list */}
               {loadingProducts ? (
                 <div className="flex items-center justify-center py-16 gap-3">
