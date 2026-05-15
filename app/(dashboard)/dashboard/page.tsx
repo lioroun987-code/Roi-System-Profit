@@ -115,21 +115,18 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!activeBusiness) return
 
-    // Initial load: sync last 2 days then fetch
-    syncRecent(activeBusiness).then(() => fetchData())
+    // Initial load: sync last 7 days then fetch dashboard
+    syncRecent(activeBusiness, 7).then(() => fetchData())
 
-    // Auto-poll: refresh stats every 60s silently (no loading spinner)
-    pollRef.current = setInterval(() => {
-      fetch(`/api/dashboard?businessId=${activeBusiness}`)
-        .then(r => r.json())
-        .then(dash => setData(dash))
-        .catch(() => {})
-      // Also sync last 2 hours to catch webhooks that failed
-      fetch('/api/shopify/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessId: activeBusiness, daysBack: 0.1 }),
-      }).then(() => setLastSynced(new Date())).catch(() => {})
+    // Auto-poll every 60s: first refresh stats (fast DB query), then sync last 3h
+    pollRef.current = setInterval(async () => {
+      // 1. Refresh displayed stats immediately from DB
+      try {
+        const r = await fetch(`/api/dashboard?businessId=${activeBusiness}`)
+        if (r.ok) setData(await r.json())
+      } catch { /* ignore */ }
+      // 2. Pull any new orders from Shopify in background
+      syncRecent(activeBusiness, 0.125)  // last 3 hours
     }, 60_000)
 
     return () => {
