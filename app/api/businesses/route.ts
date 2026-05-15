@@ -24,8 +24,7 @@ export async function GET() {
       shopifyDomain: true,
       fbAdAccountId: true,
       googleSheetsId: true,
-      onboardingCompleted: true,
-      onboardingStep: true,
+      productCosts: true,
       createdAt: true,
     },
   })
