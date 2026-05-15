@@ -24,11 +24,21 @@ export async function POST(request: NextRequest) {
   const sinceDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000)
 
   try {
-    const orders = await fetchShopifyOrders(
-      business.shopifyDomain,
-      business.shopifyAccessToken,
-      { created_at_min: sinceDate.toISOString(), limit: 250 }
-    )
+    // Fetch all pages (Shopify max 250/page, use since_id pagination)
+    const allOrders: any[] = []
+    let sinceId = '0'
+    while (true) {
+      const page = await fetchShopifyOrders(
+        business.shopifyDomain!,
+        business.shopifyAccessToken!,
+        { created_at_min: sinceDate.toISOString(), limit: 250, since_id: sinceId }
+      )
+      if (!page.length) break
+      allOrders.push(...page)
+      if (page.length < 250) break
+      sinceId = String(page[page.length - 1].id)
+    }
+    const orders = allOrders
 
     const config: BusinessConfig = {
       productCosts: business.productCosts as any,
