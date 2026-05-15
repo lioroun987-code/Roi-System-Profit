@@ -111,6 +111,8 @@ export default function OnboardingPage() {
   // Step 4 — Payment
   const [vatEnabled, setVatEnabled] = useState(false)
   const [vatPercent, setVatPercent] = useState(17)
+  const [flatFeeMode, setFlatFeeMode] = useState(false)
+  const [averageFeePercent, setAverageFeePercent] = useState(2.5)
   const [paymentMethods, setPaymentMethods] = useState([
     { name: 'Bit',          feePercent: 3,   enabled: true  },
     { name: 'כרטיס אשראי', feePercent: 1.5, enabled: true  },
