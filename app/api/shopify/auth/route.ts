@@ -26,11 +26,13 @@ export async function GET(request: NextRequest) {
     data: { shopifyDomain: shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com` },
   })
 
-  const apiKey = process.env.SHOPIFY_API_KEY
-  const scopes = 'read_orders,read_products'
+  const apiKey    = process.env.SHOPIFY_API_KEY
+  const scopes    = 'read_orders,read_products'
+  const returnTo  = request.nextUrl.searchParams.get('returnTo') ?? 'integrations'
   const redirectUri = `${process.env.NEXTAUTH_URL}/api/shopify/callback`
-  const state = `${businessId}_${crypto.randomBytes(8).toString('hex')}`
-  const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`
+  const shopDomain  = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`
+  // Encode returnTo in state so callback knows where to redirect
+  const state = `${businessId}_${returnTo}_${crypto.randomBytes(8).toString('hex')}`
 
   const authUrl = `https://${shopDomain}/admin/oauth/authorize?client_id=${apiKey}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`
 
