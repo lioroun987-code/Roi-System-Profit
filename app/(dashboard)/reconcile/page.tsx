@@ -204,17 +204,18 @@ export default function ReconcilePage() {
           let breakdown = ''
 
           if (analysis) {
+            // Agent report: costs in USD only (agent works in USD)
             const items = analysis.line_items_parsed
               ?.filter((i: any) => !i.isGift)
-              .map((i: any) => `&nbsp;&nbsp;&nbsp;• ${i.quantity}× ${i.name}: $${i.unitCostUsd?.toFixed(2)} × ${exchangeRate} = ₪${(i.unitCostUsd * exchangeRate * i.quantity).toFixed(2)}`)
+              .map((i: any) => `&nbsp;&nbsp;&nbsp;• ${i.quantity}× ${i.name}: $${(i.unitCostUsd * i.quantity).toFixed(2)}`)
               .join('<br/>') ?? ''
 
             const shipping = analysis.my_cost_breakdown?.shipping_cost > 0
-              ? `<br/>&nbsp;&nbsp;&nbsp;• משלוח לבית: $${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)} × ${exchangeRate} = ₪${(analysis.my_cost_breakdown.shipping_cost * exchangeRate).toFixed(2)}`
+              ? `<br/>&nbsp;&nbsp;&nbsp;• משלוח לבית: $${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}`
               : ''
 
             const gifts = analysis.my_cost_breakdown?.gift_capsule_cost > 0
-              ? `<br/>&nbsp;&nbsp;&nbsp;• קפסולות מתנה/הפתעה: $${analysis.my_cost_breakdown.gift_capsule_cost?.toFixed(2)} × ${exchangeRate} = ₪${(analysis.my_cost_breakdown.gift_capsule_cost * exchangeRate).toFixed(2)}`
+              ? `<br/>&nbsp;&nbsp;&nbsp;• קפסולות מתנה/הפתעה: $${analysis.my_cost_breakdown.gift_capsule_cost?.toFixed(2)}`
               : ''
 
             const discounts = analysis.discounts_applied?.length > 0
