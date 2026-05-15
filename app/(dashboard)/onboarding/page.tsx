@@ -211,7 +211,13 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId, description: aiDescription, products }),
       })
-      const data = await res.json()
+      let data: any
+      try {
+        data = await res.json()
+      } catch {
+        setAiError('שגיאת שרת — בדוק שה-ANTHROPIC_API_KEY מוגדר ב-Vercel')
+        return
+      }
       if (!res.ok || data.error) { setAiError(data.error ?? 'שגיאה'); return }
 
       const { parsed } = data
