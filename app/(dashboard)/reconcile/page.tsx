@@ -659,6 +659,15 @@ export default function ReconcilePage() {
                 <Download className="w-4 h-4" />
                 ייצא CSV
               </button>
+              <button
+                onClick={generateAgentReport}
+                disabled={generatingReport}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', color: '#fff' }}
+              >
+                <FileText className="w-4 h-4" />
+                {generatingReport ? 'מכין...' : 'דוח לסוכן'}
+              </button>
             </div>
           </div>
 
