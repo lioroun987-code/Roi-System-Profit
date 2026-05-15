@@ -83,6 +83,20 @@ export default function DashboardPage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
+  // Auto-sync last 2 days on load so "today" is always fresh
+  const syncRecent = useCallback(async (bid: string) => {
+    setSyncing(true)
+    try {
+      await fetch('/api/shopify/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: bid, daysBack: 2 }),
+      })
+      setLastSynced(new Date())
+    } catch { /* non-fatal */ }
+    finally { setSyncing(false) }
+  }, [])
+
   const fetchData = useCallback(async () => {
     if (!activeBusiness) return
     setLoading(true)
@@ -97,7 +111,11 @@ export default function DashboardPage() {
     } finally { setLoading(false) }
   }, [activeBusiness])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    if (!activeBusiness) return
+    // Sync recent orders first, then fetch stats
+    syncRecent(activeBusiness).then(() => fetchData())
+  }, [activeBusiness, syncRecent, fetchData])
 
   async function handleReanalyze(orderId: string) {
     await fetch(`/api/orders/${orderId}/analyze`, { method: 'POST' })
