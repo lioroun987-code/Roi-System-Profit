@@ -149,7 +149,21 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">סקירה כללית</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#4A5174' }}>עקוב אחר הרווחיות האמיתית שלך</p>
+          <div className="flex items-center gap-2 mt-0.5">
+            {syncing
+              ? <p className="text-xs" style={{ color: '#4A5174' }}>
+                  <span className="inline-block animate-spin mr-1">⟳</span>מסנכרן הזמנות אחרונות...
+                </p>
+              : lastSynced
+                ? <p className="text-xs" style={{ color: '#4A5174' }}>
+                    עודכן {lastSynced.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                    <button onClick={() => syncRecent(activeBusiness!).then(fetchData)}
+                      className="mr-2 hover:underline" style={{ color: '#4F6EF7' }}>
+                      רענן
+                    </button>
+                  </p>
+                : null}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {/* Date range */}
