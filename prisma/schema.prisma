@@ -81,6 +81,9 @@ model Business {
   paymentSettings Json @default("{}")
   aiNotes         String? @db.Text
 
+  onboardingCompleted Boolean @default(false)
+  onboardingStep      Int     @default(0)
+
   orders           Order[]
   adSpends         AdSpend[]
   reconcileReports ReconcileReport[]
