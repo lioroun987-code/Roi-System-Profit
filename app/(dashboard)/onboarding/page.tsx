@@ -275,8 +275,6 @@ export default function OnboardingPage() {
         ...(aiResult?.discountRules ? { discountRules: aiResult.discountRules } : {}),
         paymentSettings: { vatEnabled, vatPercent, paymentMethods },
         aiNotes,
-        onboardingCompleted: true,
-        onboardingStep: STEPS.length,
         ...(fbAdAccountId ? { fbAdAccountId } : {}),
         ...(fbAccessToken ? { fbAccessToken } : {}),
       }),
