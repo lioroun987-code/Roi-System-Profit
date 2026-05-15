@@ -226,7 +226,7 @@ export default function ReconcilePage() {
               <div class="breakdown">
                 <strong>פירוט חישוב נכון:</strong><br/>
                 ${items}${shipping}${gifts}${discounts}
-                <br/>&nbsp;&nbsp;&nbsp;<strong>סה"כ נכון: ₪${r.ourCost?.toFixed(2)}</strong>
+                <br/>&nbsp;&nbsp;&nbsp;<strong>סה"כ נכון: $${((r.ourCost ?? 0) / exchangeRate).toFixed(2)}</strong>
                 ${analysis.notes ? `<br/>&nbsp;&nbsp;&nbsp;<em>${analysis.notes}</em>` : ''}
               </div>`
           }
