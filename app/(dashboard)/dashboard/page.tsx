@@ -72,8 +72,9 @@ export default function DashboardPage() {
   const [activeBusiness, setActiveBusiness] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('today')
-  const [syncing, setSyncing] = useState(false)
-  const [lastSynced, setLastSynced] = useState<Date | null>(null)
+  const [syncing, setSyncing]         = useState(false)
+  const [lastSynced, setLastSynced]   = useState<Date | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
