@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { TrendingUp, TrendingDown, ShoppingCart, DollarSign, Target, Zap, RefreshCw, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { ProfitChart } from '@/components/dashboard/profit-chart'
 import { OrderRowComponent } from '@/components/orders/order-row'
