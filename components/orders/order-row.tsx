@@ -157,7 +157,7 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
                           </div>
                           <span className="col-span-1 text-center text-sm" style={{ color: '#CBD5E1' }}>×{item.quantity}</span>
                           <span className="col-span-2 text-right text-sm" style={{ color: '#CBD5E1' }}>
-                            {item.isGift ? '₪0' : `₪${item.unitPriceIls.toFixed(0)}`}
+                            {item.isGift ? '₪0' : formatCurrency(item.unitPriceIls)}
                           </span>
                           <span className="col-span-2 text-right text-sm" style={{ color: '#EF4444' }}>
                             <span className="font-semibold">${item.unitCostUsd.toFixed(2)}</span>
