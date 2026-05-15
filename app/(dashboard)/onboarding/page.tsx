@@ -286,15 +286,10 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  /* ── Save step progress to DB ── */
-  async function saveStep(newStep: number, bid?: string) {
+  /* ── Save step to localStorage ── */
+  function saveStep(newStep: number, bid?: string) {
     const id = bid ?? businessId
-    if (!id) return
-    await fetch(`/api/businesses/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ onboardingStep: newStep }),
-    }).catch(() => {})
+    if (id) localStorage.setItem(`onboarding_step_${id}`, String(newStep))
   }
 
   /* ── Navigation ── */
@@ -303,13 +298,13 @@ export default function OnboardingPage() {
       if (!businessName.trim()) return
       const id = businessId ?? await createBusiness()
       if (!id) return
-      await saveStep(1, id)
+      saveStep(1, id)
       setStep(1)
       return
     }
     if (step === STEPS.length - 1) { finish(); return }
     const nextStep = step + 1
-    await saveStep(nextStep)
+    saveStep(nextStep)
     setStep(nextStep)
   }
   function prev() {
