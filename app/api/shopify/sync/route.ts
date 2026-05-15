@@ -49,7 +49,8 @@ export async function POST(request: NextRequest) {
       if (existing) { skipped++; continue }
 
       try {
-        const analysis = await analyzeOrder(order as ShopifyOrder, config)
+        const analysis = calculateOrderCost(order as ShopifyOrder, config)
+          ?? await analyzeOrder(order as ShopifyOrder, config)
 
         await prisma.order.create({
           data: {
