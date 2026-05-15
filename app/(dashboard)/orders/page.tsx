@@ -174,6 +174,14 @@ export default function OrdersPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={handleSyncAll}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
+            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+          >
+            <History className="w-4 h-4" />
+            עבד היסטוריה
+          </button>
+          <button
             onClick={handleSync}
             disabled={syncing}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
