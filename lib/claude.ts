@@ -53,7 +53,10 @@ ${productCatalogSection}## BUSINESS PRODUCT COSTS (fallback / general rules)
 
 ## PAYMENT & VAT
 ${ps.vatEnabled ? `- VAT: ${ps.vatPercent}% (already included in prices)` : '- No VAT'}
-- Payment methods configured: ${ps.paymentMethods.filter(m => m.enabled).map(m => `${m.name}: ${m.feePercent}%`).join(', ')}
+${(ps as any).flatFeeMode
+  ? `- Flat average fee: ${(ps as any).averageFeePercent}% applied to every order regardless of payment method`
+  : `- Payment methods configured: ${ps.paymentMethods.filter(m => m.enabled).map(m => `${m.name}: ${m.feePercent}%`).join(', ')}`
+}
 
 ## PAYMENT METHOD DETECTION FROM SHOPIFY
 Identify the payment method from order.gateway and order.payment_gateway_names:
