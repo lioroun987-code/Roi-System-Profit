@@ -6,129 +6,128 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Find first complete JSON object in text using bracket counting
+// Extract first complete JSON object from text using bracket counting
 function extractJson(text: string): any | null {
-  // Strip code fences first
-  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]+?)```/)
-  const candidate = fenceMatch ? fenceMatch[1] : text
-
-  const start = candidate.indexOf('{')
+  const start = text.indexOf('{')
   if (start === -1) return null
 
   let depth = 0
   let inString = false
   let escape = false
 
-  for (let i = start; i < candidate.length; i++) {
-    const ch = candidate[i]
-    if (escape) { escape = false; continue }
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]
+    if (escape)               { escape = false; continue }
     if (ch === '\\' && inString) { escape = true; continue }
-    if (ch === '"') { inString = !inString; continue }
-    if (inString) continue
-    if (ch === '{') depth++
+    if (ch === '"')            { inString = !inString; continue }
+    if (inString)              continue
+    if (ch === '{')            depth++
     if (ch === '}') {
       depth--
       if (depth === 0) {
-        try {
-          return JSON.parse(candidate.slice(start, i + 1))
-        } catch {
-          return null
-        }
+        try { return JSON.parse(text.slice(start, i + 1)) }
+        catch { return null }
       }
     }
   }
   return null
 }
 
+const PROMPT_SCHEMA = [
+  '{',
+  '  "productCosts": {',
+  '    "<EXACT_ID_FROM_LIST>": {',
+  '      "costUsd": 8.5,',
+  '      "reasoning": "short explanation in Hebrew"',
+  '    }',
+  '  },',
+  '  "discountRules": {',
+  '    "qty2Percent": 10,',
+  '    "qty3Percent": 15,',
+  '    "section10Percent": true,',
+  '    "section15Percent": true,',
+  '    "coupon50Ils": true,',
+  '    "surpriseCapsuleCostUsd": 0.85,',
+  '    "giftCapsuleThresholdIls": 350,',
+  '    "giftCapsuleCostUsd": 0.85',
+  '  },',
+  '  "shippingSettings": {',
+  '    "homeDeliveryCostUsd": 3,',
+  '    "homeDeliveryChargeIls": 25,',
+  '    "pickupFeeThresholdIls": 200,',
+  '    "pickupFeeAmountIls": 10',
+  '  },',
+  '  "exchangeRate": 3.7,',
+  '  "summary": "סיכום בעברית של מה שהבנת",',
+  '  "unknownProducts": [],',
+  '  "warnings": []',
+  '}',
+].join('\n')
+
 export async function POST(request: NextRequest) {
   try {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getServerSession(authOptions)
+    if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const { businessId, description, products } = await request.json()
+    const userId = (session.user as any).id
+    const { businessId, description, products } = await request.json()
 
-  if (!description?.trim()) return Response.json({ error: 'תיאור ריק' }, { status: 400 })
+    if (!description?.trim()) return Response.json({ error: 'תיאור ריק' }, { status: 400 })
 
-  const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
-  if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
+    const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
+    if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
 
-  const productList = (products ?? []).map((p: any) =>
-    p.variants.map((v: any) =>
-      `ID: ${p.id}_${v.id} | מוצר: "${p.title}" | וריאנט: "${v.title}" | מחיר מכירה: ₪${v.price}`
+    const productList = (products ?? []).map((p: any) =>
+      p.variants.map((v: any) =>
+        `ID: ${p.id}_${v.id} | product: "${p.title}" | variant: "${v.title}" | price: ${v.price} ILS`
+      ).join('\n')
     ).join('\n')
-  ).join('\n')
 
-  const prompt = `אתה עוזר לבעל עסק להגדיר את מערכת הרווחיות שלו.
+    const systemPrompt = [
+      'You are a business cost configuration assistant.',
+      'The user will describe their business costs and rules in Hebrew.',
+      'You must return ONLY a valid JSON object — no explanation, no code fences, no extra text.',
+      'Use the exact product IDs from the list provided.',
+      'All numbers must be actual numbers (not placeholders).',
+    ].join(' ')
 
-בעל העסק תיאר את העסק שלו בחופשיות:
-"""
-${description}
-"""
+    const userPrompt = [
+      'Business description:',
+      '"""',
+      description,
+      '"""',
+      '',
+      'Shopify products (use exact IDs):',
+      productList || 'No products loaded',
+      '',
+      'Return ONLY this JSON structure (no extra text, no code fences):',
+      PROMPT_SCHEMA,
+    ].join('\n')
 
-אלו המוצרים שלו בשופיפיי (עם ה-ID המדויק של כל וריאנט):
-${productList || 'לא נטענו מוצרים'}
-
-המשימה שלך:
-1. לפרש את התיאור ולהתאים עלות לכל מוצר/וריאנט לפי שם
-2. לחלץ כללי הנחות
-3. לחלץ הגדרות משלוח
-
-ענה ONLY בעברית עם JSON בלבד — ללא טקסט לפני או אחרי, ללא הסברים:
-```json
-{
-  "productCosts": {
-    "<ID המדויק מהרשימה>": {
-      "costUsd": <מספר — עלות בדולרים>,
-      "reasoning": "<משפט קצר למה בחרת עלות זו>"
+    let message
+    try {
+      message = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      })
+    } catch (e: any) {
+      console.error('Anthropic API error:', e)
+      return Response.json({ error: `שגיאת AI: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
     }
-  },
-  "discountRules": {
-    "qty2Percent": <מספר>,
-    "qty3Percent": <מספר>,
-    "section10Percent": <boolean>,
-    "section15Percent": <boolean>,
-    "coupon50Ils": <boolean>,
-    "surpriseCapsuleCostUsd": <מספר>,
-    "giftCapsuleThresholdIls": <מספר>,
-    "giftCapsuleCostUsd": <מספר>
-  },
-  "shippingSettings": {
-    "homeDeliveryCostUsd": <מספר>,
-    "homeDeliveryChargeIls": <מספר>,
-    "pickupFeeThresholdIls": <מספר>,
-    "pickupFeeAmountIls": <מספר>
-  },
-  "exchangeRate": <מספר — אם הוזכר, אחרת 3.7>,
-  "summary": "<סיכום בעברית של מה שהבנת — כל מוצר עם העלות שלו, הכללים, המשלוח>",
-  "unknownProducts": ["<שמות מוצרים שלא הצלחת לתאם עלות>"],
-  "warnings": ["<אזהרות אם יש — למשל: לא הוזכרה עלות למוצר X>"]
-}
-```
 
-  let message
-  try {
-    message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
-    })
-  } catch (e: any) {
-    console.error('Anthropic API error:', e)
-    return Response.json({ error: `שגיאת AI: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
-  }
+    const raw = (message.content[0] as any).text?.trim() ?? ''
+    if (!raw) return Response.json({ error: 'AI החזיר תגובה ריקה' }, { status: 500 })
 
-  const text = (message.content[0] as any).text?.trim() ?? ''
-  if (!text) return Response.json({ error: 'AI החזיר תגובה ריקה' }, { status: 500 })
+    const parsed = extractJson(raw)
+    if (!parsed) {
+      console.error('extractJson failed. Raw response (first 500):', raw.slice(0, 500))
+      return Response.json({ error: 'AI לא החזיר JSON תקין — נסה לנסח את התיאור מחדש' }, { status: 500 })
+    }
 
-  // Robust JSON extraction: find first { then count brackets to find matching }
-  const parsed = extractJson(text)
-  if (!parsed) {
-    console.error('Could not extract JSON from AI response. First 400 chars:', text.slice(0, 400))
-    return Response.json({ error: 'AI לא החזיר JSON תקין — נסה לנסח את התיאור מחדש' }, { status: 500 })
-  }
+    return Response.json({ success: true, parsed })
 
-  return Response.json({ success: true, parsed })
   } catch (e: any) {
     console.error('parse-costs unhandled error:', e)
     return Response.json({ error: `שגיאת שרת: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
