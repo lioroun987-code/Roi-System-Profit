@@ -74,7 +74,7 @@ ${productList || 'לא נטענו מוצרים'}
   try {
     message = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
     })
   } catch (e: any) {
@@ -85,19 +85,11 @@ ${productList || 'לא נטענו מוצרים'}
   const text = (message.content[0] as any).text?.trim() ?? ''
   if (!text) return Response.json({ error: 'AI החזיר תגובה ריקה' }, { status: 500 })
 
-  // Try to extract JSON — first from code block, then bare object
-  const match = text.match(/```json\n?([\s\S]+?)\n?```/) || text.match(/(\{[\s\S]+\})/)
-  if (!match) {
-    console.error('No JSON in AI response:', text.slice(0, 200))
-    return Response.json({ error: 'AI לא החזיר JSON — נסה לנסח את התיאור מחדש' }, { status: 500 })
-  }
-
-  let parsed
-  try {
-    parsed = JSON.parse(match[1] || match[0])
-  } catch (e) {
-    console.error('JSON parse failed. Raw:', (match[1] || match[0]).slice(0, 300))
-    return Response.json({ error: 'AI החזיר JSON לא תקין — נסה שוב' }, { status: 500 })
+  // Robust JSON extraction: find first { then count brackets to find matching }
+  const parsed = extractJson(text)
+  if (!parsed) {
+    console.error('Could not extract JSON from AI response. First 400 chars:', text.slice(0, 400))
+    return Response.json({ error: 'AI לא החזיר JSON תקין — נסה לנסח את התיאור מחדש' }, { status: 500 })
   }
 
   return Response.json({ success: true, parsed })
