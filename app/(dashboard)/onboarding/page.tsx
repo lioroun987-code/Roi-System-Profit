@@ -122,6 +122,21 @@ export default function OnboardingPage() {
   useEffect(() => {
     const id = localStorage.getItem('activeBusiness')
     if (id) setBusinessId(id)
+
+    // Detect return from Shopify OAuth
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('shopify') === 'connected') {
+      const bid = params.get('business') ?? id
+      if (bid) {
+        setBusinessId(bid)
+        localStorage.setItem('activeBusiness', bid)
+        setShopifyConnected(true)
+        setStep(2)
+        fetchProducts(bid)
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+    }
   }, [])
 
   /* ── Create business ── */
