@@ -22,15 +22,16 @@ export async function GET(request: NextRequest) {
     businessIds = businesses.map((b: { id: string }) => b.id)
   }
 
-  const now = new Date()
+  const now        = new Date()
   const todayStart = startOfDay(now)
-  const todayEnd = endOfDay(now)
-  const weekStart = startOfDay(subDays(now, 7))
+  const todayEnd   = endOfDay(now)
+  const weekStart  = startOfDay(subDays(now, 7))
   const monthStart = startOfDay(subDays(now, 30))
 
   const businessFilter = { businessId: { in: businessIds } }
 
-  const [todayOrders, weekOrders, monthOrders, todayAdSpend, weekAdSpend, monthAdSpend] =
+  // Fetch all orders for each period (aggregate in JS — avoids groupBy timestamp bug)
+  const [allTodayOrders, allWeekOrders, allMonthOrders, todayAdSpend, weekAdSpend, monthAdSpend] =
     await Promise.all([
       prisma.order.findMany({
         where: { ...businessFilter, orderDate: { gte: todayStart, lte: todayEnd }, status: 'analyzed' },
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.order.findMany({
         where: { ...businessFilter, orderDate: { gte: monthStart }, status: 'analyzed' },
-        select: { storePrice: true, netProfitIls: true },
+        select: { orderDate: true, storePrice: true, netProfitIls: true },
       }),
       prisma.adSpend.aggregate({
         where: { ...businessFilter, date: { gte: todayStart, lte: todayEnd } },
@@ -59,59 +60,62 @@ export async function GET(request: NextRequest) {
     ])
 
   const sumRevenue = (orders: Array<{ storePrice: number | null }>) =>
-    orders.reduce((sum, o) => sum + (o.storePrice ?? 0), 0)
+    orders.reduce((s, o) => s + (o.storePrice ?? 0), 0)
 
   const sumProfit = (orders: Array<{ netProfitIls: number | null }>) =>
-    orders.reduce((sum, o) => sum + (o.netProfitIls ?? 0), 0)
+    orders.reduce((s, o) => s + (o.netProfitIls ?? 0), 0)
 
   const todayAdSpendAmount = todayAdSpend._sum.spend ?? 0
-  const todayRevenue = sumRevenue(todayOrders)
+  const todayRevenue       = sumRevenue(allTodayOrders)
 
   const stats = {
     todayRevenue,
-    todayProfit: sumProfit(todayOrders),
-    todayCost: todayOrders.reduce(
-      (sum: number, o: { grossProfitIls: number | null; netProfitIls: number | null }) =>
-        sum + ((o.grossProfitIls ?? 0) - (o.netProfitIls ?? 0)),
-      0
-    ),
-    todayOrders: todayOrders.length,
+    todayProfit:  sumProfit(allTodayOrders),
+    todayCost:    allTodayOrders.reduce((s, o) => s + ((o.grossProfitIls ?? 0) - (o.netProfitIls ?? 0)), 0),
+    todayOrders:  allTodayOrders.length,
     todayAdSpend: todayAdSpendAmount,
-    todayRoas: todayAdSpendAmount > 0 ? todayRevenue / todayAdSpendAmount : 0,
-    weekRevenue: sumRevenue(weekOrders),
-    weekProfit: sumProfit(weekOrders),
-    weekAdSpend: weekAdSpend._sum.spend ?? 0,
-    monthRevenue: sumRevenue(monthOrders),
-    monthProfit: sumProfit(monthOrders),
+    todayRoas:    todayAdSpendAmount > 0 ? todayRevenue / todayAdSpendAmount : 0,
+    weekRevenue:  sumRevenue(allWeekOrders),
+    weekProfit:   sumProfit(allWeekOrders),
+    weekAdSpend:  weekAdSpend._sum.spend ?? 0,
+    monthRevenue: sumRevenue(allMonthOrders),
+    monthProfit:  sumProfit(allMonthOrders),
     monthAdSpend: monthAdSpend._sum.spend ?? 0,
   }
 
-  // Daily chart data (last 30 days)
-  const dailyOrders = await prisma.order.groupBy({
-    by: ['orderDate'],
-    where: { ...businessFilter, orderDate: { gte: monthStart }, status: 'analyzed' },
-    _sum: { storePrice: true, netProfitIls: true },
-    _count: true,
-  })
-
-  const dailySpend = await prisma.adSpend.findMany({
+  // ── Chart: aggregate by calendar day in JS (avoids Prisma groupBy timestamp bug) ──
+  const dailySpendRows = await prisma.adSpend.findMany({
     where: { ...businessFilter, date: { gte: monthStart } },
     select: { date: true, spend: true },
   })
 
-  const spendByDate = new Map(dailySpend.map((s: { date: Date; spend: number }) => [s.date.toISOString().split('T')[0], s.spend]))
+  const spendByDate = new Map<string, number>()
+  for (const row of dailySpendRows) {
+    const d = new Date(row.date).toISOString().split('T')[0]
+    spendByDate.set(d, (spendByDate.get(d) ?? 0) + row.spend)
+  }
 
-  const chartData = dailyOrders
-    .map((d: { orderDate: Date; _sum: { storePrice: number | null; netProfitIls: number | null } }) => {
-      const dateStr = new Date(d.orderDate).toISOString().split('T')[0]
-      return {
-        date: new Date(d.orderDate).toLocaleDateString('he-IL', { month: 'short', day: 'numeric' }),
-        revenue: d._sum.storePrice ?? 0,
-        profit: d._sum.netProfitIls ?? 0,
-        adSpend: spendByDate.get(dateStr) ?? 0,
-      }
-    })
-    .sort((a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date))
+  // Aggregate orders by ISO date string
+  const revenueByDay = new Map<string, number>()
+  const profitByDay  = new Map<string, number>()
+
+  for (const order of allMonthOrders) {
+    const d = new Date(order.orderDate).toISOString().split('T')[0]
+    revenueByDay.set(d, (revenueByDay.get(d) ?? 0) + (order.storePrice    ?? 0))
+    profitByDay.set(d,  (profitByDay.get(d)  ?? 0) + (order.netProfitIls  ?? 0))
+  }
+
+  // Build sorted chart array
+  const allDays = new Set([...revenueByDay.keys(), ...spendByDate.keys()])
+  const chartData = [...allDays]
+    .sort()   // ISO strings sort correctly
+    .map(isoDate => ({
+      date:     new Date(isoDate).toLocaleDateString('he-IL', { month: 'short', day: 'numeric' }),
+      isoDate,
+      revenue:  parseFloat((revenueByDay.get(isoDate) ?? 0).toFixed(2)),
+      profit:   parseFloat((profitByDay.get(isoDate)  ?? 0).toFixed(2)),
+      adSpend:  spendByDate.get(isoDate) ?? 0,
+    }))
 
   return Response.json({ stats, chartData })
 }
