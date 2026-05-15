@@ -28,12 +28,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             // Redirect to onboarding if active business hasn't completed it
             const activeBiz = data.find((b: any) => b.id === active)
-            if (activeBiz && !activeBiz.onboardingCompleted) {
-              const step = activeBiz.onboardingStep ?? 0
-              router.push(`/onboarding?step=${step}`)
+            // Onboarding is complete if the business has product costs configured
+            const costsConfigured = activeBiz?.productCosts
+              && typeof activeBiz.productCosts === 'object'
+              && (
+                Object.keys((activeBiz.productCosts as any).customProductCosts ?? {}).length > 0
+                || localStorage.getItem(`onboarding_done_${active}`) === '1'
+              )
+            if (activeBiz && !costsConfigured) {
+              const savedStep = parseInt(localStorage.getItem(`onboarding_step_${active}`) ?? '0') || 0
+              router.push(`/onboarding?step=${savedStep}`)
             }
           } else if (Array.isArray(data) && data.length === 0) {
-            // No businesses at all — go to onboarding to create first one
             router.push('/onboarding')
           }
         })
