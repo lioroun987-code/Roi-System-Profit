@@ -23,8 +23,13 @@ function getProductType(title: string): AIParsedItem['type'] {
 
 function detectPaymentMethod(
   order: ShopifyOrder,
-  methods: Array<{ name: string; feePercent: number; enabled: boolean }>
+  methods: Array<{ name: string; feePercent: number; enabled: boolean }>,
+  flatFeeMode?: boolean,
+  averageFeePercent?: number
 ): { name: string; feePercent: number } {
+  if (flatFeeMode && averageFeePercent != null) {
+    return { name: 'עמלה ממוצעת', feePercent: averageFeePercent }
+  }
   const gw   = (order.gateway ?? '').toLowerCase()
   const names = (order.payment_gateway_names ?? []).map(n => n.toLowerCase())
   const all   = [gw, ...names].join(' ')
