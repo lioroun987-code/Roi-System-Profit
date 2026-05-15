@@ -284,17 +284,37 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
+  /* ── Save step progress to DB ── */
+  async function saveStep(newStep: number, bid?: string) {
+    const id = bid ?? businessId
+    if (!id) return
+    await fetch(`/api/businesses/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ onboardingStep: newStep }),
+    }).catch(() => {})
+  }
+
   /* ── Navigation ── */
   async function next() {
     if (step === 0) {
       if (!businessName.trim()) return
       const id = businessId ?? await createBusiness()
       if (!id) return
+      await saveStep(1, id)
+      setStep(1)
+      return
     }
     if (step === STEPS.length - 1) { finish(); return }
-    setStep(s => s + 1)
+    const nextStep = step + 1
+    await saveStep(nextStep)
+    setStep(nextStep)
   }
-  function prev() { setStep(s => Math.max(0, s - 1)) }
+  function prev() {
+    const prevStep = Math.max(0, step - 1)
+    saveStep(prevStep)
+    setStep(prevStep)
+  }
 
   /* ── Shared styles ── */
   const inputStyle: React.CSSProperties = {
