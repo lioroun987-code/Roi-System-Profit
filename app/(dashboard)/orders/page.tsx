@@ -15,8 +15,11 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const [syncing, setSyncing] = useState(false)
+  const [syncing, setSyncing]     = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [syncAllOpen, setSyncAllOpen]       = useState(false)
+  const [syncAllStatus, setSyncAllStatus]   = useState<'idle'|'running'|'done'>('idle')
+  const [syncAllProgress, setSyncAllProgress] = useState({ processed: 0, skipped: 0, usedAI: 0, errors: 0 })
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
