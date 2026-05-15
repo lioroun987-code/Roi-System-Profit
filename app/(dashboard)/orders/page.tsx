@@ -59,6 +59,37 @@ export default function OrdersPage() {
     } finally { setSyncing(false) }
   }
 
+  async function handleSyncAll() {
+    if (!activeBusiness) return
+    setSyncAllOpen(true)
+    setSyncAllStatus('running')
+    setSyncAllProgress({ processed: 0, skipped: 0, usedAI: 0, errors: 0 })
+
+    let cursor: string | null = null
+    let totalProcessed = 0, totalSkipped = 0, totalAI = 0, totalErrors = 0
+
+    while (true) {
+      const res = await fetch('/api/shopify/sync-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: activeBusiness, cursor }),
+      })
+      if (!res.ok) break
+      const data = await res.json()
+      totalProcessed += data.processed ?? 0
+      totalSkipped   += data.skipped   ?? 0
+      totalAI        += data.usedAI    ?? 0
+      totalErrors    += data.errors    ?? 0
+      setSyncAllProgress({ processed: totalProcessed, skipped: totalSkipped, usedAI: totalAI, errors: totalErrors })
+      if (data.done) break
+      cursor = data.nextCursor ?? null
+      if (!cursor) break
+    }
+
+    setSyncAllStatus('done')
+    fetchOrders()
+  }
+
   async function handleExport() {
     if (!activeBusiness) return
     setExporting(true)
