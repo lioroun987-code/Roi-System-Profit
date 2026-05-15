@@ -23,12 +23,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           if (Array.isArray(data) && data.length > 0) {
             setBusinesses(data)
             const stored = localStorage.getItem('activeBusiness')
-            const valid = stored && data.find((b: any) => b.id === stored)
-            setActiveBusiness(valid ? stored : data[0].id)
+            const active = (stored && data.find((b: any) => b.id === stored)) ? stored : data[0].id
+            setActiveBusiness(active)
+
+            // Redirect to onboarding if active business hasn't completed it
+            const activeBiz = data.find((b: any) => b.id === active)
+            if (activeBiz && !activeBiz.onboardingCompleted) {
+              const step = activeBiz.onboardingStep ?? 0
+              router.push(`/onboarding?step=${step}`)
+            }
+          } else if (Array.isArray(data) && data.length === 0) {
+            // No businesses at all — go to onboarding to create first one
+            router.push('/onboarding')
           }
         })
     }
-  }, [session])
+  }, [session, router])
 
   function handleBusinessChange(id: string) {
     setActiveBusiness(id)
