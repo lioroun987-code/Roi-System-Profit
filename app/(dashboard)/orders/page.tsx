@@ -69,13 +69,13 @@ export default function OrdersPage() {
     let totalProcessed = 0, totalSkipped = 0, totalAI = 0, totalErrors = 0
 
     while (true) {
-      const res = await fetch('/api/shopify/sync-all', {
+      const batchRes: Response = await fetch('/api/shopify/sync-all', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ businessId: activeBusiness, cursor }),
       })
-      if (!res.ok) break
-      const data = await res.json()
+      if (!batchRes.ok) break
+      const data: any = await batchRes.json()
       totalProcessed += data.processed ?? 0
       totalSkipped   += data.skipped   ?? 0
       totalAI        += data.usedAI    ?? 0
