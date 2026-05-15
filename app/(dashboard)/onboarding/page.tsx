@@ -281,6 +281,11 @@ export default function OnboardingPage() {
     })
 
     setSaving(false)
+    // Mark onboarding complete in localStorage
+    if (businessId) {
+      localStorage.setItem(`onboarding_done_${businessId}`, '1')
+      localStorage.removeItem(`onboarding_step_${businessId}`)
+    }
     router.push('/dashboard')
   }
 
