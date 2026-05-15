@@ -88,10 +88,7 @@ export default function OnboardingPage() {
 
   // Step 1 — Shopify
   const [shopifyDomain, setShopifyDomain]       = useState('')
-  const [shopifyToken, setShopifyToken]         = useState('')
-  const [shopifyConnecting, setShopifyConnecting] = useState(false)
   const [shopifyConnected, setShopifyConnected] = useState(false)
-  const [shopifyError, setShopifyError]         = useState('')
 
   // Step 2 — Products
   const [products, setProducts]               = useState<ShopifyProduct[]>([])
