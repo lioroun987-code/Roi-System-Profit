@@ -7,6 +7,7 @@ import Anthropic from '@anthropic-ai/sdk'
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(request: NextRequest) {
+  try {
   const session = await getServerSession(authOptions)
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
