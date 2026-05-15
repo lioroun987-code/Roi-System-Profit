@@ -160,7 +160,10 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
                             {item.isGift ? '₪0' : `₪${item.unitPriceIls.toFixed(0)}`}
                           </span>
                           <span className="col-span-2 text-right text-sm" style={{ color: '#EF4444' }}>
-                            ${item.unitCostUsd.toFixed(2)}
+                            <span className="font-semibold">${item.unitCostUsd.toFixed(2)}</span>
+                            <span className="text-xs mr-1" style={{ color: '#4A5174' }}>
+                              = ₪{(item.unitCostUsd * (analysis.exchange_rate_used ?? 3.7)).toFixed(1)}
+                            </span>
                           </span>
                           <div className="col-span-3 flex justify-end">
                             {!item.isGift && item.unitPriceIls > 0
