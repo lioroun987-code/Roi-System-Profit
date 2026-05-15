@@ -262,6 +262,8 @@ export default function OnboardingPage() {
           exchangeRate,
           secondUnitDiscount: 2,
         },
+        // Save AI-detected discount rules if available
+        ...(aiResult?.discountRules ? { discountRules: aiResult.discountRules } : {}),
         paymentSettings: { vatEnabled, vatPercent, paymentMethods },
         aiNotes,
         ...(fbAdAccountId ? { fbAdAccountId } : {}),
