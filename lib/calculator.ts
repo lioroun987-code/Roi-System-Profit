@@ -176,7 +176,12 @@ export function calculateOrderCost(
   const totalCostIls   = totalCostUsd * exchangeRate
 
   /* ── 6. Payment fee ── */
-  const paymentMethod  = detectPaymentMethod(order, ps?.paymentMethods ?? [])
+  const paymentMethod  = detectPaymentMethod(
+    order,
+    ps?.paymentMethods ?? [],
+    (ps as any)?.flatFeeMode,
+    (ps as any)?.averageFeePercent
+  )
   const paymentFeeIls  = (totalCustomerPrice * paymentMethod.feePercent) / 100
 
   /* ── 7. VAT ── */
