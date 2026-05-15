@@ -173,7 +173,9 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: 'Missing params' }, { status: 400 })
   }
 
-  const businessId = state.split('_')[0]
+  const parts      = state.split('_')
+  const businessId = parts[0]
+  const returnTo   = parts[1] ?? 'integrations'   // 'onboarding' or 'integrations'
   const business = await prisma.business.findUnique({ where: { id: businessId } })
   if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
 
