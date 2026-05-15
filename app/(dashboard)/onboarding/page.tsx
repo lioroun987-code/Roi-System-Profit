@@ -891,29 +891,72 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
-                <h4 className="text-white font-medium">אמצעי תשלום ועמלות</h4>
-                <div className="space-y-3">
-                  {paymentMethods.map((m, i) => (
-                    <div key={m.name} className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 min-w-[140px] cursor-pointer">
-                        <input type="checkbox" checked={m.enabled}
-                          onChange={() => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, enabled: !p.enabled } : p))}
-                          className="w-4 h-4 rounded accent-blue-500" />
-                        <span className="text-sm" style={{ color: m.enabled ? '#CBD5E1' : '#4A5174' }}>{m.name}</span>
-                      </label>
-                      {m.enabled && (
-                        <div className="relative">
-                          <input type="number" step="0.1" min="0" value={m.feePercent}
-                            onChange={e => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, feePercent: parseFloat(e.target.value) || 0 } : p))}
-                            style={{ ...inputStyle, width: '96px', paddingLeft: '28px' }} dir="ltr" />
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              {/* Fee mode toggle */}
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                {[
+                  { val: false, label: '📋 לפי אמצעי תשלום' },
+                  { val: true,  label: '⚡ עמלה ממוצעת קבועה' },
+                ].map(opt => (
+                  <button key={String(opt.val)} onClick={() => setFlatFeeMode(opt.val)}
+                    className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
+                    style={{
+                      background: flatFeeMode === opt.val ? '#1E2846' : 'transparent',
+                      color:      flatFeeMode === opt.val ? '#4F6EF7' : '#6B7280',
+                    }}>
+                    {opt.label}
+                  </button>
+                ))}
               </div>
+
+              {flatFeeMode ? (
+                /* Flat average fee */
+                <div className="rounded-2xl p-5 space-y-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                  <div>
+                    <h4 className="text-white font-medium mb-1">עמלת עסקה ממוצעת</h4>
+                    <p className="text-xs" style={{ color: '#4A5174' }}>
+                      אם אינך יודע בדיוק מה כל אמצעי גובה — הכנס ממוצע אחד לכל ההזמנות
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 max-w-xs">
+                    <div className="relative flex-1">
+                      <input type="number" step="0.1" min="0" max="20"
+                        value={averageFeePercent}
+                        onChange={e => setAverageFeePercent(parseFloat(e.target.value) || 0)}
+                        style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                    </div>
+                    <span className="text-sm" style={{ color: '#6B7280' }}>מכל הזמנה</span>
+                  </div>
+                  <div className="rounded-lg px-3 py-2 text-xs" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
+                    💡 טיפ: אם רוב ההזמנות הן Bit (3%) ואשראי (1.5%) — ממוצע של ~2% הוא הגיוני
+                  </div>
+                </div>
+              ) : (
+                /* Per payment method */
+                <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                  <h4 className="text-white font-medium">אמצעי תשלום ועמלות</h4>
+                  <div className="space-y-3">
+                    {paymentMethods.map((m, i) => (
+                      <div key={m.name} className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 min-w-[140px] cursor-pointer">
+                          <input type="checkbox" checked={m.enabled}
+                            onChange={() => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, enabled: !p.enabled } : p))}
+                            className="w-4 h-4 rounded accent-blue-500" />
+                          <span className="text-sm" style={{ color: m.enabled ? '#CBD5E1' : '#4A5174' }}>{m.name}</span>
+                        </label>
+                        {m.enabled && (
+                          <div className="relative">
+                            <input type="number" step="0.1" min="0" value={m.feePercent}
+                              onChange={e => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, feePercent: parseFloat(e.target.value) || 0 } : p))}
+                              style={{ ...inputStyle, width: '96px', paddingLeft: '28px' }} dir="ltr" />
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
