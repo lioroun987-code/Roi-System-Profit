@@ -177,6 +177,51 @@ export default function SettingsPage() {
           />
         )}
 
+        {tab === 'simulation' && business && (() => {
+          const pc = business.productCosts ?? {}
+          const customProducts = pc.customProductCosts ?? {}
+          const products = Object.entries(customProducts).map(([key, val]: [string, any]) => ({
+            key,
+            productTitle:   val.productTitle ?? key,
+            variantTitle:   val.variantTitle ?? 'Default Title',
+            costUsd:        val.costUsd ?? 0,
+            sellingPriceIls: val.sellingPriceIls ?? 0,
+          }))
+          const priceHistory = pc.priceHistory ?? []
+          const exchangeRate = pc.exchangeRate ?? 3.7
+
+          async function handleSaveChange(change: any, updateCost: boolean) {
+            const updatedHistory = [...priceHistory, change]
+            const updatedCosts = updateCost
+              ? {
+                  ...customProducts,
+                  [change.productKey]: {
+                    ...customProducts[change.productKey],
+                    costUsd: change.newValue,
+                  },
+                }
+              : customProducts
+
+            await save({
+              productCosts: {
+                ...pc,
+                customProductCosts: updatedCosts,
+                priceHistory: updatedHistory,
+              },
+            }, 'simulation')
+          }
+
+          return (
+            <PriceSimulationTab
+              businessId={activeBusiness!}
+              products={products}
+              priceHistory={priceHistory}
+              exchangeRate={exchangeRate}
+              onSaveChange={handleSaveChange}
+            />
+          )
+        })()}
+
         {tab === 'ai' && (
           <div className="space-y-4">
             <div>
