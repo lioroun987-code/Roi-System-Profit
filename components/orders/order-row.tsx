@@ -223,7 +223,7 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
                   <div className="space-y-1.5">
                     {[
                       { label: 'הכנסה מלקוח',  val: analysis.store_price_breakdown.total,  color: '#4F6EF7', sign: '+' },
-                      { label: 'עלות מוצרים',   val: -analysis.my_cost_ils,                color: '#EF4444', sign: '-' },
+                      { label: `עלות מוצרים ($${analysis.my_cost_breakdown.total_usd.toFixed(2)})`, val: -analysis.my_cost_ils, color: '#EF4444', sign: '-' },
                       { label: 'רווח גולמי',    val: analysis.gross_profit_ils,             color: '#22C55E', sign: '' },
                       { label: `עמלת תשלום (${analysis.payment_method})`, val: -analysis.payment_fee_ils, color: '#F59E0B', sign: '-' },
                       ...(analysis.vat_ils > 0 ? [{ label: 'מע"מ', val: -analysis.vat_ils, color: '#F59E0B', sign: '-' }] : []),
