@@ -156,12 +156,14 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {tab === 'costs' && business && (
-          <ProductCostsForm
-            defaultValues={business.productCosts ?? DEFAULT_COSTS}
-            onSave={async (data) => save({ productCosts: data }, 'costs')}
-          />
-        )}
+        {tab === 'costs' && business && (() => {
+          const pc = business.productCosts ?? {}
+          const customCosts: Record<string, any> = pc.customProductCosts ?? {}
+          const hasCustom = Object.keys(customCosts).length > 0
+          return hasCustom
+            ? <ShopifyProductCosts pc={pc} customCosts={customCosts} onSave={(updated) => save({ productCosts: updated }, 'costs')} />
+            : <ProductCostsForm defaultValues={pc ?? DEFAULT_COSTS} onSave={async (data) => save({ productCosts: data }, 'costs')} />
+        })()}
 
         {tab === 'discounts' && business && (
           <DiscountRulesForm
