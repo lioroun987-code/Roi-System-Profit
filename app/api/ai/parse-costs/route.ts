@@ -101,4 +101,9 @@ ${productList || 'לא נטענו מוצרים'}
   }
 
   return Response.json({ success: true, parsed })
+  } catch (e: any) {
+    console.error('parse-costs unhandled error:', e)
+    return Response.json({ error: `שגיאת שרת: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
+  }
+}
 }
