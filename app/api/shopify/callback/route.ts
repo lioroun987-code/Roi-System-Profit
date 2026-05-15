@@ -217,5 +217,8 @@ export async function GET(request: NextRequest) {
     redirect(`/integrations?error=shopify&business=${businessId}`)
   }
 
-  redirect(`/integrations?connected=shopify&business=${businessId}`)
+  const dest = returnTo === 'onboarding'
+    ? `/onboarding?shopify=connected&business=${businessId}`
+    : `/integrations?connected=shopify&business=${businessId}`
+  redirect(dest)
 }
