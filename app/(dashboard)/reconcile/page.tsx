@@ -173,6 +173,203 @@ export default function ReconcilePage() {
     }
   }
 
+  async function generateAgentReport() {
+    if (!results || !activeBusiness) return
+    const overcharged = results.filter(r => r.status === 'agent_higher')
+    if (overcharged.length === 0) { alert('אין הזמנות עם חיוב עודף'); return }
+
+    setGeneratingReport(true)
+    try {
+      // Fetch detailed analysis from DB for each overcharged order
+      const res = await fetch('/api/reconcile/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: activeBusiness,
+          orderNumbers: overcharged.map(r => r.orderNumber),
+        }),
+      })
+      const data = await res.json()
+      const dbOrders: Record<string, any> = data.orders ?? {}
+
+      const totalOvercharge = overcharged.reduce((s, r) => s + r.diff, 0)
+      const periodLabel = agentSheetName || 'דוח פערי חיוב'
+      const today = new Date().toLocaleDateString('he-IL')
+
+      const rows = overcharged
+        .sort((a, b) => b.diff - a.diff)
+        .map(r => {
+          const db = dbOrders[r.orderNumber]
+          const analysis = db?.aiAnalysis as any
+          let breakdown = ''
+
+          if (analysis) {
+            const items = analysis.line_items_parsed
+              ?.filter((i: any) => !i.isGift)
+              .map((i: any) => `&nbsp;&nbsp;&nbsp;• ${i.quantity}× ${i.name}: $${i.unitCostUsd?.toFixed(2)} × ${exchangeRate} = ₪${(i.unitCostUsd * exchangeRate * i.quantity).toFixed(2)}`)
+              .join('<br/>') ?? ''
+
+            const shipping = analysis.my_cost_breakdown?.shipping_cost > 0
+              ? `<br/>&nbsp;&nbsp;&nbsp;• משלוח לבית: $${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)} × ${exchangeRate} = ₪${(analysis.my_cost_breakdown.shipping_cost * exchangeRate).toFixed(2)}`
+              : ''
+
+            const gifts = analysis.my_cost_breakdown?.gift_capsule_cost > 0
+              ? `<br/>&nbsp;&nbsp;&nbsp;• קפסולות מתנה/הפתעה: $${analysis.my_cost_breakdown.gift_capsule_cost?.toFixed(2)} × ${exchangeRate} = ₪${(analysis.my_cost_breakdown.gift_capsule_cost * exchangeRate).toFixed(2)}`
+              : ''
+
+            const discounts = analysis.discounts_applied?.length > 0
+              ? `<br/>&nbsp;&nbsp;&nbsp;• הנחות: ${analysis.discounts_applied.map((d: any) => d.name).join(', ')}`
+              : ''
+
+            breakdown = `
+              <div class="breakdown">
+                <strong>פירוט חישוב נכון:</strong><br/>
+                ${items}${shipping}${gifts}${discounts}
+                <br/>&nbsp;&nbsp;&nbsp;<strong>סה"כ נכון: ₪${r.ourCost?.toFixed(2)}</strong>
+                ${analysis.notes ? `<br/>&nbsp;&nbsp;&nbsp;<em>${analysis.notes}</em>` : ''}
+              </div>`
+          }
+
+          const dateFmt = r.orderDate ? r.orderDate.split(' ')[0] : '—'
+          return `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <span class="order-num">הזמנה #${r.orderNumber}</span>
+                  <span class="order-date">${dateFmt}</span>
+                  ${db?.orderSummary ? `<span class="order-summary">${db.orderSummary}</span>` : ''}
+                </div>
+                <div class="diff-badge">+₪${r.diff.toFixed(2)} ביתר</div>
+              </div>
+              <div class="costs-row">
+                <div class="cost-item wrong">
+                  <div class="cost-label">חויבתי על ידי הסוכן</div>
+                  <div class="cost-value">₪${r.agentCost.toFixed(2)}</div>
+                </div>
+                <div class="cost-arrow">→</div>
+                <div class="cost-item correct">
+                  <div class="cost-label">עלות נכונה</div>
+                  <div class="cost-value">₪${r.ourCost?.toFixed(2) ?? '—'}</div>
+                </div>
+                <div class="cost-item diff">
+                  <div class="cost-label">הפרש</div>
+                  <div class="cost-value">₪${r.diff.toFixed(2)}</div>
+                </div>
+              </div>
+              ${breakdown}
+            </div>`
+        }).join('')
+
+      const html = `<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <meta charset="UTF-8" />
+  <title>דוח פערי חיוב — ${periodLabel}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; color: #1e293b; padding: 32px; font-size: 14px; }
+    .page { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    .report-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 28px; }
+    .report-title { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+    .report-meta { color: #64748b; font-size: 13px; }
+    .report-meta span { margin-left: 20px; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .summary-card { padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; text-align: center; }
+    .summary-card.red { background: #fef2f2; border-color: #fecaca; }
+    .summary-card.orange { background: #fff7ed; border-color: #fed7aa; }
+    .summary-card.blue { background: #eff6ff; border-color: #bfdbfe; }
+    .summary-num { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+    .summary-card.red .summary-num { color: #dc2626; }
+    .summary-card.orange .summary-num { color: #ea580c; }
+    .summary-card.blue .summary-num { color: #2563eb; }
+    .summary-label { font-size: 12px; color: #64748b; }
+
+    .section-title { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+
+    .order-card { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .order-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .order-num { font-weight: 700; font-size: 15px; color: #0f172a; margin-left: 10px; }
+    .order-date { font-size: 12px; color: #64748b; }
+    .order-summary { display: block; font-size: 12px; color: #64748b; margin-top: 3px; }
+    .diff-badge { background: #fef2f2; color: #dc2626; font-weight: 700; font-size: 14px; padding: 4px 12px; border-radius: 20px; border: 1px solid #fecaca; white-space: nowrap; }
+
+    .costs-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+    .cost-item { flex: 1; text-align: center; padding: 10px; border-radius: 8px; }
+    .cost-item.wrong { background: #fef2f2; }
+    .cost-item.correct { background: #f0fdf4; }
+    .cost-item.diff { background: #fff7ed; }
+    .cost-label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+    .cost-value { font-size: 17px; font-weight: 800; }
+    .cost-item.wrong .cost-value { color: #dc2626; }
+    .cost-item.correct .cost-value { color: #16a34a; }
+    .cost-item.diff .cost-value { color: #ea580c; }
+    .cost-arrow { color: #94a3b8; font-size: 18px; }
+
+    .breakdown { padding: 12px 16px; background: #f1f5f9; border-top: 1px solid #e2e8f0; font-size: 13px; color: #475569; line-height: 1.9; }
+    .breakdown strong { color: #1e293b; }
+
+    .footer { margin-top: 36px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; padding: 20px; }
+      .order-card { break-inside: avoid; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="report-header">
+    <div class="report-title">דוח פערי חיוב — ${periodLabel}</div>
+    <div class="report-meta">
+      <span>תאריך הפקה: ${today}</span>
+      <span>שיעור המרה: $1 = ₪${exchangeRate}</span>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card red">
+      <div class="summary-num">${overcharged.length}</div>
+      <div class="summary-label">הזמנות עם חיוב עודף</div>
+    </div>
+    <div class="summary-card orange">
+      <div class="summary-num">₪${totalOvercharge.toFixed(2)}</div>
+      <div class="summary-label">סה"כ חיוב עודף</div>
+    </div>
+    <div class="summary-card blue">
+      <div class="summary-num">₪${(totalOvercharge / overcharged.length).toFixed(2)}</div>
+      <div class="summary-label">ממוצע פער להזמנה</div>
+    </div>
+  </div>
+
+  <div class="section-title">פירוט הזמנות — ממויין לפי גודל הפער</div>
+  ${rows}
+
+  <div class="footer">
+    דוח זה הופק על ידי מערכת מנהל רווחיות • כל הסכומים בשקלים ישראלים (₪)
+  </div>
+</div>
+
+<script>
+  window.onload = function() { window.print(); }
+<\/script>
+</body>
+</html>`
+
+      const win = window.open('', '_blank')
+      if (win) {
+        win.document.write(html)
+        win.document.close()
+      }
+    } finally {
+      setGeneratingReport(false)
+    }
+  }
+
   function exportCsv() {
     if (!results) return
     const headers = 'מספר הזמנה,עלות סוכן,עלות שלנו,פער,סטטוס'
