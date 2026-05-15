@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   CheckCircle, ChevronLeft, ChevronRight, Store, DollarSign, Megaphone,
-  CreditCard, Bot, Rocket, Loader2, ExternalLink, Package, Truck,
-  TrendingUp, AlertCircle,
+  CreditCard, Bot, Rocket, Loader2, Package, Truck, TrendingUp,
 } from 'lucide-react'
 
 /* ── Types ── */
