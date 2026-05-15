@@ -118,6 +118,54 @@ export default function OrdersPage() {
 
   return (
     <div className="p-6 space-y-5">
+
+      {/* Sync All Modal */}
+      {syncAllOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+            {syncAllStatus === 'running' ? (
+              <>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"
+                  style={{ background: '#1E2846' }}>
+                  <History className="w-7 h-7" style={{ color: '#4F6EF7' }} />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">מעבד היסטוריית הזמנות</h3>
+                <p className="text-sm mb-6" style={{ color: '#6B7280' }}>זה עשוי לקחת מספר דקות...</p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    { label: 'עובדו',       val: syncAllProgress.processed, color: '#22C55E' },
+                    { label: 'קיימות',      val: syncAllProgress.skipped,   color: '#6B7280' },
+                    { label: 'עם AI',       val: syncAllProgress.usedAI,    color: '#4F6EF7' },
+                    { label: 'שגיאות',     val: syncAllProgress.errors,    color: '#EF4444' },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                      <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ background: '#0D2818' }}>
+                  <History className="w-7 h-7" style={{ color: '#22C55E' }} />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">הסנכרון הושלם!</h3>
+                <p className="text-sm mb-6" style={{ color: '#6B7280' }}>
+                  עובדו {syncAllProgress.processed} הזמנות · {syncAllProgress.usedAI} עם AI · {syncAllProgress.skipped} כבר קיימות
+                </p>
+                <button onClick={() => { setSyncAllOpen(false); setSyncAllStatus('idle') }}
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+                  סגור
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
