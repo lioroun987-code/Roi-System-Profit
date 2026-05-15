@@ -48,6 +48,7 @@ export default function ReconcilePage() {
   const [sortDir, setSortDir]             = useState<'desc' | 'asc'>('desc')
   const [lastRunAt, setLastRunAt]         = useState<Date | null>(null)
   const [settingsChanged, setSettingsChanged] = useState(false)
+  const [generatingReport, setGeneratingReport] = useState(false)
   const autoRunRef = useRef(false)
 
   useEffect(() => {
