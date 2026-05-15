@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Search, Download, RefreshCw, Filter, TrendingUp, TrendingDown, ShoppingCart } from 'lucide-react'
+import { Search, Download, RefreshCw, Filter, TrendingUp, TrendingDown, ShoppingCart, History, X } from 'lucide-react'
 import { OrderRowComponent } from '@/components/orders/order-row'
 import { OrderRow } from '@/types'
 import { formatCurrency } from '@/lib/utils'
