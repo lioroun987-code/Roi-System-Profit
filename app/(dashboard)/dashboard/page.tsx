@@ -84,14 +84,14 @@ export default function DashboardPage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
-  // Auto-sync last 2 days on load so "today" is always fresh
-  const syncRecent = useCallback(async (bid: string) => {
+  // Sync recent Shopify orders into DB
+  const syncRecent = useCallback(async (bid: string, daysBack = 7) => {
     setSyncing(true)
     try {
       await fetch('/api/shopify/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessId: bid, daysBack: 2 }),
+        body: JSON.stringify({ businessId: bid, daysBack }),
       })
       setLastSynced(new Date())
     } catch { /* non-fatal */ }
