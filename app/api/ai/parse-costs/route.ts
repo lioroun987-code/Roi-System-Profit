@@ -106,4 +106,3 @@ ${productList || 'לא נטענו מוצרים'}
     return Response.json({ error: `שגיאת שרת: ${e?.message ?? 'לא ידועה'}` }, { status: 500 })
   }
 }
-}
