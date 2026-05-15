@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Shopify not configured' }, { status: 400 })
   }
 
-  const sinceDate = new Date()
-  sinceDate.setDate(sinceDate.getDate() - daysBack)
+  // daysBack can be fractional (e.g. 0.1 = ~2.4 hours)
+  const sinceDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000)
 
   try {
     const orders = await fetchShopifyOrders(
