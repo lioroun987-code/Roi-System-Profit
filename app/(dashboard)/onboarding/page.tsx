@@ -190,6 +190,47 @@ export default function OnboardingPage() {
     } finally { setLoadingProducts(false) }
   }
 
+  /* ── AI parse description ── */
+  async function parseWithAI() {
+    if (!aiDescription.trim() || !businessId) return
+    setAiParsing(true)
+    setAiError('')
+    setAiResult(null)
+    try {
+      const res = await fetch('/api/ai/parse-costs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId, description: aiDescription, products }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) { setAiError(data.error ?? 'שגיאה'); return }
+
+      const { parsed } = data
+      setAiResult(parsed)
+
+      // Apply parsed product costs
+      if (parsed.productCosts) {
+        const newCosts: Record<string, number> = { ...productCosts }
+        for (const [key, val] of Object.entries(parsed.productCosts as Record<string, any>)) {
+          if (val.costUsd > 0) newCosts[key] = val.costUsd
+        }
+        setProductCosts(newCosts)
+      }
+      // Apply shipping & discount settings
+      if (parsed.shippingSettings) {
+        if (parsed.shippingSettings.homeDeliveryCostUsd)  setHomeDeliveryCostUsd(parsed.shippingSettings.homeDeliveryCostUsd)
+        if (parsed.shippingSettings.homeDeliveryChargeIls) setHomeDeliveryChargeIls(parsed.shippingSettings.homeDeliveryChargeIls)
+        if (parsed.shippingSettings.pickupFeeThresholdIls) setPickupFeeThresholdIls(parsed.shippingSettings.pickupFeeThresholdIls)
+        if (parsed.shippingSettings.pickupFeeAmountIls)    setPickupFeeAmountIls(parsed.shippingSettings.pickupFeeAmountIls)
+      }
+      if (parsed.exchangeRate) setExchangeRate(parsed.exchangeRate)
+    } catch (e: any) {
+      setAiError(e?.message ?? 'שגיאת שרת')
+    } finally {
+      setAiParsing(false)
+    }
+  }
+
   /* ── Save & finish ── */
   async function finish() {
     if (!businessId) return
