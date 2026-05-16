@@ -34,7 +34,8 @@ ${productCatalogSection}## BUSINESS PRODUCT COSTS (fallback / general rules)
 - Single capsule: $${pc.singleCapsuleCost} USD
 - 3-capsule pack store price: ₪${pc.pack3Price} ILS
 - 7-capsule pack store price: ₪${pc.pack7Price} ILS
-- Discount on 2nd+ unit: $${pc.secondUnitDiscount} USD per additional unit (2 units = 1 discount, 3 units = 2 discounts)
+- Discount on 2nd+ unit: $${(pc as any).secondUnitDiscount ?? 2} USD per additional unit of the SAME TYPE (2 units = 1 discount, 3 units = 2 discounts)
+- CRITICAL: This discount applies only within the SAME product type. 1 deal + 1 coolDeal = NO discount. 2 deals = 1 discount. 1 deal + 1 coolDeal + 1 coolDeal = only 1 discount (for the 2nd coolDeal).
 - Home delivery cost to business: $${pc.homeDeliveryCostUsd} USD
 - Home delivery charge to customer: ₪${pc.homeDeliveryChargeIls} ILS
 - Pickup fee: if order subtotal < ₪${pc.pickupFeeThresholdIls}, add ₪${pc.pickupFeeAmountIls} to customer price
