@@ -217,10 +217,19 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                   {m.changes && (
                     <div className="flex items-center gap-1.5 flex-wrap px-1">
                       <div className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: '#0D2818', color: '#22C55E', border: '1px solid #166534' }}>
+                        style={{
+                          background: m.saved ? '#0D2818' : '#2A1800',
+                          color:      m.saved ? '#22C55E' : '#F59E0B',
+                          border: `1px solid ${m.saved ? '#166534' : '#92400E'}`,
+                        }}>
                         <CheckCircle className="w-2.5 h-2.5" />
-                        {m.changes.what_changed}
+                        {m.saved ? `נשמר: ${m.changes.what_changed}` : `לא נשמר: ${m.changes.what_changed}`}
                       </div>
+                    </div>
+                  )}
+                  {!m.changes && !m.error && m.role === 'assistant' && (
+                    <div className="px-1">
+                      <span className="text-xs" style={{ color: '#374151' }}>לא זוהה שינוי להחיל</span>
                     </div>
                   )}
                 </div>
