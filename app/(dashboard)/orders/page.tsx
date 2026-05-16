@@ -50,6 +50,34 @@ export default function OrdersPage() {
     fetchOrders()
   }
 
+  async function handleReanalyzeAll() {
+    if (!activeBusiness) return
+    setReanalyzeAllRunning(true)
+    setReanalyzeAllProgress({ done: 0, total: 0 })
+    try {
+      // Use sync-all endpoint with force re-analyze flag
+      let cursor: string | null = null
+      let totalDone = 0
+      while (true) {
+        const batchRes: Response = await fetch('/api/shopify/sync-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ businessId: activeBusiness, cursor, reanalyze: true }),
+        })
+        if (!batchRes.ok) break
+        const data: any = await batchRes.json()
+        totalDone += data.processed ?? 0
+        setReanalyzeAllProgress({ done: totalDone, total: totalDone + (data.batchSize ?? 0) })
+        if (data.done) break
+        cursor = data.nextCursor ?? null
+        if (!cursor) break
+      }
+      fetchOrders()
+    } finally {
+      setReanalyzeAllRunning(false)
+    }
+  }
+
   async function handleSync() {
     if (!activeBusiness) return
     setSyncing(true)
