@@ -187,12 +187,6 @@ export function calculateOrderCost(
     })
 
     for (const item of targets) {
-      // Smart rule application:
-      // If the rule sets cost to $0, only apply to items the customer received FREE (isGift=true).
-      // If the customer PAID for this item (isGift=false), it was ordered separately — keep catalog cost.
-      // This handles: "capsule set free with bottle" vs "capsule set ordered separately at ₪90"
-      if (eff.value === 0 && eff.type === 'set_cost_per_unit' && !item.isGift) continue
-
       if (eff.type === 'reduce_cost_per_unit') {
         item.unitCostUsd  = Math.max(0, item.unitCostUsd  - eff.value)
         item.totalCostUsd = Math.max(0, item.totalCostUsd - eff.value * item.quantity)
