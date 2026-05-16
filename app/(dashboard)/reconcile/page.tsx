@@ -676,13 +676,14 @@ export default function ReconcilePage() {
           {/* Table */}
           <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
             {/* Table header */}
-            <div className="grid grid-cols-6 gap-4 px-5 py-3 text-xs font-semibold uppercase" style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            <div className="grid grid-cols-7 gap-3 px-5 py-3 text-xs font-semibold uppercase" style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 מספר הזמנה {sortBy === 'order' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
               <span>תאריך</span>
               <span>עלות סוכן (₪)</span>
               <span>עלות שלי (₪)</span>
+              <span style={{ color: '#4F6EF7' }}>עלות מערכת (₪)</span>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('diff'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 פער {sortBy === 'diff' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
