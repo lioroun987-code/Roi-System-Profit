@@ -67,11 +67,23 @@ Discounts: qty2=${dr.qty2Percent}%, qty3=${dr.qty3Percent}%, surpriseCost=$${dr.
 Payment: ${(ps as any).flatFeeMode ? `flat ${(ps as any).averageFeePercent}%` : (ps.paymentMethods ?? []).filter((m: any) => m.enabled).map((m: any) => `${m.name}=${m.feePercent}%`).join(', ')}
 AI notes: ${business.aiNotes || '(none)'}
 
+ROUTING DECISION — before doing anything, decide:
+  IS THIS A PRICE CHANGE? → update productCosts (costUsd / selling price / shipping / exchange rate)
+  IS THIS A RULE? → add/update discountRules.costRules (condition-based supplier discounts)
+  IS THIS A FEE? → update paymentSettings
+  IS THIS AN EDGE CASE? → aiNotes (only if no structured field exists)
+
+HOW TO TELL:
+- "עלות X עלתה ל-$Y" → PRICE CHANGE (productCosts)
+- "כשקונים N מוצרים מאותו סוג, הסוכן מוריד $Z" → RULE (costRules)
+- "הנחת יחידה שנייה היא $X" → PRICE CHANGE (productCosts.secondUnitDiscount)
+- "עמלת Bit X%" → FEE (paymentSettings)
+- Complex business logic with no field → aiNotes
+
 RULES:
 - Reply in 1-2 short Hebrew sentences only — state exactly what you changed.
 - If nothing to change, say so in one sentence.
-- CRITICAL: If the user mentions a cost, price, fee, or rule — ALWAYS update the actual config field (productCosts / discountRules / paymentSettings), NOT just aiNotes. aiNotes is only for edge cases that cannot be expressed as structured config.
-- Never say "I added this to aiNotes" for something that has a real config field.
+- CRITICAL: Always update the actual config field. aiNotes is ONLY for edge cases.
 - Always return a JSON object with this exact structure:
 
 {
