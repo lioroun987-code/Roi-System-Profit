@@ -505,8 +505,52 @@ export default function ReconcilePage() {
     outline: 'none', width: '100%', direction: 'ltr' as const,
   }
 
+  // Fix summary cards: exclude business expenses from gap totals
+  const nonBizResults = (results ?? []).filter(r =>
+    r.status !== 'content_creator' && !exclusions[r.orderNumber]
+  )
+  const realAgentTotal = nonBizResults.reduce((s, r) => s + r.agentCost, 0)
+  const realOurTotal   = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+  const realDiff       = realAgentTotal - realOurTotal
+
+  // Parse stored exclusion reason
+  function getExclusionReason(orderNumber: string): string {
+    const raw = exclusions[orderNumber]
+    if (!raw) return ''
+    try { return JSON.parse(raw).reason ?? raw } catch { return raw }
+  }
+  function getExclusionLabel(orderNumber: string): string {
+    const reason = getExclusionReason(orderNumber)
+    return EXPENSE_TYPES.find(t => t.id === reason)?.label ?? reason ?? 'הוצאה עסקית'
+  }
+
   return (
     <div className="p-6 space-y-6">
+
+      {/* Expense type modal */}
+      {expenseTypeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-6 w-80 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+            <h3 className="text-white font-bold">סוג הוצאה עסקית</h3>
+            <p className="text-sm" style={{ color: '#6B7280' }}>הזמנה #{expenseTypeModal}</p>
+            <div className="space-y-2">
+              {EXPENSE_TYPES.map(t => (
+                <button key={t.id}
+                  onClick={() => toggleExclusion(expenseTypeModal!, t.id)}
+                  className="w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-80"
+                  style={{ background: '#13161F', color: '#CBD5E1', border: '1px solid #1E2130' }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setExpenseTypeModal(null)}
+              className="w-full py-2 rounded-xl text-sm" style={{ color: '#4A5174' }}>
+              ביטול
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-white">בדיקת פערים</h1>
