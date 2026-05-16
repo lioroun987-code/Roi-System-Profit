@@ -329,7 +329,15 @@ export async function POST(request: NextRequest) {
 
     for (const [orderNum, ourData] of ourByOrder) {
       if (!agentByOrder.has(orderNum) && ourData.cost != null) {
-        results.push({ orderNumber: orderNum, agentCost: 0, ourCost: ourData.cost, diff: 0, status: 'missing_in_agent', rowIndex: ourData.rowIndex })
+        results.push({
+          orderNumber: orderNum,
+          agentCost: 0,
+          ourCost: ourData.cost,
+          systemCost: dbCostByOrder.get(orderNum) ?? null,
+          diff: 0,
+          status: 'missing_in_agent',
+          rowIndex: ourData.rowIndex,
+        })
       }
     }
 
