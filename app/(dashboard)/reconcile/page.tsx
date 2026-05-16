@@ -88,18 +88,19 @@ export default function ReconcilePage() {
       .catch(() => {})
   }, [activeBusiness])
 
-  async function toggleExclusion(orderNumber: string) {
+  async function toggleExclusion(orderNumber: string, reason?: string) {
     if (!activeBusiness) return
     setTogglingExclusion(orderNumber)
-    const isExcluded = !!exclusions[orderNumber]
+    const isExcluded = !!exclusions[orderNumber] && !reason
     const res = await fetch('/api/reconcile/exclude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ businessId: activeBusiness, orderNumber, remove: isExcluded }),
+      body: JSON.stringify({ businessId: activeBusiness, orderNumber, remove: isExcluded, reason }),
     })
     const data = await res.json()
     setExclusions(data.exclusions ?? {})
     setTogglingExclusion(null)
+    setExpenseTypeModal(null)
   }
 
   // Load saved reconcile report from DB whenever active business changes
