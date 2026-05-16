@@ -705,14 +705,11 @@ export default function ReconcilePage() {
               { label: 'סה"כ הזמנות', val: String(summary.total), color: '#CBD5E1', bg: '#13161F' },
               { label: '✓ תואמות', val: String(summary.matches), color: '#22C55E', bg: '#0D2818' },
               { label: '⚠️ פערים', val: String(summary.agentHigher + summary.weHigher), color: '#F59E0B', bg: '#2A1800' },
-              { label: 'עלות סוכן סה"כ', val: `₪${(summary as any).totalAgentCost?.toFixed(2) ?? '0'}`, color: '#60A5FA', bg: '#0D1A2A' },
-              { label: 'עלות שלי סה"כ', val: `₪${(summary as any).totalOurCost?.toFixed(2) ?? '0'}`, color: '#A78BFA', bg: '#150D2A' },
+              { label: 'עלות סוכן (ללא עסקי)', val: `₪${realAgentTotal.toFixed(2)}`, color: '#60A5FA', bg: '#0D1A2A' },
+              { label: 'עלות שלי (ללא עסקי)', val: `₪${realOurTotal.toFixed(2)}`, color: '#A78BFA', bg: '#150D2A' },
               (() => {
-                const diff = ((summary as any).totalAgentCost ?? 0) - ((summary as any).totalOurCost ?? 0)
-                // agentCost > ourCost = agent charged more = BAD = red
-                // agentCost < ourCost = agent charged less = GOOD = green
-                const isGood = diff <= 0
-                return { label: `הפרש כולל ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(diff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' }
+                const isGood = realDiff <= 0
+                return { label: `הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(realDiff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' }
               })(),
             ].map(s => (
               <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
