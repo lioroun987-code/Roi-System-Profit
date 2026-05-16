@@ -94,7 +94,41 @@ EXAMPLES of what goes WHERE:
 - "קפסולה עולה $0.90" → patch discountRules.surpriseCapsuleCostUsd = 0.90
 - "עלות דיל $9" → patch productCosts.customProductCosts.{key}.costUsd = 9.0
 - "עמלת bit 2.5%" → patch paymentSettings.paymentMethods.{index}.feePercent = 2.5
+- "כשקונים 2 בקבוקים עלות כל בקבוק יורדת ב-$1.80" → add cost rule (see below)
 - "כשיש קופון ספציפי X, תתייחס אחרת" → THIS goes to aiNotes (no config field for it)
+
+COST RULES — for complex supplier pricing:
+Use type "costRules" to add/update/remove rules in discountRules.costRules array.
+Patch: { "section": "discountRules", "path": "costRules", "value": [...existing rules..., newRule] }
+
+Rule schema:
+{
+  "id": "cr_<unique>",
+  "name": "שם בעברית",
+  "active": true,
+  "condition": {
+    "type": "quantity_of_type" | "quantity_same_product" | "total_items" | "product_in_order",
+    "productType": "deal" | "coolDeal" | "bottle" | "capsule" | "any",
+    "operator": ">=" | ">" | "==" | "<=",
+    "value": <number>
+  },
+  "effect": {
+    "type": "reduce_cost_per_unit" | "set_cost_per_unit" | "percent_off_total",
+    "appliesTo": "matching_items" | "all_items",
+    "productType": "deal" | "coolDeal" | "bottle" | "any",
+    "value": <number in USD or percent>
+  },
+  "note": "הסבר לכלל"
+}
+
+EXAMPLE RULES:
+- "סוכן מוריד $1.80 לכל דיל כשקונים 2+":
+  condition: {type:"quantity_of_type", productType:"deal", operator:">=", value:2}
+  effect: {type:"reduce_cost_per_unit", appliesTo:"matching_items", productType:"deal", value:1.80}
+
+- "כשקונים 3+ בקבוקים, עלות כל בקבוק $14":
+  condition: {type:"quantity_of_type", productType:"bottle", operator:">=", value:3}
+  effect: {type:"set_cost_per_unit", appliesTo:"matching_items", productType:"bottle", value:14}
 
 Return ONLY the JSON — no text before or after.`
 
