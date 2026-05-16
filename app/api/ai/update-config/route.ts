@@ -150,7 +150,8 @@ EXAMPLE RULES:
 
 - "סט 7 קפסולות שניתן חינם ללקוח (display item) → עלות $0 לעסק":
   condition: {type:"customer_price_is_zero", productType:"capsule"}
-  effect: {type:"set_cost_per_unit", appliesTo:"matching_items", productType:"capsule", value:0}
+  effect: {type:"set_cost_per_unit", appliesTo:"matching_items", productKey:"סט 7 קפסולות", value:0}
+  NOTE: use productKey (name match) NOT productType:"capsule" — to avoid affecting other capsule gifts like "3 קפסולות הפתעה"
 
 - "כשקונים 3+ בקבוקים, עלות כל בקבוק $14":
   condition: {type:"quantity_of_type", productType:"bottle", operator:">=", value:3}
