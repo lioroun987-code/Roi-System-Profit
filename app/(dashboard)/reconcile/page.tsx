@@ -865,6 +865,99 @@ export default function ReconcilePage() {
         </>
       )}
 
+      {/* Business Expenses Section */}
+      {results && (() => {
+        const contentCreators = results.filter(r => r.status === 'content_creator')
+        const manuallyMarked  = results.filter(r => r.status !== 'content_creator' && exclusions[r.orderNumber])
+        const allBizExpenses  = [...contentCreators, ...manuallyMarked]
+        if (allBizExpenses.length === 0) return null
+
+        const totalBizAmount = allBizExpenses.reduce((s, r) => s + (r.ourCost ?? r.agentCost ?? 0), 0)
+
+        return (
+          <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4" style={{ background: '#0D0F14', borderBottom: '1px solid #1E2130' }}>
+              <div className="flex items-center gap-2.5">
+                <Briefcase className="w-5 h-5" style={{ color: '#A78BFA' }} />
+                <div>
+                  <h3 className="text-white font-semibold text-sm">הוצאות עסקיות</h3>
+                  <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>
+                    לא נכנסות לחישוב הפערים — מוצגות בנפרד בדוח לסוכן
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-bold" style={{ color: '#A78BFA' }}>₪{totalBizAmount.toFixed(2)}</p>
+                <p className="text-xs" style={{ color: '#4A5174' }}>{allBizExpenses.length} הזמנות</p>
+              </div>
+            </div>
+
+            {/* Sub-sections */}
+            {contentCreators.length > 0 && (
+              <div>
+                <div className="px-5 py-2 text-xs font-semibold uppercase flex items-center gap-2"
+                  style={{ background: '#0C1A2A', color: '#06B6D4', borderBottom: '1px solid #1E2130' }}>
+                  📸 יוצרי תוכן / צלמים ({contentCreators.length})
+                </div>
+                {contentCreators.map(r => (
+                  <div key={r.orderNumber} className="flex items-center justify-between px-5 py-3 border-b text-sm"
+                    style={{ borderColor: '#1A1D2A' }}>
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-semibold text-white">#{r.orderNumber}</span>
+                      <span className="text-xs" style={{ color: '#6B7280' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
+                      {r.sheetReason && (
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#0C1A2A', color: '#06B6D4' }}>
+                          {r.sheetReason}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm" style={{ color: '#CBD5E1' }}>
+                      ₪{(r.ourCost ?? r.agentCost ?? 0).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {manuallyMarked.length > 0 && (
+              <div>
+                <div className="px-5 py-2 text-xs font-semibold uppercase flex items-center gap-2"
+                  style={{ background: '#1A1040', color: '#A78BFA', borderBottom: '1px solid #1E2130' }}>
+                  💼 שימוש עסקי ידני ({manuallyMarked.length})
+                </div>
+                {manuallyMarked.map(r => {
+                  const meta = STATUS_LABELS[r.status]
+                  return (
+                    <div key={r.orderNumber} className="flex items-center justify-between px-5 py-3 border-b text-sm"
+                      style={{ borderColor: '#1A1D2A' }}>
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono font-semibold text-white">#{r.orderNumber}</span>
+                        <span className="text-xs" style={{ color: '#6B7280' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: meta?.bg, color: meta?.color }}>
+                          {meta?.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm" style={{ color: '#CBD5E1' }}>
+                          ₪{(r.ourCost ?? r.agentCost ?? 0).toFixed(2)}
+                        </span>
+                        <button onClick={() => toggleExclusion(r.orderNumber)}
+                          disabled={togglingExclusion === r.orderNumber}
+                          className="text-xs px-2 py-1 rounded-lg transition-all hover:opacity-70"
+                          style={{ background: '#1A1D2A', color: '#6B7280', border: '1px solid #1E2130' }}>
+                          הסר
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Empty state */}
       {!results && !running && (
         <div className="rounded-2xl border p-14 text-center" style={{ background: '#13161F', borderColor: '#1E2130' }}>
