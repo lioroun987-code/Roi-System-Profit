@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     aiNotes:         business.aiNotes ?? '',
   }
 
-  const BATCH = 50
+  const BATCH = 200
 
   // Count total orders for progress
   const totalOrders = await prisma.order.count({ where: { businessId } })
