@@ -170,9 +170,8 @@ const DEFAULT_PAYMENT: PaymentSettings = {
 
 const TABS = [
   { id: 'general',    label: 'כללי' },
-  { id: 'costs',      label: 'עלויות וחוקים' },  // merged: product costs + cost rules
-  { id: 'discounts',  label: 'כללי הנחה' },
-  { id: 'payment',    label: 'תשלום ומע"מ' },
+  { id: 'costs',      label: 'עלויות וחוקים' },
+  { id: 'payment',    label: 'תשלום' },
   { id: 'simulation', label: '📈 סימולציה' },
   { id: 'ai-chat',    label: '✨ עדכן עם AI' },
   { id: 'ai',         label: 'הנחיות AI' },
