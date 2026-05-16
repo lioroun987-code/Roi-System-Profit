@@ -24,16 +24,14 @@ export async function POST(request: NextRequest) {
     aiNotes:        business.aiNotes ?? '',
   }
 
-  // Fetch a batch of orders from Shopify
-  // NOTE: Shopify cursor pagination (page_info) allows ONLY "limit" alongside it.
-  // All other filters must only appear on the first (non-cursor) request.
-  const BATCH = 50
+  // 250 = Shopify's max per page — fewer round trips = much faster for large stores
+  const BATCH = 250
   const params = new URLSearchParams({ limit: String(BATCH) })
   if (cursor) {
     params.set('page_info', cursor)
   } else {
     params.set('status', 'any')
-    params.set('order', 'created_at asc')  // oldest first so we don't miss any
+    params.set('order', 'created_at asc')
   }
 
   const shopifyRes = await fetch(
@@ -49,52 +47,57 @@ export async function POST(request: NextRequest) {
   const shopifyData = await shopifyRes.json()
   const orders: ShopifyOrder[] = shopifyData.orders ?? []
 
-  // Extract next cursor from Link header
   const linkHeader = shopifyRes.headers.get('link') ?? ''
-  const nextMatch = linkHeader.match(/<[^>]*page_info=([^&>]+)[^>]*>;\s*rel="next"/)
+  const nextMatch  = linkHeader.match(/<[^>]*page_info=([^&>]+)[^>]*>;\s*rel="next"/)
   const nextCursor = nextMatch?.[1] ?? null
 
-  let processed = 0
-  let skipped   = 0
-  let usedAI    = 0
-  let errors    = 0
+  let processed = 0, skipped = 0, errors = 0
 
-  // Batch-check which orders already exist
+  if (orders.length === 0) {
+    return Response.json({ processed: 0, skipped: 0, errors: 0, batchSize: 0, nextCursor: null, done: true })
+  }
+
+  // ── 1. Single query: which orders already exist? ──
   const shopifyIds = orders.map(o => String(o.id))
-  const existing = await prisma.order.findMany({
-    where: { businessId, shopifyOrderId: { in: shopifyIds } },
+  const existing   = await prisma.order.findMany({
+    where:  { businessId, shopifyOrderId: { in: shopifyIds } },
     select: { shopifyOrderId: true, status: true },
   })
   const existingMap = new Map(existing.map(e => [e.shopifyOrderId, e.status]))
 
+  // ── 2. Run calculator on all orders (sync, no I/O) ──
+  type Row = { sid: string; order: ShopifyOrder; analysis: ReturnType<typeof calculateOrderCost> }
+  const toProcess: Row[] = []
+
   for (const order of orders) {
     const sid = String(order.id)
-    const existingStatus = existingMap.get(sid)
+    if (existingMap.get(sid) === 'analyzed' && !reanalyze) { skipped++; continue }
+    toProcess.push({ sid, order, analysis: calculateOrderCost(order, config) })
+  }
 
-    // Skip already-analyzed orders unless reanalyze=true
-    if (existingStatus === 'analyzed' && !reanalyze) { skipped++; continue }
+  if (toProcess.length === 0) {
+    return Response.json({ processed: 0, skipped, errors: 0, batchSize: orders.length, nextCursor, done: !nextCursor || orders.length < BATCH })
+  }
 
+  // ── 3. Split into new vs existing ──
+  const newRows      = toProcess.filter(r => !existingMap.has(r.sid))
+  const existingRows = toProcess.filter(r =>  existingMap.has(r.sid))
+
+  // ── 4. Bulk insert new orders in ONE query ──
+  if (newRows.length > 0) {
     try {
-      // Try deterministic calculator — no AI during bulk import (avoids timeout)
-      const analysis = calculateOrderCost(order, config)
-
-      const commonFields = {
-        businessId,
-        shopifyOrderId: sid,
-        orderNumber:    String(order.order_number),
-        orderDate:      new Date(order.created_at),
-        customerName:   order.customer
-          ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
-          : null,
-        customerEmail:  order.customer?.email ?? null,
-        rawData:        order as any,
-      }
-
-      if (analysis) {
-        await prisma.order.upsert({
-          where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
-          create: {
-            ...commonFields,
+      await prisma.order.createMany({
+        skipDuplicates: true,
+        data: newRows.map(({ sid, order, analysis }) => ({
+          businessId,
+          shopifyOrderId: sid,
+          orderNumber:    String(order.order_number),
+          orderDate:      new Date(order.created_at),
+          customerName:   order.customer ? `${order.customer.first_name} ${order.customer.last_name}`.trim() : null,
+          customerEmail:  order.customer?.email ?? null,
+          rawData:        order as any,
+          status:         analysis ? 'analyzed' : 'pending',
+          ...(analysis ? {
             aiAnalysis:     analysis as any,
             orderSummary:   analysis.order_summary,
             storePrice:     analysis.store_price_breakdown.total,
@@ -106,44 +109,54 @@ export async function POST(request: NextRequest) {
             netProfitIls:   analysis.net_profit_ils,
             netProfitUsd:   analysis.net_profit_usd,
             paymentMethod:  analysis.payment_method,
-            status:         'analyzed',
-          },
-          update: {
-            rawData:        order as any,
-            aiAnalysis:     analysis as any,
-            orderSummary:   analysis.order_summary,
-            storePrice:     analysis.store_price_breakdown.total,
-            myCostUsd:      analysis.my_cost_breakdown.total_usd,
-            myCostIls:      analysis.my_cost_ils,
-            grossProfitIls: analysis.gross_profit_ils,
-            paymentFeeIls:  analysis.payment_fee_ils,
-            vatIls:         analysis.vat_ils,
-            netProfitIls:   analysis.net_profit_ils,
-            netProfitUsd:   analysis.net_profit_usd,
-            paymentMethod:  analysis.payment_method,
-            status:         'analyzed',
-          },
-        })
-      } else {
-        // Calculator can't handle — save rawData as pending for later reanalysis
-        await prisma.order.upsert({
-          where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
-          create:  { ...commonFields, status: 'pending' },
-          update:  { rawData: order as any },
-        })
-      }
-
-      processed++
+          } : {}),
+        })),
+      })
+      processed += newRows.length
     } catch (e) {
-      console.error(`Order ${order.order_number} failed:`, e)
-      errors++
+      console.error('createMany failed:', e)
+      errors += newRows.length
+    }
+  }
+
+  // ── 5. Update existing orders in parallel (capped at 10 concurrent) ──
+  const CAP = 10
+  for (let i = 0; i < existingRows.length; i += CAP) {
+    const batch = existingRows.slice(i, i + CAP)
+    const results = await Promise.allSettled(batch.map(({ sid, order, analysis }) =>
+      analysis
+        ? prisma.order.update({
+            where:  { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
+            data: {
+              rawData:        order as any,
+              aiAnalysis:     analysis as any,
+              orderSummary:   analysis.order_summary,
+              storePrice:     analysis.store_price_breakdown.total,
+              myCostUsd:      analysis.my_cost_breakdown.total_usd,
+              myCostIls:      analysis.my_cost_ils,
+              grossProfitIls: analysis.gross_profit_ils,
+              paymentFeeIls:  analysis.payment_fee_ils,
+              vatIls:         analysis.vat_ils,
+              netProfitIls:   analysis.net_profit_ils,
+              netProfitUsd:   analysis.net_profit_usd,
+              paymentMethod:  analysis.payment_method,
+              status:         'analyzed',
+            },
+          })
+        : prisma.order.update({
+            where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
+            data:  { rawData: order as any, status: 'pending' },
+          })
+    ))
+    for (const r of results) {
+      if (r.status === 'fulfilled') processed++
+      else errors++
     }
   }
 
   return Response.json({
     processed,
     skipped,
-    usedAI,
     errors,
     batchSize:  orders.length,
     nextCursor,
