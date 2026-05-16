@@ -147,6 +147,7 @@ model Order {
   updatedAt DateTime @updatedAt
 
   @@unique([businessId, shopifyOrderId])
+  @@index([businessId, orderDate(sort: Desc)])
 }
 
 model AdSpend {
