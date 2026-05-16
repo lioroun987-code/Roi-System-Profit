@@ -52,6 +52,8 @@ export default function ReconcilePage() {
   const [lastRunAt, setLastRunAt]         = useState<Date | null>(null)
   const [settingsChanged, setSettingsChanged] = useState(false)
   const [generatingReport, setGeneratingReport] = useState(false)
+  const [exclusions, setExclusions]             = useState<Record<string, string>>({})
+  const [togglingExclusion, setTogglingExclusion] = useState<string | null>(null)
   const autoRunRef = useRef(false)
 
   useEffect(() => {
