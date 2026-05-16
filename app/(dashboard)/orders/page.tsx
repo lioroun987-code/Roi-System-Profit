@@ -108,14 +108,34 @@ export default function OrdersPage() {
 
     let cursor: string | null = null
     let totalProcessed = 0, totalSkipped = 0, totalAI = 0, totalErrors = 0
+    let retries = 0
+    const MAX_RETRIES = 5
 
     while (true) {
-      const batchRes: Response = await fetch('/api/shopify/sync-all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessId: activeBusiness, cursor }),
-      })
-      if (!batchRes.ok) break
+      let batchRes: Response
+      try {
+        batchRes = await fetch('/api/shopify/sync-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ businessId: activeBusiness, cursor }),
+        })
+      } catch {
+        // Network error — retry with delay
+        if (retries++ < MAX_RETRIES) { await new Promise(r => setTimeout(r, 2000)); continue }
+        break
+      }
+
+      if (!batchRes.ok) {
+        // Rate limit (429) or server error — wait and retry
+        if (retries++ < MAX_RETRIES) {
+          const wait = batchRes.status === 429 ? 5000 : 2000
+          await new Promise(r => setTimeout(r, wait))
+          continue
+        }
+        break
+      }
+
+      retries = 0
       const data: any = await batchRes.json()
       totalProcessed += data.processed ?? 0
       totalSkipped   += data.skipped   ?? 0
@@ -125,6 +145,9 @@ export default function OrdersPage() {
       if (data.done) break
       cursor = data.nextCursor ?? null
       if (!cursor) break
+
+      // Small delay to avoid Shopify rate limiting
+      await new Promise(r => setTimeout(r, 300))
     }
 
     setSyncAllStatus('done')
