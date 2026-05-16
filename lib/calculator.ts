@@ -100,7 +100,13 @@ export function calculateOrderCost(
 
   for (const item of order.line_items) {
     if (isGiftItem(item)) {
-      const giftCostUsd = (dr as any)?.surpriseCapsuleCostUsd ?? (dr as any)?.giftCapsuleCostUsd ?? 0.85
+      // Bundle-included items (added by kaching/bundle apps) have $0 cost —
+      // the cost is already part of the main deal item
+      const bundled     = isBundleIncluded(item)
+      const giftCostUsd = bundled
+        ? 0
+        : ((dr as any)?.surpriseCapsuleCostUsd ?? (dr as any)?.giftCapsuleCostUsd ?? 0.85)
+
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
