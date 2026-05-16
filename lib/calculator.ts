@@ -167,19 +167,20 @@ export function calculateOrderCost(
     let conditionMet = false
     let matchingItems = parsedItems   // include gift items so rules can zero out their cost
 
+    const nonGiftItems = parsedItems.filter(i => !i.isGift)
     if (cond.type === 'quantity_of_type') {
-      const qty = matchingItems
+      const qty = nonGiftItems
         .filter(i => cond.productType === 'any' || i.type === cond.productType)
         .reduce((s, i) => s + i.quantity, 0)
       conditionMet = compare(qty, cond.operator, cond.value)
     } else if (cond.type === 'quantity_same_product') {
-      // Any single product variant appears >= N times
-      conditionMet = matchingItems.some(i => compare(i.quantity, cond.operator, cond.value))
+      conditionMet = nonGiftItems.some(i => compare(i.quantity, cond.operator, cond.value))
     } else if (cond.type === 'total_items') {
-      const qty = matchingItems.reduce((s, i) => s + i.quantity, 0)
+      const qty = nonGiftItems.reduce((s, i) => s + i.quantity, 0)
       conditionMet = compare(qty, cond.operator, cond.value)
     } else if (cond.type === 'product_in_order') {
-      conditionMet = matchingItems.some(i =>
+      // Check ALL items (including gifts) for presence check
+      conditionMet = parsedItems.some(i =>
         (cond.productType && i.type === cond.productType) ||
         (cond.productKey  && i.name.includes(cond.productKey))
       )
