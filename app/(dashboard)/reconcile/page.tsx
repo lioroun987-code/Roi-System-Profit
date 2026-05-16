@@ -70,6 +70,29 @@ export default function ReconcilePage() {
     return () => window.removeEventListener('businessChange', handler as EventListener)
   }, [])
 
+  // Load exclusions whenever active business changes
+  useEffect(() => {
+    if (!activeBusiness) return
+    fetch(`/api/reconcile/exclude?businessId=${activeBusiness}`)
+      .then(r => r.json())
+      .then(d => setExclusions(d.exclusions ?? {}))
+      .catch(() => {})
+  }, [activeBusiness])
+
+  async function toggleExclusion(orderNumber: string) {
+    if (!activeBusiness) return
+    setTogglingExclusion(orderNumber)
+    const isExcluded = !!exclusions[orderNumber]
+    const res = await fetch('/api/reconcile/exclude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ businessId: activeBusiness, orderNumber, remove: isExcluded }),
+    })
+    const data = await res.json()
+    setExclusions(data.exclusions ?? {})
+    setTogglingExclusion(null)
+  }
+
   // Load saved reconcile report from DB whenever active business changes
   useEffect(() => {
     if (!activeBusiness) return
