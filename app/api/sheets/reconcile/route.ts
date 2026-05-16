@@ -293,7 +293,18 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── 5. Compare ──
+    // ── 5. Fetch system costs from DB for all orders in range ──
+    const allOrderNums = [
+      ...Array.from(agentByOrder.keys()),
+      ...Array.from(ourByOrder.keys()),
+    ]
+    const dbOrders = await prisma.order.findMany({
+      where: { businessId, orderNumber: { in: allOrderNums } },
+      select: { orderNumber: true, myCostIls: true, netProfitIls: true, storePrice: true },
+    })
+    const dbCostByOrder = new Map(dbOrders.map(o => [o.orderNumber, o.myCostIls]))
+
+    // ── 6. Compare ──
     const results: any[] = []
     const sheetUpdates: { range: string; value: string; color: any }[] = []
 
@@ -302,6 +313,7 @@ export async function POST(request: NextRequest) {
       const orderDate = agentData.date
       const ourData = ourByOrder.get(orderNum)
       const ourCost = ourData?.cost ?? null
+      const systemCost = dbCostByOrder.get(orderNum) ?? null
       const diff = ourCost != null ? Math.abs(agentCost - ourCost) : 0
 
       let status: string
