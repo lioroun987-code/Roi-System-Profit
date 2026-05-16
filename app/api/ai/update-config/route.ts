@@ -88,7 +88,13 @@ PATCH EXAMPLES:
 - Change discount: { "section": "discountRules", "path": "qty2Percent", "value": 12 }
 - Change payment fee: { "section": "paymentSettings", "path": "paymentMethods.0.feePercent", "value": 2.5 }  (use array index)
 - Flat fee mode: { "section": "paymentSettings", "path": "flatFeeMode", "value": true }
-- AI notes: { "section": "aiNotes", "path": "", "value": "new notes text" }
+- AI notes (only for edge cases with no config field): { "section": "aiNotes", "path": "", "value": "new notes text" }
+
+EXAMPLES of what goes WHERE:
+- "קפסולה עולה $0.90" → patch discountRules.surpriseCapsuleCostUsd = 0.90
+- "עלות דיל $9" → patch productCosts.customProductCosts.{key}.costUsd = 9.0
+- "עמלת bit 2.5%" → patch paymentSettings.paymentMethods.{index}.feePercent = 2.5
+- "כשיש קופון ספציפי X, תתייחס אחרת" → THIS goes to aiNotes (no config field for it)
 
 Return ONLY the JSON — no text before or after.`
 
