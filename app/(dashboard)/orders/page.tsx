@@ -247,22 +247,44 @@ export default function OrdersPage() {
                   <Zap className="w-7 h-7" style={{ color: '#8B5CF6' }} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-1">העדכון הושלם!</h3>
-                <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
-                  עובדו {reanalyzeAllStats.processed} הזמנות מתוך {reanalyzeAllStats.total}
-                </p>
-                <div className="grid grid-cols-2 gap-3 text-sm mb-6">
+
+                {/* Summary line */}
+                <div className="rounded-xl px-4 py-3 mb-4 text-right" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                  <p className="text-sm font-semibold text-white">
+                    {reanalyzeAllStats.processed + reanalyzeAllStats.skipped} הזמנות ב-DB
+                    {reanalyzeAllStats.skipped > 0 && (
+                      <span className="text-xs font-normal mr-1" style={{ color: '#6B7280' }}>
+                        ({reanalyzeAllStats.skipped} ללא raw data)
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: reanalyzeAllStats.failed > 0 ? '#EF4444' : '#22C55E' }}>
+                    {reanalyzeAllStats.failed === 0
+                      ? '✓ לא פוספסה אף הזמנה'
+                      : `⚠ ${reanalyzeAllStats.failed} הזמנות נכשלו`}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                   {[
-                    { label: 'עודכנו (ערך שונה)',  val: reanalyzeAllStats.changed,   color: '#8B5CF6' },
-                    { label: 'לא השתנו',           val: reanalyzeAllStats.processed - reanalyzeAllStats.changed, color: '#22C55E' },
-                    { label: 'שגיאות',             val: reanalyzeAllStats.failed,    color: '#EF4444' },
-                    { label: 'דולגו (אין נתונים)', val: reanalyzeAllStats.skipped,   color: '#6B7280' },
+                    { label: 'ערך השתנה',          val: reanalyzeAllStats.changed,                                    color: '#8B5CF6' },
+                    { label: 'ערך זהה',             val: reanalyzeAllStats.processed - reanalyzeAllStats.changed,     color: '#22C55E' },
+                    { label: 'שגיאות',              val: reanalyzeAllStats.failed,                                     color: '#EF4444' },
+                    { label: 'ללא raw data',        val: reanalyzeAllStats.skipped,                                    color: '#6B7280' },
                   ].map(s => (
-                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
                       <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
                       <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
+
+                {reanalyzeAllStats.processed + reanalyzeAllStats.skipped < 6000 && (
+                  <p className="text-xs mb-4 px-3 py-2 rounded-lg text-right" style={{ background: '#1A1200', color: '#F59E0B', border: '1px solid #78350F' }}>
+                    ⚠ נראה שחסרות הזמנות — לחץ "עבד היסטוריה" כדי לייבא את כולן מ-Shopify
+                  </p>
+                )}
+
                 <button onClick={() => { setReanalyzeAllOpen(false); setReanalyzeAllStatus('idle') }}
                   className="px-6 py-2.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
