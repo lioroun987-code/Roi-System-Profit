@@ -374,6 +374,19 @@ export default function ReconcilePage() {
   <div class="section-title">פירוט הזמנות — ממויין לפי גודל הפער</div>
   ${rows}
 
+  ${(() => {
+    const creators = results.filter(r => r.status === 'content_creator')
+    if (!creators.length) return ''
+    return `
+  <div style="margin-top:32px;padding:20px;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd">
+    <p style="font-weight:700;color:#0369a1;margin-bottom:12px">📸 הזמנות יוצרי תוכן / צלמים (${creators.length} הזמנות — לא נכללות בחישוב הפערים)</p>
+    ${creators.map(r => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #e0f2fe">
+      <span>#${r.orderNumber} ${r.orderDate ? `— ${r.orderDate.split(' ')[0]}` : ''}</span>
+      <span style="color:#0369a1">${r.sheetReason ?? 'יוצר תוכן'}</span>
+    </div>`).join('')}
+  </div>`
+  })()}
+
   <div class="footer">
     דוח זה הופק על ידי מערכת מנהל רווחיות • כל הסכומים בשקלים ישראלים (₪)
   </div>
