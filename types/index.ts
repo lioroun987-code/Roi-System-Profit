@@ -26,6 +26,27 @@ export interface ProductCosts {
   pack7Price?: number
 }
 
+export interface CostRule {
+  id: string
+  name: string       // Hebrew display name
+  active: boolean
+  condition: {
+    type: 'quantity_of_type' | 'quantity_same_product' | 'total_items' | 'product_in_order'
+    productType?: 'deal' | 'coolDeal' | 'bottle' | 'capsule' | 'any'
+    productKey?: string    // specific Shopify product key
+    operator: '>=' | '>' | '==' | '<='
+    value: number
+  }
+  effect: {
+    type: 'reduce_cost_per_unit' | 'set_cost_per_unit' | 'percent_off_total' | 'flat_discount_total'
+    appliesTo: 'matching_items' | 'all_items' | 'total'
+    productType?: string
+    productKey?: string
+    value: number          // USD amount or percent
+  }
+  note?: string
+}
+
 export interface DiscountRules {
   qty2Percent: number
   qty3Percent: number
@@ -35,6 +56,7 @@ export interface DiscountRules {
   surpriseCapsuleCostUsd: number
   giftCapsuleThresholdIls: number
   giftCapsuleCostUsd: number
+  costRules?: CostRule[]   // flexible supplier cost adjustment rules
 }
 
 export interface PaymentMethod {
