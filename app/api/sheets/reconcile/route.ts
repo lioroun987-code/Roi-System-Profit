@@ -294,6 +294,10 @@ export async function POST(request: NextRequest) {
         cost: costRaw && costRaw !== '' && !isNaN(parseFloat(costRaw)) ? parseFloat(costRaw) : null,
         rowIndex: i + 2,
       })
+
+      // Save column C (index 2) as the status/reason for this order
+      const colCVal = row[2]?.toString().trim()
+      if (colCVal) colCByOrder.set(orderNum, colCVal)
     }
 
     // ── 5. Fetch system costs from DB for all orders in range ──
