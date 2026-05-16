@@ -287,7 +287,7 @@ export default function ReconcilePage() {
                 </div>
                 <div style="display:flex;align-items:center;gap:12px">
                   <div class="diff-badge">+₪${r.diff.toFixed(2)} ביתר</div>
-                  <span class="toggle-icon" id="${cardId}-icon">▼ פירוט</span>
+                  <span class="toggle-icon" id="${cardId}-icon">▲ סגור</span>
                 </div>
               </div>
               <div class="costs-row">
