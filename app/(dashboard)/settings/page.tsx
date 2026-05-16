@@ -2,15 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { ProductCostsForm } from '@/components/settings/product-costs-form'
-import { DiscountRulesForm } from '@/components/settings/discount-rules-form'
-import { PaymentSettingsForm } from '@/components/settings/payment-settings-form'
 import { PriceSimulationTab } from '@/components/settings/price-simulation-tab'
 import { AiConfigChat } from '@/components/settings/ai-config-chat'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ProductCosts, DiscountRules, PaymentSettings } from '@/types'
+import { ProductCosts } from '@/types'
 
 /* ── Shopify-product cost editor ── */
 function ShopifyProductCosts({ pc, customCosts, onSave }: {
