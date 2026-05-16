@@ -103,11 +103,14 @@ PATCH EXAMPLES:
 - AI notes (only for edge cases with no config field): { "section": "aiNotes", "path": "", "value": "new notes text" }
 
 EXAMPLES of what goes WHERE:
-- "קפסולה עולה $0.90" → patch discountRules.surpriseCapsuleCostUsd = 0.90
 - "עלות דיל $9" → patch productCosts.customProductCosts.{key}.costUsd = 9.0
-- "עמלת bit 2.5%" → patch paymentSettings.paymentMethods.{index}.feePercent = 2.5
-- "כשקונים 2 בקבוקים עלות כל בקבוק יורדת ב-$1.80" → add cost rule (see below)
-- "כשיש קופון ספציפי X, תתייחס אחרת" → THIS goes to aiNotes (no config field for it)
+- "סט הקפסולות בחינם / עלות $0" → patch productCosts.customProductCosts.{key}.costUsd = 0 for ALL capsule set variants
+- "עמלת סליקה 2.5%" → patch paymentSettings.flatFeeMode=true, averageFeePercent=2.5
+- "כשקונים 2 דילים הסוכן מוריד $3.60" → cost rule (conditional pricing)
+- "לוגיקה מורכבת ללא שדה" → aiNotes
+
+CRITICAL: "X costs $0" or "X is free" or "don't charge for X" → ALWAYS set customProductCosts[key].costUsd = 0.
+Cost rules = ONLY for conditional pricing (if qty >= 2 → discount). NOT for fixed $0 costs.
 
 COST RULES — for complex supplier pricing:
 Use type "costRules" to add/update/remove rules in discountRules.costRules array.
