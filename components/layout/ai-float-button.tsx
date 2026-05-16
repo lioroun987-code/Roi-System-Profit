@@ -177,15 +177,15 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                   <div className="space-y-1" style={{ color: '#4A5174' }}>
                     <div className="flex justify-between">
                       <span>לשאלה ממוצעת</span>
-                      <span style={{ color: '#22C55E' }}>~$0.013 ≈ ₪0.05</span>
+                      <span style={{ color: '#22C55E' }}>~$0.002 ≈ ₪0.007</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>100 שאלות בחודש</span>
-                      <span style={{ color: '#22C55E' }}>~$1.30 ≈ ₪5</span>
+                      <span>1,000 שאלות בחודש</span>
+                      <span style={{ color: '#22C55E' }}>~$2 ≈ ₪7</span>
                     </div>
                     <div className="flex justify-between">
                       <span>מודל</span>
-                      <span>Claude Sonnet 4.6</span>
+                      <span>Claude Haiku 4.5</span>
                     </div>
                   </div>
                 </div>
