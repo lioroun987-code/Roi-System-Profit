@@ -275,9 +275,10 @@ export function calculateOrderCost(
   )
   const paymentFeeIls  = (totalCustomerPrice * paymentMethod.feePercent) / 100
 
-  /* ── 7. VAT ── */
-  const vatIls = ps?.vatEnabled
-    ? (totalCustomerPrice * (ps.vatPercent ?? 17)) / 100
+  /* ── 7. VAT — extracted from price (price already includes VAT) ── */
+  const vatRate = ps?.vatPercent ?? 17
+  const vatIls  = ps?.vatEnabled
+    ? totalCustomerPrice * vatRate / (100 + vatRate)
     : 0
 
   /* ── 8. Profit ── */
