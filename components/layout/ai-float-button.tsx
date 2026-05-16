@@ -11,8 +11,8 @@ interface Message {
   error?: boolean
 }
 
-const COST_PER_INPUT_TOKEN  = 3    / 1_000_000   // $3 per 1M input tokens (Sonnet)
-const COST_PER_OUTPUT_TOKEN = 15   / 1_000_000   // $15 per 1M output tokens
+const COST_PER_INPUT_TOKEN  = 0.8  / 1_000_000   // $0.80 per 1M input tokens (Haiku)
+const COST_PER_OUTPUT_TOKEN = 4    / 1_000_000   // $4 per 1M output tokens (Haiku)
 const ILS_RATE              = 3.7
 
 const SUGGESTIONS = [
