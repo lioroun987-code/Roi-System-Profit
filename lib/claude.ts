@@ -50,7 +50,9 @@ ${catalogSection}${costRulesSection}## SHIPPING & FEES
 - Exchange rate: $1 = ₪${exchangeRate}
 
 ## PAYMENT & VAT
-${ps.vatEnabled ? `- VAT: ${ps.vatPercent}%` : '- No VAT'}
+${ps.vatEnabled
+  ? `- VAT: ${ps.vatPercent}% INCLUDED in price. Extract as: price × ${ps.vatPercent}/${100 + ps.vatPercent} (NOT price × ${ps.vatPercent}%)`
+  : '- No VAT'}
 ${(ps as any).flatFeeMode
   ? `- Flat fee: ${(ps as any).averageFeePercent}% on every order`
   : `- Methods: ${(ps.paymentMethods ?? []).filter((m: any) => m.enabled).map((m: any) => `${m.name} ${m.feePercent}%`).join(', ')}`}
