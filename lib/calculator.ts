@@ -143,18 +143,6 @@ export function calculateOrderCost(
     }
 
     return null   // Unknown product → fall back to AI
-
-    parsedItems.push({
-      name:           item.title,
-      quantity:       item.quantity,
-      unitPriceIls:   parseFloat(item.price),
-      totalPriceIls:  parseFloat(item.price) * item.quantity,
-      unitCostUsd:    entry.costUsd,
-      totalCostUsd:   entry.costUsd * item.quantity,
-      isGift:         false,
-      isSurprise:     false,
-      type:           getProductType(item.title),
-    })
   }
 
   /* ── 2. Apply cost rules from config ── */
