@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   const userId = (session.user as any).id
-  const { businessId, cursor } = await request.json()
+  const { businessId, cursor, reanalyze = false } = await request.json()
 
   const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
   if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
