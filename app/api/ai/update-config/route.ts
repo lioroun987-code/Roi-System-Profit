@@ -156,6 +156,7 @@ Return ONLY the JSON — no text before or after.`
       }
     }
 
+    let saved = false
     if (applied.length > 0) {
       await prisma.business.update({
         where: { id: businessId },
@@ -166,10 +167,13 @@ Return ONLY the JSON — no text before or after.`
           aiNotes:         updatedAiNotes,
         },
       })
+      saved = true
+      console.log(`[update-config] Saved ${applied.length} patches for business ${businessId}:`, applied)
     }
 
     return Response.json({
       reply:   parsed.reply ?? 'בוצע',
+      saved,
       changes: applied.length > 0 ? { what_changed: applied.join(', '), fields: applied } : null,
     })
 
