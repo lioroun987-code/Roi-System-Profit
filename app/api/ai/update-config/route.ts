@@ -12,14 +12,27 @@ function extractJson(text: string): any | null {
   let depth = 0, inStr = false, esc = false
   for (let i = start; i < text.length; i++) {
     const c = text[i]
-    if (esc)            { esc = false; continue }
+    if (esc)             { esc = false; continue }
     if (c === '\\' && inStr) { esc = true; continue }
-    if (c === '"')      { inStr = !inStr; continue }
-    if (inStr)          continue
-    if (c === '{')      depth++
+    if (c === '"')       { inStr = !inStr; continue }
+    if (inStr)           continue
+    if (c === '{')       depth++
     if (c === '}') { depth--; if (depth === 0) { try { return JSON.parse(text.slice(start, i + 1)) } catch { return null } } }
   }
   return null
+}
+
+// Deep-set a nested value by dot-path, e.g. "customProductCosts.key.costUsd"
+function deepSet(obj: any, path: string, value: any): any {
+  const keys = path.split('.')
+  const result = { ...obj }
+  let cur = result
+  for (let i = 0; i < keys.length - 1; i++) {
+    cur[keys[i]] = { ...(cur[keys[i]] ?? {}) }
+    cur = cur[keys[i]]
+  }
+  cur[keys[keys.length - 1]] = value
+  return result
 }
 
 export async function POST(request: NextRequest) {
@@ -34,95 +47,130 @@ export async function POST(request: NextRequest) {
     if (!business) return Response.json({ error: 'Not found' }, { status: 404 })
 
     const pc = business.productCosts as any ?? {}
-    const dr = business.discountRules as any ?? {}
+    const dr = business.discountRules  as any ?? {}
     const ps = business.paymentSettings as any ?? {}
 
-    const products = Object.entries(pc.customProductCosts ?? {}).map(([key, v]: [string, any]) =>
-      `  "${key}": { productTitle: "${v.productTitle}", variantTitle: "${v.variantTitle}", costUsd: ${v.costUsd}, sellingPriceIls: ${v.sellingPriceIls} }`
-    ).join('\n')
+    // Build compact config summary for context
+    const productLines = Object.entries(pc.customProductCosts ?? {})
+      .map(([key, v]: [string, any]) =>
+        `  key="${key}" | ${v.productTitle}${v.variantTitle !== 'Default Title' ? `/${v.variantTitle}` : ''} | costUsd=${v.costUsd} | sellIls=${v.sellingPriceIls}`
+      ).join('\n')
 
-    const systemPrompt = `You are a smart business configuration assistant for an e-commerce profitability system. You speak Hebrew.
+    const systemPrompt = `You are a config assistant for a Hebrew e-commerce profit tracker. Answer in Hebrew only.
 
-CURRENT CONFIGURATION:
-Product costs (customProductCosts):
-${products || '  (empty)'}
-
+CURRENT CONFIG:
+Products:
+${productLines || '  (none)'}
 Shipping: homeDeliveryCostUsd=${pc.homeDeliveryCostUsd}, homeDeliveryChargeIls=${pc.homeDeliveryChargeIls}, pickupFeeThresholdIls=${pc.pickupFeeThresholdIls}, pickupFeeAmountIls=${pc.pickupFeeAmountIls}
-Exchange rate: ${pc.exchangeRate}
-Second unit discount: $${pc.secondUnitDiscount}
-
-Discount rules: qty2=${dr.qty2Percent}%, qty3=${dr.qty3Percent}%, surpriseCapsuleCost=$${dr.surpriseCapsuleCostUsd}, giftThreshold=₪${dr.giftCapsuleThresholdIls}, giftCost=$${dr.giftCapsuleCostUsd}
-
+ExchangeRate: ${pc.exchangeRate} | secondUnitDiscount: $${pc.secondUnitDiscount}
+Discounts: qty2=${dr.qty2Percent}%, qty3=${dr.qty3Percent}%, surpriseCost=$${dr.surpriseCapsuleCostUsd}, giftThreshold=₪${dr.giftCapsuleThresholdIls}
 Payment: ${(ps as any).flatFeeMode ? `flat ${(ps as any).averageFeePercent}%` : (ps.paymentMethods ?? []).filter((m: any) => m.enabled).map((m: any) => `${m.name}=${m.feePercent}%`).join(', ')}
-
 AI notes: ${business.aiNotes || '(none)'}
 
-Your job:
-1. Understand the user's request in Hebrew
-2. Make the appropriate changes to the configuration
-3. Return a JSON response with the changes and a Hebrew confirmation message
+RULES:
+- Reply in 1-2 short Hebrew sentences only — state exactly what you changed.
+- If nothing to change, say so in one sentence.
+- Always return a JSON object with this exact structure:
 
-Rules:
-- Match product names fuzzily (e.g. "דיל" matches productTitle containing "דיל")
-- Changes to product cost → update customProductCosts[key].costUsd
-- Changes to selling price → update customProductCosts[key].sellingPriceIls
-- Changes to shipping → update shipping fields
-- Changes to discount rules → update discountRules fields
-- Changes to payment fees → update paymentMethods or flatFeeMode
-- Changes to AI notes → append or replace aiNotes
-- If nothing needs changing → explain why
-
-Return ONLY this JSON (no extra text):
 {
-  "reply": "הודעה בעברית — מה שינית ולמה",
-  "changes": {
-    "what_changed": "תיאור קצר",
-    "fields": ["רשימה של שדות שעודכנו"]
-  },
-  "updatedConfig": {
-    "productCosts": { ...full updated productCosts... },
-    "discountRules": { ...full updated discountRules... },
-    "paymentSettings": { ...full updated paymentSettings... },
-    "aiNotes": "..."
-  }
-}`
+  "reply": "עדכנתי X מ-Y ל-Z",
+  "patches": [
+    { "section": "productCosts|discountRules|paymentSettings|aiNotes", "path": "field.subfield", "value": <new value> }
+  ]
+}
+
+PATCH EXAMPLES:
+- Change product cost: { "section": "productCosts", "path": "customProductCosts.{exact key}.costUsd", "value": 9.0 }
+- Change shipping: { "section": "productCosts", "path": "homeDeliveryCostUsd", "value": 3.5 }
+- Change exchange rate: { "section": "productCosts", "path": "exchangeRate", "value": 3.65 }
+- Change discount: { "section": "discountRules", "path": "qty2Percent", "value": 12 }
+- Change payment fee: { "section": "paymentSettings", "path": "paymentMethods.0.feePercent", "value": 2.5 }  (use array index)
+- Flat fee mode: { "section": "paymentSettings", "path": "flatFeeMode", "value": true }
+- AI notes: { "section": "aiNotes", "path": "", "value": "new notes text" }
+
+Return ONLY the JSON — no text before or after.`
 
     const messages: any[] = [
-      ...history.map((h: any) => ({ role: h.role, content: h.content })),
+      ...history.slice(-6).map((h: any) => ({ role: h.role, content: h.content })),
       { role: 'user', content: message },
     ]
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: systemPrompt,
+      model:      'claude-haiku-4-5-20251001',   // Haiku: faster + cheaper for simple config changes
+      max_tokens: 512,
+      system:     systemPrompt,
       messages,
     })
 
     const raw = (response.content[0] as any).text?.trim() ?? ''
     const parsed = extractJson(raw)
 
-    if (!parsed) {
-      return Response.json({ reply: raw, changes: null, updatedConfig: null })
+    if (!parsed?.patches) {
+      // AI replied with no patches — just return the text
+      const reply = parsed?.reply ?? raw
+      return Response.json({ reply, changes: null })
     }
 
-    // Apply changes to DB if updatedConfig is present
-    if (parsed.updatedConfig) {
-      const patch: any = {}
-      if (parsed.updatedConfig.productCosts)    patch.productCosts    = parsed.updatedConfig.productCosts
-      if (parsed.updatedConfig.discountRules)   patch.discountRules   = parsed.updatedConfig.discountRules
-      if (parsed.updatedConfig.paymentSettings) patch.paymentSettings = parsed.updatedConfig.paymentSettings
-      if (parsed.updatedConfig.aiNotes != null) patch.aiNotes         = parsed.updatedConfig.aiNotes
+    // Apply patches to existing config
+    let updatedPc = { ...pc }
+    let updatedDr = { ...dr }
+    let updatedPs = { ...ps }
+    let updatedAiNotes = business.aiNotes ?? ''
 
-      if (Object.keys(patch).length > 0) {
-        await prisma.business.update({ where: { id: businessId }, data: patch })
+    const applied: string[] = []
+
+    for (const patch of parsed.patches as Array<{ section: string; path: string; value: any }>) {
+      try {
+        if (patch.section === 'productCosts') {
+          updatedPc = deepSet(updatedPc, patch.path, patch.value)
+          applied.push(patch.path)
+        } else if (patch.section === 'discountRules') {
+          updatedDr = deepSet(updatedDr, patch.path, patch.value)
+          applied.push(patch.path)
+        } else if (patch.section === 'paymentSettings') {
+          if (patch.path.startsWith('paymentMethods.')) {
+            // e.g. "paymentMethods.0.feePercent" → update by index
+            const parts   = patch.path.split('.')
+            const idx      = parseInt(parts[1])
+            const field    = parts[2]
+            const methods  = [...(updatedPs.paymentMethods ?? [])]
+            if (methods[idx]) {
+              methods[idx] = { ...methods[idx], [field]: patch.value }
+              updatedPs = { ...updatedPs, paymentMethods: methods }
+              applied.push(patch.path)
+            } else {
+              // Try to find by name if index doesn't match
+              const name = patch.path  // fallback
+              console.warn('paymentMethods index not found:', idx)
+            }
+          } else {
+            updatedPs = deepSet(updatedPs, patch.path, patch.value)
+            applied.push(patch.path)
+          }
+        } else if (patch.section === 'aiNotes') {
+          updatedAiNotes = patch.value
+          applied.push('aiNotes')
+        }
+      } catch (e) {
+        console.error('Patch failed:', patch, e)
       }
     }
 
+    if (applied.length > 0) {
+      await prisma.business.update({
+        where: { id: businessId },
+        data: {
+          productCosts:    updatedPc,
+          discountRules:   updatedDr,
+          paymentSettings: updatedPs,
+          aiNotes:         updatedAiNotes,
+        },
+      })
+    }
+
     return Response.json({
-      reply:         parsed.reply ?? raw,
-      changes:       parsed.changes ?? null,
-      updatedConfig: parsed.updatedConfig ?? null,
+      reply:   parsed.reply ?? 'בוצע',
+      changes: applied.length > 0 ? { what_changed: applied.join(', '), fields: applied } : null,
     })
 
   } catch (e: any) {
