@@ -834,11 +834,11 @@ export default function ReconcilePage() {
                             onClick={() => toggleExclusion(r.orderNumber)}
                             disabled={togglingExclusion === r.orderNumber}
                             className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-70"
-                            style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}
+                            style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}
                             title="לחץ להסרת הסימון"
                           >
                             <Briefcase className="w-3 h-3" />
-                            שימוש עסקי ✓
+                            הוצאה עסקית ✓
                           </button>
                         ) : (
                           <div className="flex items-center gap-1.5">
@@ -846,17 +846,16 @@ export default function ReconcilePage() {
                               <Icon className="w-3 h-3" />
                               {meta?.label}
                             </div>
-                            {(r.status === 'agent_higher' || r.status === 'we_higher') && (
-                              <button
-                                onClick={() => toggleExclusion(r.orderNumber)}
-                                disabled={togglingExclusion === r.orderNumber}
-                                className="px-2 py-1 rounded-full text-xs transition-all hover:opacity-80"
-                                style={{ background: '#1A1D2A', color: '#6B7280', border: '1px solid #1E2130' }}
-                                title="סמן כשימוש עסקי"
-                              >
-                                <Briefcase className="w-3 h-3" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => toggleExclusion(r.orderNumber)}
+                              disabled={togglingExclusion === r.orderNumber}
+                              className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}
+                              title="העבר להוצאה עסקית"
+                            >
+                              <Briefcase className="w-3 h-3" />
+                              הוצאה עסקית
+                            </button>
                           </div>
                         )}
                       </div>
