@@ -233,94 +233,59 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // ── 4. Auto-detect columns: scan first 50 rows to find date & order columns ──
+    // ── 4. Parse date range from agent tab name ──
     const dateRange = agentSheetName ? parseDateRange(agentSheetName) : null
 
-    let detectedDateCol = -1
+    // ── 5. Fetch DB costs — our authoritative cost source (no unreliable sheet detection) ──
+    // Filter by date range from agent tab name so we only compare the right month
+    const dbOrders = await prisma.order.findMany({
+      where: {
+        businessId,
+        ...(dateRange ? {
+          orderDate: { gte: dateRange.start, lte: dateRange.end },
+        } : {}),
+      },
+      select: { orderNumber: true, myCostIls: true, storePrice: true, orderDate: true },
+    })
+    const dbCostByOrder  = new Map(dbOrders.map(o => [o.orderNumber, o.myCostIls]))
+    const dbOrderNumbers = new Set(dbOrders.map(o => o.orderNumber))
+
+    // ── 5b. Scan main sheet only for: order numbers present + column C status/reason ──
+    // Find order number column: look for cells matching 3-5 digit numbers,
+    // but NOT in same column as dates (avoid confusing years like 2026 with order#).
     let detectedOrderCol = -1
-    let detectedCostCol = -1
-
-    // Pass 1: find date and order columns from first 100 rows
+    // Collect all column candidates across first 100 rows, pick most frequent
+    const orderColCandidates = new Map<number, number>()
     for (const row of mainRows.slice(0, 100)) {
-      for (let c = 0; c < row.length; c++) {
+      for (let c = 0; c < Math.min(row.length, 10); c++) {
         const val = row[c]?.toString().trim() ?? ''
-        if (detectedDateCol === -1 && parseDate(val) !== null) {
-          detectedDateCol = c
-        }
-        if (detectedOrderCol === -1 && /^\d{3,5}$/.test(val.replace('#', ''))) {
-          detectedOrderCol = c
-        }
-      }
-      if (detectedDateCol >= 0 && detectedOrderCol >= 0) break
-    }
-
-    // Pass 2: find cost column — look BETWEEN date and order cols (or nearby)
-    // Search in all rows (including 2026 rows) to find a column with cost values
-    const lo = Math.min(detectedDateCol, detectedOrderCol)
-    const hi = Math.max(detectedDateCol, detectedOrderCol)
-    const costCandidates = new Map<number, number>() // col → count of valid cost values
-
-    for (const row of mainRows.slice(0, 200)) {
-      for (let c = lo; c <= hi; c++) {
-        if (c === detectedDateCol || c === detectedOrderCol) continue
-        const raw = row[c]?.toString().replace(/[₪,]/g, '').trim() ?? ''
-        const num = parseFloat(raw)
-        if (/^\d{1,5}(\.\d{1,2})?$/.test(raw) && num > 5 && num < 2000) {
-          costCandidates.set(c, (costCandidates.get(c) ?? 0) + 1)
+        // Must be 4-5 digits (order numbers are typically >1000) and not look like a year
+        if (/^\d{4,5}$/.test(val.replace('#', '')) && parseInt(val) < 90000 && parseInt(val) > 999) {
+          orderColCandidates.set(c, (orderColCandidates.get(c) ?? 0) + 1)
         }
       }
     }
-
-    // Pick the column with the most cost-like values
-    let bestCostCount = 0
-    for (const [col, count] of costCandidates) {
-      if (count > bestCostCount) { bestCostCount = count; detectedCostCol = col }
+    let bestCount = 0
+    for (const [col, count] of orderColCandidates) {
+      if (count > bestCount) { bestCount = count; detectedOrderCol = col }
     }
 
-    const ourByOrder = new Map<string, { cost: number | null; rowIndex: number }>()
+    const ourByOrder = new Map<string, { rowIndex: number }>()
     for (let i = 0; i < mainRows.length; i++) {
       const row = mainRows[i]
-
-      // Filter by month/year from agent tab
-      if (dateRange && detectedDateCol >= 0) {
-        const dateVal = row[detectedDateCol]?.toString().trim()
-        const rowDate = parseDate(dateVal ?? '')
-        if (!rowDate) continue
-        const sameMonth = rowDate.getMonth() === dateRange.start.getMonth()
-        const sameYear  = rowDate.getFullYear() === dateRange.start.getFullYear()
-        if (!sameMonth || !sameYear) continue
-      }
-
-      const colIdx = detectedOrderCol >= 0 ? detectedOrderCol : 8
+      const colIdx   = detectedOrderCol >= 0 ? detectedOrderCol : 1
       const orderRaw = row[colIdx]?.toString().trim()
       if (!orderRaw) continue
-      if (!/^\d+$/.test(orderRaw.replace('#', '').trim())) continue
-      const orderNum = orderRaw.replace('#', '').trim()
+      const cleaned  = orderRaw.replace('#', '').trim()
+      if (!/^\d{3,6}$/.test(cleaned)) continue
+      ourByOrder.set(cleaned, { rowIndex: i + 2 })
 
-      const costIdx = detectedCostCol >= 0 ? detectedCostCol : 6
-      const costRaw = row[costIdx]?.toString().replace(/[₪,]/g, '').replace(',', '.').trim()
-      ourByOrder.set(orderNum, {
-        cost: costRaw && costRaw !== '' && !isNaN(parseFloat(costRaw)) ? parseFloat(costRaw) : null,
-        rowIndex: i + 2,
-      })
-
-      // Save column C (index 2) as the status/reason for this order
       const colCVal = row[2]?.toString().trim()
-      if (colCVal) colCByOrder.set(orderNum, colCVal)
+      if (colCVal) colCByOrder.set(cleaned, colCVal)
     }
 
-    // ── 5. Fetch system costs from DB for all orders in range ──
-    const allOrderNums = [
-      ...Array.from(agentByOrder.keys()),
-      ...Array.from(ourByOrder.keys()),
-    ]
-    // Also try with leading zeros stripped and '#' removed (normalise formats)
-    const normNums = [...new Set(allOrderNums.map(n => n.replace(/^0+/, '').replace('#','')))]
-    const dbOrders = await prisma.order.findMany({
-      where: { businessId, orderNumber: { in: normNums } },
-      select: { orderNumber: true, myCostIls: true, netProfitIls: true, storePrice: true },
-    })
-    const dbCostByOrder = new Map(dbOrders.map(o => [o.orderNumber, o.myCostIls]))
+    const detectedCostCol = -1  // not used — we use DB costs below
+    const detectedDateCol = -1
 
     // ── 6. Compare ──
     const results: any[] = []
