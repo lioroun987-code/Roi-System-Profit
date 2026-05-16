@@ -707,21 +707,28 @@ export default function ReconcilePage() {
 
           {/* Table controls */}
           <div className="flex flex-wrap items-center gap-3 justify-between">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {[
-                { key: 'all', label: 'הכל' },
-                { key: 'issues', label: '⚠️ פערים' },
-                { key: 'match', label: '✓ תואמים' },
-                { key: 'missing', label: '⏳ חסרה עלות' },
+                { key: 'all',      label: 'הכל' },
+                { key: 'issues',   label: '⚠️ פערים' },
+                { key: 'match',    label: '✓ תואמים' },
+                { key: 'missing',  label: '⏳ חסרה עלות' },
+                { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
               ].map(f => (
                 <button
                   key={f.key}
                   onClick={() => setFilter(f.key as any)}
                   className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
                   style={{
-                    background: filter === f.key ? '#1E2846' : '#13161F',
-                    color: filter === f.key ? '#4F6EF7' : '#6B7280',
-                    border: `1px solid ${filter === f.key ? '#4F6EF7' : '#1E2130'}`,
+                    background: filter === f.key
+                      ? f.key === 'business' ? '#1A1040' : '#1E2846'
+                      : '#13161F',
+                    color: filter === f.key
+                      ? f.key === 'business' ? '#A78BFA' : '#4F6EF7'
+                      : '#6B7280',
+                    border: `1px solid ${filter === f.key
+                      ? f.key === 'business' ? '#A78BFA' : '#4F6EF7'
+                      : '#1E2130'}`,
                   }}
                 >
                   {f.label}
