@@ -49,6 +49,7 @@ ${productCatalogSection}## BUSINESS PRODUCT COSTS (fallback / general rules)
 - 50 ILS coupon STACKS with quantity discount (both apply)
 - Surprise capsules (tagged __upcartRewardProduct or price=₪0 with original price>0 AND name contains "הפתעה"): cost $${dr.surpriseCapsuleCostUsd} each to business, ₪0 to customer
 - Bundle-included items (properties contain "___kaching_bundles" or "__kaching_bundles"): cost $0 to business — already included in the main deal item price. Do NOT charge separately.
+- Capsule packs (items with "קפסולות"/"capsule" in name) that have a 100% discount applied (total_discount = price × quantity): cost $0 — they are display items included in the deal price, NOT charged separately.
 - Gift capsules (free when order > ₪${dr.giftCapsuleThresholdIls}): cost $${dr.giftCapsuleCostUsd} each to business, ₪0 to customer
 - When gift name contains "הפתעה" AND price is ₪0.00: always treat as surprise/gift capsules
 
