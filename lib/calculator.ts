@@ -187,9 +187,10 @@ export function calculateOrderCost(
 
     if (!conditionMet) continue
 
-    // Apply effect
-    const targets = eff.appliesTo === 'all_items' ? matchingItems
-      : eff.appliesTo === 'matching_items' ? matchingItems.filter(i =>
+    // Apply effect — include gift items so rules can zero out capsule set costs
+    const allItems = parsedItems
+    const targets = eff.appliesTo === 'all_items' ? allItems
+      : eff.appliesTo === 'matching_items' ? allItems.filter(i =>
           (!eff.productType || i.type === eff.productType) &&
           (!eff.productKey  || i.name.includes(eff.productKey))
         )
