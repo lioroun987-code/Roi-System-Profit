@@ -156,7 +156,13 @@ export function calculateOrderCost(
     let matchingItems = parsedItems   // include gift items so rules can zero out their cost
 
     const nonGiftItems = parsedItems.filter(i => !i.isGift)
-    if (cond.type === 'quantity_of_type') {
+    if (cond.type === 'customer_price_is_zero') {
+      // True when ANY matching item in the order has effectivePrice=0 (customer got it free)
+      conditionMet = parsedItems.some(i =>
+        i.isGift &&
+        (!cond.productType || cond.productType === 'any' || i.type === cond.productType)
+      )
+    } else if (cond.type === 'quantity_of_type') {
       const qty = nonGiftItems
         .filter(i => cond.productType === 'any' || i.type === cond.productType)
         .reduce((s, i) => s + i.quantity, 0)
