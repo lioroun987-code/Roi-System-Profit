@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { CheckCircle, AlertTriangle, XCircle, Download, Search, ChevronDown, ChevronUp, RefreshCw, Clock, FileText } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { CheckCircle, AlertTriangle, XCircle, Download, Search, ChevronDown, ChevronUp, RefreshCw, Clock, FileText, Briefcase } from 'lucide-react'
 
 interface ReconcileResult {
   orderNumber: string
