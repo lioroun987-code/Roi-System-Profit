@@ -131,39 +131,12 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
 }
 
 const DEFAULT_COSTS: ProductCosts = {
-  dealCost: 8.5,
-  coolDealCost: 9.5,
-  bottleCost: 6,
-  singleCapsuleCost: 0.85,
-  pack3Price: 69,
-  pack7Price: 139,
   secondUnitDiscount: 2,
   homeDeliveryCostUsd: 3,
   homeDeliveryChargeIls: 25,
   pickupFeeThresholdIls: 200,
   pickupFeeAmountIls: 10,
   exchangeRate: 3.7,
-}
-
-const DEFAULT_DISCOUNTS: DiscountRules = {
-  qty2Percent: 10,
-  qty3Percent: 15,
-  section10Percent: true,
-  section15Percent: true,
-  coupon50Ils: true,
-  surpriseCapsuleCostUsd: 0.85,
-  giftCapsuleThresholdIls: 350,
-  giftCapsuleCostUsd: 0.85,
-}
-
-const DEFAULT_PAYMENT: PaymentSettings = {
-  vatEnabled: false,
-  vatPercent: 17,
-  paymentMethods: [
-    { name: 'Bit', feePercent: 3, enabled: true },
-    { name: 'כרטיס אשראי רגיל', feePercent: 1, enabled: true },
-    { name: 'PayPal', feePercent: 4.5, enabled: false },
-  ],
 }
 
 const TABS = [
