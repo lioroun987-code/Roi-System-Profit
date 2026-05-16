@@ -218,7 +218,8 @@ export function calculateOrderCost(
   // 2 deals = 1 × discount. 3 deals = 2 × discount. etc.
   const discountPerUnit = (pc as any).secondUnitDiscount ?? 2
   const mainUnitsByType = new Map<string, number>()
-  for (const item of parsedItems.filter(i => !i.isGift && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))) {
+  // Only non-gift, non-capsule main items count for second-unit discount
+  for (const item of parsedItems.filter(i => !i.isGift && i.unitCostUsd > 0 && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))) {
     mainUnitsByType.set(item.type, (mainUnitsByType.get(item.type) ?? 0) + item.quantity)
   }
   const secondUnitDiscountUsd = [...mainUnitsByType.values()]
