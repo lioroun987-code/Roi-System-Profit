@@ -154,7 +154,60 @@ export function calculateOrderCost(
     })
   }
 
-  /* ── 2. Second-unit cost discount ── */
+  /* ── 2. Apply cost rules from config ── */
+  const costRules: CostRule[] = ((dr as any)?.costRules ?? []).filter((r: CostRule) => r.active)
+  for (const rule of costRules) {
+    const cond = rule.condition
+    const eff  = rule.effect
+
+    // Evaluate condition
+    let conditionMet = false
+    let matchingItems = parsedItems.filter(i => !i.isGift)
+
+    if (cond.type === 'quantity_of_type') {
+      const qty = matchingItems
+        .filter(i => cond.productType === 'any' || i.type === cond.productType)
+        .reduce((s, i) => s + i.quantity, 0)
+      conditionMet = compare(qty, cond.operator, cond.value)
+    } else if (cond.type === 'quantity_same_product') {
+      // Any single product variant appears >= N times
+      conditionMet = matchingItems.some(i => compare(i.quantity, cond.operator, cond.value))
+    } else if (cond.type === 'total_items') {
+      const qty = matchingItems.reduce((s, i) => s + i.quantity, 0)
+      conditionMet = compare(qty, cond.operator, cond.value)
+    } else if (cond.type === 'product_in_order') {
+      conditionMet = matchingItems.some(i =>
+        (cond.productType && i.type === cond.productType) ||
+        (cond.productKey  && i.name.includes(cond.productKey))
+      )
+    }
+
+    if (!conditionMet) continue
+
+    // Apply effect
+    const targets = eff.appliesTo === 'all_items' ? matchingItems
+      : eff.appliesTo === 'matching_items' ? matchingItems.filter(i =>
+          (!eff.productType || i.type === eff.productType) &&
+          (!eff.productKey  || i.name.includes(eff.productKey))
+        )
+      : []
+
+    for (const item of targets) {
+      if (eff.type === 'reduce_cost_per_unit') {
+        item.unitCostUsd  = Math.max(0, item.unitCostUsd  - eff.value)
+        item.totalCostUsd = Math.max(0, item.totalCostUsd - eff.value * item.quantity)
+      } else if (eff.type === 'set_cost_per_unit') {
+        item.unitCostUsd  = eff.value
+        item.totalCostUsd = eff.value * item.quantity
+      } else if (eff.type === 'percent_off_total') {
+        const factor = 1 - eff.value / 100
+        item.unitCostUsd  *= factor
+        item.totalCostUsd *= factor
+      }
+    }
+  }
+
+  /* ── 3. Second-unit cost discount ── */
   const mainUnitCount = parsedItems
     .filter(i => !i.isGift && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))
     .reduce((s, i) => s + i.quantity, 0)
