@@ -215,7 +215,7 @@ export function calculateOrderCost(
     }
   }
 
-  /* ── 3. Second-unit cost discount ── */
+  /* ── 3. Legacy second-unit cost discount (config field) ── */
   const mainUnitCount = parsedItems
     .filter(i => !i.isGift && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))
     .reduce((s, i) => s + i.quantity, 0)
