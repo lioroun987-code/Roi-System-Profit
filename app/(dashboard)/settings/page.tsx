@@ -279,12 +279,114 @@ export default function SettingsPage() {
         )}
 
         {tab === 'costs' && business && (() => {
-          const pc = business.productCosts ?? {}
+          const pc  = business.productCosts ?? {}
+          const dr  = business.discountRules ?? {}
           const customCosts: Record<string, any> = pc.customProductCosts ?? {}
           const hasCustom = Object.keys(customCosts).length > 0
-          return hasCustom
-            ? <ShopifyProductCosts pc={pc} customCosts={customCosts} onSave={(updated) => save({ productCosts: updated }, 'costs')} />
-            : <ProductCostsForm defaultValues={pc ?? DEFAULT_COSTS} onSave={async (data) => save({ productCosts: data }, 'costs')} />
+          const rules: any[] = (dr as any).costRules ?? []
+
+          return (
+            <div className="space-y-8">
+              {/* ── Section 1: Product costs ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-5 rounded-full" style={{ background: '#3B82F6' }} />
+                  <h3 className="text-white font-bold">עלות מוצרים</h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1E2130', color: '#6B7280' }}>
+                    עלות בסיסית לכל מוצר
+                  </span>
+                </div>
+                {hasCustom
+                  ? <ShopifyProductCosts pc={pc} customCosts={customCosts} onSave={(updated) => save({ productCosts: updated }, 'costs')} />
+                  : <ProductCostsForm defaultValues={pc ?? DEFAULT_COSTS} onSave={async (data) => save({ productCosts: data }, 'costs')} />
+                }
+              </div>
+
+              {/* ── Divider ── */}
+              <div style={{ borderTop: '2px dashed #1E2130' }} />
+
+              {/* ── Section 2: Cost rules ── */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-5 rounded-full" style={{ background: '#8B5CF6' }} />
+                  <h3 className="text-white font-bold">חוקי עלות</h3>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1E2130', color: '#6B7280' }}>
+                    הנחות מהסוכן ותנאים מורכבים
+                  </span>
+                </div>
+
+                {rules.length === 0 ? (
+                  <div className="rounded-xl p-6 text-center" style={{ background: '#13161F', border: '1px dashed #1E2130' }}>
+                    <p className="text-white font-medium mb-1">אין חוקי עלות מוגדרים</p>
+                    <p className="text-sm mb-3" style={{ color: '#4A5174' }}>
+                      תאר לעוזר ה-AI ✨ הנחות מהסוכן שתלויות בכמות או בתנאים אחרים
+                    </p>
+                    <p className="text-xs px-4 py-2 rounded-xl inline-block" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
+                      לדוגמה: "כשקונים 2+ דילים מאותו סוג, הסוכן מוריד $3.60 לכל דיל נוסף"
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {rules.map((rule: any, idx: number) => (
+                      <div key={rule.id}
+                        className="rounded-xl p-4 flex items-start justify-between gap-4"
+                        style={{
+                          background:   rule.active ? '#13161F' : '#0D0F14',
+                          border:       `1px solid ${rule.active ? '#2D1F4A' : '#1A1D2A'}`,
+                          opacity:      rule.active ? 1 : 0.55,
+                        }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="text-sm font-semibold text-white">{rule.name}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full"
+                              style={{
+                                background: rule.active ? '#1A0D2E' : '#1A1D2A',
+                                color:      rule.active ? '#A78BFA' : '#4A5174',
+                                border:     `1px solid ${rule.active ? '#4C1D95' : '#1E2130'}`,
+                              }}>
+                              {rule.active ? 'פעיל' : 'מושבת'}
+                            </span>
+                          </div>
+                          <p className="text-xs" style={{ color: '#6B7280' }}>
+                            {rule.condition.type === 'quantity_of_type'     && `≥${rule.condition.value} יחידות מסוג ${rule.condition.productType}`}
+                            {rule.condition.type === 'quantity_same_product' && `≥${rule.condition.value} אותו מוצר`}
+                            {rule.condition.type === 'total_items'           && `סך ≥${rule.condition.value} פריטים`}
+                            {' → '}
+                            {rule.effect.type === 'reduce_cost_per_unit'  && `הפחתה $${rule.effect.value} ליחידה נוספת`}
+                            {rule.effect.type === 'set_cost_per_unit'      && `עלות $${rule.effect.value} ליחידה`}
+                            {rule.effect.type === 'percent_off_total'       && `${rule.effect.value}% הנחה`}
+                          </p>
+                          {rule.note && <p className="text-xs mt-0.5" style={{ color: '#374151' }}>{rule.note}</p>}
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            onClick={async () => {
+                              const updated = rules.map((r: any, i: number) =>
+                                i === idx ? { ...r, active: !r.active } : r
+                              )
+                              await save({ discountRules: { ...dr, costRules: updated } }, 'costs')
+                            }}
+                            className="text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+                            style={{ background: '#1E2130', color: '#CBD5E1' }}>
+                            {rule.active ? 'השבת' : 'הפעל'}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              const updated = rules.filter((_: any, i: number) => i !== idx)
+                              await save({ discountRules: { ...dr, costRules: updated } }, 'costs')
+                            }}
+                            className="text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
+                            style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                            מחק
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
         })()}
 
         {tab === 'discounts' && business && (
