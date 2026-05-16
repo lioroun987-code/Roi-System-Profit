@@ -33,6 +33,15 @@ const AGENT_COL_DISCOUNT = 13  // M — הנחה (L=WAR ריק, M=DISCOUNT)
 const AGENT_COL_HD       = 14  // N — משלוח לבית
 const THRESHOLD          = 0.5
 
+// Keywords that indicate a content creator / photographer order — excluded from gap analysis
+const CONTENT_CREATOR_KEYWORDS = ['יוצר תוכן', 'יוצרת תוכן', 'צלם', 'צלמת', 'קונטנט', 'content', 'creator', 'influencer', 'ממותג', 'שיתוף פעולה']
+
+function isContentCreator(reason: string | null): boolean {
+  if (!reason) return false
+  const lower = reason.toLowerCase()
+  return CONTENT_CREATOR_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()))
+}
+
 // Parse date range from agent tab name: "הזמנות 01/02 - 28/02" or "01/02 - 28/02"
 function parseDateRange(tabName: string): { start: Date; end: Date } | null {
   const year = new Date().getFullYear()
