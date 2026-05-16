@@ -3,7 +3,6 @@ import { BusinessConfig, ShopifyOrder, AIOrderAnalysis } from '@/types'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Using Haiku 4.5 — 6x cheaper than Sonnet, fast enough for order analysis
 const MODEL = 'claude-haiku-4-5-20251001'
 
 export async function analyzeOrder(
@@ -11,118 +10,85 @@ export async function analyzeOrder(
   config: BusinessConfig
 ): Promise<AIOrderAnalysis> {
   const { productCosts: pc, discountRules: dr, paymentSettings: ps, aiNotes } = config
+  const exchangeRate = (pc as any).exchangeRate ?? 3.7
 
-  // Build dynamic product catalog section if available
-  const customProducts = pc.customProductCosts
-  const productCatalogSection = customProducts && Object.keys(customProducts).length > 0
-    ? `## YOUR PRODUCT CATALOG (from Shopify — use these costs first)
-Match each order line item to the closest product name below. Use the catalog cost when matched.
-${Object.values(customProducts).map(p => `- "${p.productTitle}"${p.variantTitle && p.variantTitle !== 'Default Title' ? ` / "${p.variantTitle}"` : ''}: costs $${p.costUsd} USD (≈₪${(p.costUsd * pc.exchangeRate).toFixed(2)} ILS) | sells for ₪${p.sellingPriceIls}`).join('\n')}
+  // Build product catalog from user's Shopify-synced products
+  const customProducts = (pc as any).customProductCosts as Record<string, {
+    productTitle: string; variantTitle: string; costUsd: number; sellingPriceIls: number
+  }> | undefined
 
-If a line item does NOT match any product above, fall back to the general rules below.
+  const catalogSection = customProducts && Object.keys(customProducts).length > 0
+    ? `## PRODUCT CATALOG (use these costs — match by name)
+${Object.values(customProducts)
+  .filter(p => p.costUsd >= 0)
+  .map(p => `- "${p.productTitle}"${p.variantTitle && p.variantTitle !== 'Default Title' ? ` / "${p.variantTitle}"` : ''}: costs $${p.costUsd} → ₪${(p.costUsd * exchangeRate).toFixed(2)} | sells ₪${p.sellingPriceIls}${p.costUsd === 0 ? ' [DISPLAY ITEM — $0 cost to business]' : ''}`)
+  .join('\n')}
+
+Items with $0 catalog cost = display/bundle items included in the deal — do NOT charge them.
+If an item is NOT in the catalog, use the fallback rules below.
 
 `
     : ''
 
-  // Static system prompt — cached by Anthropic (pays once per 5 min window)
-  const cachedSystemPrompt = `You are an e-commerce profitability calculator. Analyze Shopify orders and return exact profit calculations as JSON.
+  // Cost rules from user config
+  const costRules: any[] = (dr as any)?.costRules ?? []
+  const activeCostRules = costRules.filter(r => r.active)
+  const costRulesSection = activeCostRules.length > 0
+    ? `## COST RULES (apply after catalog costs)
+${activeCostRules.map(r => `- ${r.name}: ${r.note || JSON.stringify({ condition: r.condition, effect: r.effect })}`).join('\n')}
 
-${productCatalogSection}## BUSINESS PRODUCT COSTS (fallback / general rules)
-- Deal (בקבוק + 7 קפסולות): $${pc.dealCost} USD
-- Cool Deal (שומר קור): $${pc.coolDealCost} USD
-- Bottle only: $${pc.bottleCost} USD
-- Single capsule: $${pc.singleCapsuleCost} USD
-- 3-capsule pack store price: ₪${pc.pack3Price} ILS
-- 7-capsule pack store price: ₪${pc.pack7Price} ILS
-- Discount on 2nd+ unit: $${(pc as any).secondUnitDiscount ?? 2} USD per additional unit of the SAME TYPE (2 units = 1 discount, 3 units = 2 discounts)
-- CRITICAL: This discount applies only within the SAME product type. 1 deal + 1 coolDeal = NO discount. 2 deals = 1 discount. 1 deal + 1 coolDeal + 1 coolDeal = only 1 discount (for the 2nd coolDeal).
-- Home delivery cost to business: $${pc.homeDeliveryCostUsd} USD
-- Home delivery charge to customer: ₪${pc.homeDeliveryChargeIls} ILS
-- Pickup fee: if order subtotal < ₪${pc.pickupFeeThresholdIls}, add ₪${pc.pickupFeeAmountIls} to customer price
-- Exchange rate: $1 USD = ₪${pc.exchangeRate} ILS
+`
+    : ''
 
-## DISCOUNT RULES
-- Quantity discount: 2 same-type DEALS = ${dr.qty2Percent}% off deals, 3 same-type DEALS = ${dr.qty3Percent}% off deals
-- IMPORTANT: Quantity discount applies ONLY to deals (דיל/Cool Deal), NEVER to bottles or capsules
-- Section 10% discount: overrides quantity discount, applies to everything
-- Section 15% discount: overrides quantity discount, applies to everything
-- 10%/15% section discounts NEVER stack with each other or with quantity discounts
-- 50 ILS coupon STACKS with quantity discount (both apply)
-- Surprise capsules (tagged __upcartRewardProduct or price=₪0 with original price>0 AND name contains "הפתעה"): cost $${dr.surpriseCapsuleCostUsd} each to business, ₪0 to customer
-- Bundle-included items (properties contain "___kaching_bundles" or "__kaching_bundles"): cost $0 to business — already included in the main deal item price. Do NOT charge separately.
-- Capsule packs (items with "קפסולות"/"capsule" in name) that have a 100% discount applied (total_discount = price × quantity): cost $0 — they are display items included in the deal price, NOT charged separately.
-- Gift capsules (free when order > ₪${dr.giftCapsuleThresholdIls}): cost $${dr.giftCapsuleCostUsd} each to business, ₪0 to customer
-- When gift name contains "הפתעה" AND price is ₪0.00: always treat as surprise/gift capsules
+  const cachedSystemPrompt = `You are an e-commerce profitability calculator. Analyze Shopify orders and return exact profit as JSON.
+
+${catalogSection}${costRulesSection}## SHIPPING & FEES
+- Second-unit discount: $${(pc as any).secondUnitDiscount ?? 2} USD per extra unit of the SAME product type (not cross-type)
+- Home delivery cost to business: $${(pc as any).homeDeliveryCostUsd ?? 3} USD
+- Home delivery charge to customer: ₪${(pc as any).homeDeliveryChargeIls ?? 25} ILS
+- Pickup fee threshold: if subtotal < ₪${(pc as any).pickupFeeThresholdIls ?? 200} → add ₪${(pc as any).pickupFeeAmountIls ?? 10}
+- Exchange rate: $1 = ₪${exchangeRate}
 
 ## PAYMENT & VAT
-${ps.vatEnabled ? `- VAT: ${ps.vatPercent}% (already included in prices)` : '- No VAT'}
+${ps.vatEnabled ? `- VAT: ${ps.vatPercent}%` : '- No VAT'}
 ${(ps as any).flatFeeMode
-  ? `- Flat average fee: ${(ps as any).averageFeePercent}% applied to every order regardless of payment method`
-  : `- Payment methods configured: ${ps.paymentMethods.filter(m => m.enabled).map(m => `${m.name}: ${m.feePercent}%`).join(', ')}`
-}
+  ? `- Flat fee: ${(ps as any).averageFeePercent}% on every order`
+  : `- Methods: ${(ps.paymentMethods ?? []).filter((m: any) => m.enabled).map((m: any) => `${m.name} ${m.feePercent}%`).join(', ')}`}
 
-## PAYMENT METHOD DETECTION FROM SHOPIFY
-Identify the payment method from order.gateway and order.payment_gateway_names:
-- "bit" / "bit_payment" / "pay_me" → Bit (use Bit fee)
-- "shopify_payments" + Apple Pay wallet → Apple Pay (use credit card fee or configured rate)
-- "shopify_payments" + Google Pay wallet → Google Pay (use credit card fee)
-- "shopify_payments" + credit → Credit Card
-- "paypal" → PayPal
-- "cardcom" / "tranzila" / "icredit" / "grow" / "neodeal" / "hyp" / "meshulam" → Credit Card external gateway
-- "manual" / "cash_on_delivery" → Cash (0% fee)
-- Look at payment_gateway_names array and order.gateway for the actual method used
-- When uncertain, use the closest matching configured payment method
+## PAYMENT DETECTION
+gateway/payment_gateway_names: bit/pay_me → Bit | shopify_payments+apple → Apple Pay | shopify_payments+google → Google Pay | shopify_payments → Credit Card | paypal → PayPal | cardcom/tranzila/hyp/meshulam → Credit Card | manual/cash → Cash
 
-## PARSING RULES
-1. "דיל (בקבוק + 7 קפסולות)" = one deal. The parentheses are just a description.
-2. Main units for 2nd-unit discount = deals + cool deals + bottles. Capsule packs never count.
-3. Second-unit discount = (total main units - 1) × $${pc.secondUnitDiscount} USD
-4. For identifying gifts: check if item price is ₪0, original/compare_at_price > 0, and name contains "הפתעה" or tagged as bundle gift
-5. Shipping: if order has home delivery, customer pays ₪${pc.homeDeliveryChargeIls}, business pays $${pc.homeDeliveryCostUsd}
-6. Pickup fee: if order subtotal (before shipping) < ₪${pc.pickupFeeThresholdIls}, add ₪${pc.pickupFeeAmountIls} to customer total
+## GIFT ITEMS
+- price=₪0 AND compare_at_price>0 AND tagged _upcartRewardProduct → gift, use surpriseCost=$${(dr as any)?.surpriseCapsuleCostUsd ?? 0.85}
+- Items in catalog with $0 cost → display items, $0 cost to business
 
-## OWNER'S SPECIAL NOTES
-${aiNotes || 'No special notes provided.'}
+## OWNER NOTES
+${aiNotes || 'None.'}
 
-## RESPONSE FORMAT
-Return ONLY valid JSON:
+## RESPONSE (JSON only)
 {
-  "order_summary": "Hebrew one-line summary",
+  "order_summary": "Hebrew one-line",
   "line_items_parsed": [{"name":"","quantity":1,"unitPriceIls":0,"totalPriceIls":0,"unitCostUsd":0,"totalCostUsd":0,"isGift":false,"isSurprise":false,"type":"deal|coolDeal|bottle|capsule|other"}],
   "discounts_applied": [{"name":"","amount_ils":0,"type":"quantity|section|coupon|gift"}],
   "store_price_breakdown": {"items":[{"name":"","amount":0}],"subtotal":0,"shipping_customer":0,"pickup_fee":0,"total":0},
   "my_cost_breakdown": {"items":[{"name":"","amount_usd":0}],"shipping_cost":0,"gift_capsule_cost":0,"total_usd":0},
   "my_cost_ils":0,"gross_profit_ils":0,"payment_fee_ils":0,"vat_ils":0,"net_profit_ils":0,"net_profit_usd":0,
-  "exchange_rate_used":${pc.exchangeRate},"payment_method":"","notes":""
+  "exchange_rate_used":${exchangeRate},"payment_method":"","notes":""
 }`
-
-  const orderJson = JSON.stringify(order)
 
   const message = await client.messages.create({
     model: MODEL,
     max_tokens: 1024,
-    system: [
-      {
-        type: 'text',
-        text: cachedSystemPrompt,
-        cache_control: { type: 'ephemeral' }, // Cache system prompt — paid once per 5 min
-      },
-    ],
-    messages: [
-      {
-        role: 'user',
-        content: `Analyze this Shopify order and return profitability JSON:\n${orderJson}`,
-      },
-    ],
+    system: [{ type: 'text', text: cachedSystemPrompt, cache_control: { type: 'ephemeral' } }],
+    messages: [{ role: 'user', content: `Analyze this Shopify order:\n${JSON.stringify(order)}` }],
   } as any)
 
   const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type from Claude')
+  if (content.type !== 'text') throw new Error('Unexpected response type')
 
   const text = content.text.trim()
   const jsonMatch = text.match(/```json\n?([\s\S]+?)\n?```/) || text.match(/(\{[\s\S]+\})/)
-  if (!jsonMatch) throw new Error('Could not extract JSON from Claude response')
+  if (!jsonMatch) throw new Error('No JSON in Claude response')
 
-  const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]) as AIOrderAnalysis
-  return parsed
+  return JSON.parse(jsonMatch[1] || jsonMatch[0]) as AIOrderAnalysis
 }
