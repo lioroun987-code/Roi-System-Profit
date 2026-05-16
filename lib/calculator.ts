@@ -1,4 +1,4 @@
-import { ShopifyOrder, ShopifyLineItem, BusinessConfig, AIOrderAnalysis, AIParsedItem } from '@/types'
+import { ShopifyOrder, ShopifyLineItem, BusinessConfig, AIOrderAnalysis, AIParsedItem, CostRule } from '@/types'
 
 /* ─── Helpers ─── */
 
