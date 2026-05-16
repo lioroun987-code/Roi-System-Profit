@@ -86,6 +86,7 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
         role: 'assistant',
         content: data.reply,
         changes: data.changes,
+        saved:   data.saved ?? false,
         tokensUsed: estInput + estOutput,
       }])
 
