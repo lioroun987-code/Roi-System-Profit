@@ -846,20 +846,6 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="rounded-2xl p-5" style={{ background: '#13161F', border: '1px solid #1E2130', opacity: 0.5 }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#2D1B2E' }}>
-                    <span className="font-bold text-sm" style={{ color: '#C084FC' }}>T</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">TikTok Ads</h4>
-                    <p className="text-xs" style={{ color: '#4A5174' }}>בקרוב</p>
-                  </div>
-                  <span className="text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: '#2A1800', color: '#F59E0B' }}>בקרוב</span>
-                </div>
-              </div>
-
               <p className="text-sm text-center" style={{ color: '#4A5174' }}>
                 ניתן לדלג ולחבר מאוחר יותר מדף האינטגרציות
               </p>
