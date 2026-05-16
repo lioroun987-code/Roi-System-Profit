@@ -127,11 +127,30 @@ export function calculateOrderCost(
     const key   = `${item.product_id}_${item.variant_id}`
     const entry = customCosts[key]
 
+    const listPrice     = parseFloat(item.price)
+    const totalDiscount = parseFloat((item as any).total_discount ?? '0')
+    const effectiveUnitPrice = Math.max(0, listPrice - totalDiscount / item.quantity)
+
+    // ── Bundle check FIRST — capsule display items included in deal cost $0 ──
+    // This takes priority over the catalog entry (even if catalog shows $5.95)
+    const bundled = isBundleIncluded(item)
+    if (bundled) {
+      parsedItems.push({
+        name:           item.title,
+        quantity:       item.quantity,
+        unitPriceIls:   effectiveUnitPrice,
+        totalPriceIls:  effectiveUnitPrice * item.quantity,
+        unitCostUsd:    0,
+        totalCostUsd:   0,
+        isGift:         true,
+        isSurprise:     false,
+        type:           'capsule',
+      })
+      continue
+    }
+
+    // ── Catalog lookup ──
     if (entry && entry.costUsd > 0) {
-      const listPrice     = parseFloat(item.price)
-      const totalDiscount = parseFloat((item as any).total_discount ?? '0')
-      // Effective price = what the customer actually paid per unit (after Shopify-allocated discount)
-      const effectiveUnitPrice = Math.max(0, listPrice - totalDiscount / item.quantity)
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
@@ -146,13 +165,9 @@ export function calculateOrderCost(
       continue
     }
 
-    // ── Gift / bundle detection (only for items NOT in catalog) ──
+    // ── Gift / surprise items NOT in catalog ──
     if (isGiftItem(item)) {
-      const bundled     = isBundleIncluded(item)
-      const giftCostUsd = bundled
-        ? 0
-        : ((dr as any)?.surpriseCapsuleCostUsd ?? (dr as any)?.giftCapsuleCostUsd ?? 0.85)
-
+      const giftCostUsd = (dr as any)?.surpriseCapsuleCostUsd ?? (dr as any)?.giftCapsuleCostUsd ?? 0.85
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
