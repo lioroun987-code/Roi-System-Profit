@@ -7,6 +7,7 @@ interface Message {
   role: 'user' | 'assistant'
   content: string
   changes?: { what_changed: string; fields: string[] } | null
+  saved?: boolean
   tokensUsed?: number
   error?: boolean
 }
