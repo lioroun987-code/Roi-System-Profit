@@ -346,6 +346,13 @@ export default function SettingsPage() {
           )
         })()}
 
+        {tab === 'ai-chat' && activeBusiness && (
+          <AiConfigChat
+            businessId={activeBusiness}
+            onConfigChange={fetchBusiness}
+          />
+        )}
+
         {tab === 'ai' && (
           <div className="space-y-4">
             <div>
