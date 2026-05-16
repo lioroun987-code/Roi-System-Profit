@@ -11,23 +11,27 @@ function compare(a: number, op: '>=' | '>' | '==' | '<=', b: number): boolean {
 }
 
 // Items added by bundle apps (kaching, etc.) as part of a deal —
-// cost is already included in the main deal item, so $0 additional cost
+// cost is already included in the main deal item, so $0 additional cost.
+// ONLY applies to capsule-type items — never to main deal products (bottles/deals)
+// even if their name mentions "קפסולות".
 function isBundleIncluded(item: ShopifyLineItem): boolean {
+  // kaching bundle property → always $0 cost regardless of product type
   if (item.properties?.some(p =>
     p.name === '___kaching_bundles' ||
     p.name === '__kaching_bundles'  ||
     p.name?.toLowerCase().includes('_bundle')
   )) return true
 
-  // Capsule packs (סט קפסולות) with 100% discount — display item included in deal price
+  // Only capsule-type items (not main deal bottles) can be bundle display items
+  const type = getProductType(item.title ?? '')
+  if (type !== 'capsule') return false  // Bottles / deals are NEVER bundle-included
+
+  // Capsule packs with 100% discount (price > 0, fully discounted)
   const price         = parseFloat(item.price)
   const totalDiscount = parseFloat((item as any).total_discount ?? '0')
-  const isCapsulePack = price > 0 && (
-    item.title?.includes('קפסולות') ||
-    item.title?.toLowerCase().includes('capsule')
-  )
+  if (price <= 0) return false  // Already-free items handled by isGiftItem
   const isFullyDiscounted = totalDiscount >= price * item.quantity - 0.01
-  return isCapsulePack && isFullyDiscounted
+  return isFullyDiscounted
 }
 
 function isGiftItem(item: ShopifyLineItem): boolean {
