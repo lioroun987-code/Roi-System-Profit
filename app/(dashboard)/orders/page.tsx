@@ -55,30 +55,38 @@ export default function OrdersPage() {
 
   async function handleReanalyzeAll() {
     if (!activeBusiness) return
-    setReanalyzeAllRunning(true)
-    setReanalyzeAllProgress({ done: 0, total: 0 })
-    try {
-      // Use sync-all endpoint with force re-analyze flag
-      let cursor: string | null = null
-      let totalDone = 0
-      while (true) {
-        const batchRes: Response = await fetch('/api/shopify/sync-all', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ businessId: activeBusiness, cursor, reanalyze: true }),
-        })
-        if (!batchRes.ok) break
-        const data: any = await batchRes.json()
-        totalDone += data.processed ?? 0
-        setReanalyzeAllProgress({ done: totalDone, total: totalDone + (data.batchSize ?? 0) })
-        if (data.done) break
-        cursor = data.nextCursor ?? null
-        if (!cursor) break
+    setReanalyzeAllOpen(true)
+    setReanalyzeAllStatus('running')
+    setReanalyzeAllStats({ processed: 0, changed: 0, failed: 0, skipped: 0, total: 0, percentDone: 0 })
+
+    let cursor = 0
+    let totals = { processed: 0, changed: 0, failed: 0, skipped: 0, total: 0, percentDone: 0 }
+
+    while (true) {
+      const batchRes: Response = await fetch('/api/orders/reanalyze-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId: activeBusiness, cursor }),
+      })
+      if (!batchRes.ok) break
+      const data: any = await batchRes.json()
+
+      totals = {
+        processed:  totals.processed  + (data.processed ?? 0),
+        changed:    totals.changed    + (data.changed   ?? 0),
+        failed:     totals.failed     + (data.failed    ?? 0),
+        skipped:    totals.skipped    + (data.skipped   ?? 0),
+        total:      data.total ?? totals.total,
+        percentDone: data.percentDone ?? 0,
       }
-      fetchOrders()
-    } finally {
-      setReanalyzeAllRunning(false)
+      setReanalyzeAllStats({ ...totals })
+
+      if (data.done || !data.nextCursor) break
+      cursor = data.nextCursor
     }
+
+    setReanalyzeAllStatus('done')
+    fetchOrders()
   }
 
   async function handleSync() {
