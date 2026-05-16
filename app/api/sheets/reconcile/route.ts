@@ -364,29 +364,25 @@ export async function POST(request: NextRequest) {
       missingCost: results.filter(r => r.status === 'missing_our_cost').length,
     }
 
-    const colLetter = (n: number) => n < 0 ? '?' : String.fromCharCode(65 + n)
-    const rawDateSamples = mainRows.slice(0, 5).map(r => r[detectedDateCol]?.toString() ?? '')
-    const rawOrderSamples = mainRows.slice(0, 5).map(r => r[detectedOrderCol]?.toString() ?? '')
     const agentKeys = Array.from(agentByOrder.keys())
-    const ourKeys   = Array.from(ourByOrder.keys())
+    const dbKeys    = Array.from(dbOrderNumbers)
 
-    // Direct match test
     const directMatchTest = agentKeys.slice(0, 3).map(k => ({
-      key: k,
-      inOur: ourByOrder.has(k),
+      key:   k,
+      inOur: dbOrderNumbers.has(k),
     }))
     const debug = {
       agentFirst5: agentKeys.slice(0, 5),
       agentLast5:  agentKeys.slice(-5),
-      ourFirst5:   ourKeys.slice(0, 5),
-      ourLast5:    ourKeys.slice(-5),
+      ourFirst5:   dbKeys.slice(0, 5),
+      ourLast5:    dbKeys.slice(-5),
       agentTotal:  agentByOrder.size,
-      ourTotal:    ourByOrder.size,
+      ourTotal:    dbOrderNumbers.size,
       dateRangeParsed: dateRange ? `${dateRange.start.toISOString().split('T')[0]} → ${dateRange.end.toISOString().split('T')[0]}` : 'לא פורסר',
-      detectedCols: `תאריך=עמודה ${colLetter(detectedDateCol)}, מספרהזמנה=עמודה ${colLetter(detectedOrderCol)}, עלות=עמודה ${colLetter(detectedCostCol)}`,
+      detectedCols: `מספרהזמנה=עמודה ${detectedOrderCol >= 0 ? String.fromCharCode(65 + detectedOrderCol) : '?'} | עלות = DB (myCostIls)`,
       directMatchTest,
-      rawDateSamples,
-      rawOrderSamples,
+      rawDateSamples:   [],
+      rawOrderSamples:  [],
     }
 
     // ── 7. Save report to DB ──
