@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { analyzeOrder } from '@/lib/claude'
+import { calculateOrderCost } from '@/lib/calculator'
 import { BusinessConfig, ShopifyOrder } from '@/types'
 
 export async function POST(
