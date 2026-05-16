@@ -128,15 +128,18 @@ export function calculateOrderCost(
     const entry = customCosts[key]
 
     if (entry && entry.costUsd > 0) {
-      const sellingPrice = parseFloat(item.price)
+      const listPrice     = parseFloat(item.price)
+      const totalDiscount = parseFloat((item as any).total_discount ?? '0')
+      // Effective price = what the customer actually paid per unit (after Shopify-allocated discount)
+      const effectiveUnitPrice = Math.max(0, listPrice - totalDiscount / item.quantity)
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
-        unitPriceIls:   sellingPrice,
-        totalPriceIls:  sellingPrice * item.quantity,
+        unitPriceIls:   effectiveUnitPrice,
+        totalPriceIls:  effectiveUnitPrice * item.quantity,
         unitCostUsd:    entry.costUsd,
         totalCostUsd:   entry.costUsd * item.quantity,
-        isGift:         sellingPrice === 0,   // free to customer, not to business
+        isGift:         effectiveUnitPrice === 0,  // free to customer but business still pays
         isSurprise:     false,
         type:           getProductType(item.title),
       })
