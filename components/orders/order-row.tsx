@@ -61,7 +61,7 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
 
       {/* ── Summary row ── */}
       <div className="flex items-center gap-4 px-4 py-3.5 cursor-pointer"
-        onClick={() => setExpanded(v => !v)}
+        onClick={toggleExpand}
         onMouseEnter={e => (e.currentTarget.style.background = isLoss ? '#1F1212' : '#181B27')}
         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
 
