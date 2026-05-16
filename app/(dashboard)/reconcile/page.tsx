@@ -8,6 +8,7 @@ interface ReconcileResult {
   orderDate?: string
   agentCost: number
   ourCost: number | null
+  systemCost: number | null
   diff: number
   status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent'
 }
