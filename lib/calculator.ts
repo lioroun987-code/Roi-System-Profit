@@ -163,9 +163,9 @@ export function calculateOrderCost(
     const cond = rule.condition
     const eff  = rule.effect
 
-    // Evaluate condition
+    // Evaluate condition — check ALL items including gifts
     let conditionMet = false
-    let matchingItems = parsedItems.filter(i => !i.isGift)
+    let matchingItems = parsedItems   // include gift items so rules can zero out their cost
 
     if (cond.type === 'quantity_of_type') {
       const qty = matchingItems
