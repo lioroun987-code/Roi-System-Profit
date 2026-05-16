@@ -204,6 +204,18 @@ export default function OrdersPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={handleReanalyzeAll}
+            disabled={reanalyzeAllRunning}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-60"
+            style={{ background: reanalyzeAllRunning ? '#1E2130' : 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff' }}
+            title="מחשב מחדש את כל ההזמנות לפי הקונפיג הנוכחי"
+          >
+            <Zap className={`w-4 h-4 ${reanalyzeAllRunning ? 'animate-pulse' : ''}`} />
+            {reanalyzeAllRunning
+              ? `מחשב... (${reanalyzeAllProgress.done})`
+              : 'עדכן כל ההזמנות'}
+          </button>
+          <button
             onClick={handleSyncAll}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
             style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
