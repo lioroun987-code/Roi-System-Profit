@@ -10,42 +10,16 @@ function compare(a: number, op: '>=' | '>' | '==' | '<=', b: number): boolean {
   return false
 }
 
-// Items added by bundle apps (kaching, etc.) as part of a deal —
-// cost is already included in the main deal item, so $0 additional cost.
-// ONLY applies to capsule-type items — never to main deal products (bottles/deals)
-// even if their name mentions "קפסולות".
-function isBundleIncluded(item: ShopifyLineItem): boolean {
-  // kaching bundle property → always $0 cost regardless of product type
-  if (item.properties?.some(p =>
-    p.name === '___kaching_bundles' ||
-    p.name === '__kaching_bundles'  ||
-    p.name?.toLowerCase().includes('_bundle')
-  )) return true
-
-  // Only capsule-type items (not main deal bottles) can be bundle display items
-  const type = getProductType(item.title ?? '')
-  if (type !== 'capsule') return false  // Bottles / deals are NEVER bundle-included
-
-  // Capsule packs with 100% discount (price > 0, fully discounted)
-  const price         = parseFloat(item.price)
-  const totalDiscount = parseFloat((item as any).total_discount ?? '0')
-  if (price <= 0) return false  // Already-free items handled by isGiftItem
-  const isFullyDiscounted = totalDiscount >= price * item.quantity - 0.01
-  return isFullyDiscounted
-}
-
+// An item is a "gift" if it has zero price and either had a compare-at price
+// or is tagged as a reward. The system uses costRules and catalog $0 entries
+// for all other product-specific logic — no hardcoded product assumptions here.
 function isGiftItem(item: ShopifyLineItem): boolean {
-  const price      = parseFloat(item.price)
-  const compareAt  = item.compare_at_price ? parseFloat(item.compare_at_price) : 0
-  const hasSurprise = item.title?.includes('הפתעה') || item.name?.includes('הפתעה')
-  const isReward    = item.properties?.some(
+  const price     = parseFloat(item.price)
+  const compareAt = item.compare_at_price ? parseFloat(item.compare_at_price) : 0
+  const isReward  = item.properties?.some(
     p => p.name === '_upcartRewardProduct' || p.name === '__upcartRewardProduct'
   )
-  // Standard free items (price = ₪0)
-  if (price === 0 && (compareAt > 0 || isReward || hasSurprise)) return true
-  // 100% discounted capsule packs — display items included in the deal cost
-  if (isBundleIncluded(item)) return true
-  return false
+  return price === 0 && (compareAt > 0 || isReward)
 }
 
 function getProductType(title: string): AIParsedItem['type'] {
