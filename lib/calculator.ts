@@ -2,6 +2,14 @@ import { ShopifyOrder, ShopifyLineItem, BusinessConfig, AIOrderAnalysis, AIParse
 
 /* ─── Helpers ─── */
 
+function compare(a: number, op: '>=' | '>' | '==' | '<=', b: number): boolean {
+  if (op === '>=') return a >= b
+  if (op === '>')  return a >  b
+  if (op === '==') return a === b
+  if (op === '<=') return a <= b
+  return false
+}
+
 // Items added by bundle apps (kaching, etc.) as part of a deal —
 // cost is already included in the main deal item, so $0 additional cost
 function isBundleIncluded(item: ShopifyLineItem): boolean {
