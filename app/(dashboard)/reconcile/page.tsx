@@ -244,33 +244,35 @@ export default function ReconcilePage() {
           const analysis = db?.aiAnalysis as any
           let breakdown = ''
 
-          if (analysis) {
-            // Agent report: costs in USD only (agent works in USD)
+          if (analysis?.line_items_parsed?.length > 0) {
             const items = analysis.line_items_parsed
-              ?.filter((i: any) => !i.isGift)
-              .map((i: any) => `&nbsp;&nbsp;&nbsp;• ${i.quantity}× ${i.name}: $${(i.unitCostUsd * i.quantity).toFixed(2)}`)
-              .join('<br/>') ?? ''
+              .filter((i: any) => !i.isGift)
+              .map((i: any) => `<tr>
+                <td style="padding:4px 8px">${i.quantity}× ${i.name}</td>
+                <td style="padding:4px 8px;text-align:left;font-weight:600">$${(i.unitCostUsd * i.quantity).toFixed(2)}</td>
+              </tr>`).join('')
 
             const shipping = analysis.my_cost_breakdown?.shipping_cost > 0
-              ? `<br/>&nbsp;&nbsp;&nbsp;• משלוח לבית: $${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}`
+              ? `<tr><td style="padding:4px 8px">משלוח לבית</td><td style="padding:4px 8px;text-align:left">$${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}</td></tr>`
               : ''
 
-            const gifts = analysis.my_cost_breakdown?.gift_capsule_cost > 0
-              ? `<br/>&nbsp;&nbsp;&nbsp;• קפסולות מתנה/הפתעה: $${analysis.my_cost_breakdown.gift_capsule_cost?.toFixed(2)}`
-              : ''
-
-            const discounts = analysis.discounts_applied?.length > 0
-              ? `<br/>&nbsp;&nbsp;&nbsp;• הנחות: ${analysis.discounts_applied.map((d: any) => d.name).join(', ')}`
+            const discountNote = analysis.notes
+              ? `<tr><td colspan="2" style="padding:4px 8px;color:#64748b;font-style:italic">${analysis.notes}</td></tr>`
               : ''
 
             breakdown = `
               <div class="breakdown">
-                ${r.sheetReason ? `<div style="margin-bottom:8px;color:#7c3aed"><strong>סטטוס בגיליון:</strong> ${r.sheetReason}</div>` : ''}
-                <strong>פירוט חישוב נכון:</strong><br/>
-                ${items}${shipping}${gifts}${discounts}
-                <br/>&nbsp;&nbsp;&nbsp;<strong>סה"כ נכון: $${((r.ourCost ?? 0) / exchangeRate).toFixed(2)}</strong>
-                ${analysis.notes ? `<br/>&nbsp;&nbsp;&nbsp;<em>${analysis.notes}</em>` : ''}
+                <p style="font-weight:700;margin-bottom:8px">פירוט החישוב הנכון:</p>
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                  ${items}${shipping}${discountNote}
+                  <tr style="border-top:1px solid #cbd5e1">
+                    <td style="padding:6px 8px;font-weight:700">סה"כ נכון</td>
+                    <td style="padding:6px 8px;text-align:left;font-weight:700;color:#dc2626">$${((r.ourCost ?? 0) / exchangeRate).toFixed(2)}</td>
+                  </tr>
+                </table>
               </div>`
+          } else {
+            breakdown = `<div class="breakdown" style="color:#94a3b8">פירוט לא זמין — ההזמנה לא נותחה במערכת</div>`
           }
 
           const dateFmt = r.orderDate ? r.orderDate.split(' ')[0] : '—'
