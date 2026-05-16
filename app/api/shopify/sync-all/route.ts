@@ -56,12 +56,12 @@ export async function POST(request: NextRequest) {
 
   for (const order of orders) {
     try {
-      // Skip if already analyzed
+      // Skip if already analyzed (unless reanalyze=true)
       const existing = await prisma.order.findUnique({
         where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: String(order.id) } },
         select: { id: true, aiAnalysis: true },
       })
-      if (existing?.aiAnalysis) { skipped++; continue }
+      if (existing?.aiAnalysis && !reanalyze) { skipped++; continue }
 
       // Try deterministic first, fall back to AI
       let analysis = calculateOrderCost(order, config)
