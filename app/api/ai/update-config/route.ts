@@ -136,10 +136,21 @@ Rule schema:
   "note": "הסבר לכלל"
 }
 
+CONDITION TYPES:
+- quantity_of_type: N or more units of a product type (deal/bottle/capsule/any)
+- quantity_same_product: N or more of the same product
+- total_items: total item count
+- product_in_order: a specific product type/key is present anywhere in the order
+- customer_price_is_zero: a specific product type was given FREE to the customer (0 price, display item)
+
 EXAMPLE RULES:
-- "סוכן מוריד $1.80 לכל דיל כשקונים 2+":
-  condition: {type:"quantity_of_type", productType:"deal", operator:">=", value:2}
-  effect: {type:"reduce_cost_per_unit", appliesTo:"matching_items", productType:"deal", value:1.80}
+- "סוכן מוריד $3.60 לכל דיל נוסף מאותו סוג":
+  condition: {type:"quantity_of_type", productType:"bottle", operator:">=", value:2}
+  effect: {type:"reduce_cost_per_unit", appliesTo:"matching_items", productType:"bottle", value:3.60}
+
+- "סט 7 קפסולות שניתן חינם ללקוח (display item) → עלות $0 לעסק":
+  condition: {type:"customer_price_is_zero", productType:"capsule"}
+  effect: {type:"set_cost_per_unit", appliesTo:"matching_items", productType:"capsule", value:0}
 
 - "כשקונים 3+ בקבוקים, עלות כל בקבוק $14":
   condition: {type:"quantity_of_type", productType:"bottle", operator:">=", value:3}
