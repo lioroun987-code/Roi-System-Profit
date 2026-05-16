@@ -121,9 +121,30 @@ export function calculateOrderCost(
   const parsedItems: AIParsedItem[] = []
 
   for (const item of order.line_items) {
+    // ── Catalog lookup FIRST (before gift detection) ──
+    // If the item is in the catalog with a real cost, ALWAYS charge that cost.
+    // Even if the customer paid ₪0 (gift order), the business still paid the supplier.
+    const key   = `${item.product_id}_${item.variant_id}`
+    const entry = customCosts[key]
+
+    if (entry && entry.costUsd > 0) {
+      const sellingPrice = parseFloat(item.price)
+      parsedItems.push({
+        name:           item.title,
+        quantity:       item.quantity,
+        unitPriceIls:   sellingPrice,
+        totalPriceIls:  sellingPrice * item.quantity,
+        unitCostUsd:    entry.costUsd,
+        totalCostUsd:   entry.costUsd * item.quantity,
+        isGift:         sellingPrice === 0,   // free to customer, not to business
+        isSurprise:     false,
+        type:           getProductType(item.title),
+      })
+      continue
+    }
+
+    // ── Gift / bundle detection (only for items NOT in catalog) ──
     if (isGiftItem(item)) {
-      // Bundle-included items (added by kaching/bundle apps) have $0 cost —
-      // the cost is already part of the main deal item
       const bundled     = isBundleIncluded(item)
       const giftCostUsd = bundled
         ? 0
@@ -142,10 +163,6 @@ export function calculateOrderCost(
       })
       continue
     }
-
-    // Look up by product_id_variant_id (exact Shopify IDs)
-    const key = `${item.product_id}_${item.variant_id}`
-    const entry = customCosts[key]
 
     if (!entry) return null   // Unknown product → fall back to AI
 
