@@ -20,8 +20,11 @@ export default function OrdersPage() {
   const [syncAllOpen, setSyncAllOpen]       = useState(false)
   const [syncAllStatus, setSyncAllStatus]   = useState<'idle'|'running'|'done'>('idle')
   const [syncAllProgress, setSyncAllProgress] = useState({ processed: 0, skipped: 0, usedAI: 0, errors: 0 })
-  const [reanalyzeAllRunning, setReanalyzeAllRunning] = useState(false)
-  const [reanalyzeAllProgress, setReanalyzeAllProgress] = useState({ done: 0, total: 0 })
+  const [reanalyzeAllOpen, setReanalyzeAllOpen]   = useState(false)
+  const [reanalyzeAllStatus, setReanalyzeAllStatus] = useState<'idle'|'running'|'done'>('idle')
+  const [reanalyzeAllStats, setReanalyzeAllStats] = useState({
+    processed: 0, changed: 0, failed: 0, skipped: 0, total: 0, percentDone: 0,
+  })
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
