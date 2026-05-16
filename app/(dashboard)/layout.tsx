@@ -69,6 +69,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 overflow-y-auto" style={{ background: '#0D0F14' }}>
         {children}
       </main>
+      <AiFloatButton businessId={activeBusiness} />
     </div>
   )
 }
