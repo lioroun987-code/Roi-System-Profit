@@ -263,16 +263,20 @@ export function calculateOrderCost(
   const totalCustomerPrice = parseFloat(order.total_price)
 
   /* ── 4. Detect discount types (for labeling) ── */
+  // Use Shopify's total_discounts as the authoritative discount amount
+  const totalDiscountsIls = parseFloat(order.total_discounts ?? '0')
   const discountsApplied: AIOrderAnalysis['discounts_applied'] = []
 
   for (const da of order.discount_applications ?? []) {
     const value = parseFloat(da.value ?? '0')
     if (da.value_type === 'percentage') {
+      // Use proportional allocation of total discount, not full-subtotal calculation
       discountsApplied.push({
         name:       `${value}% הנחה`,
-        amount_ils: (subtotalBeforeDiscounts * value) / 100,
+        amount_ils: totalDiscountsIls,   // actual total discount from Shopify
         type:       'section',
       })
+      break   // Only add once — total_discounts covers all percentage discounts
     } else if (da.value_type === 'fixed_amount' && value >= 40) {
       discountsApplied.push({
         name:       `קופון ₪${value}`,
