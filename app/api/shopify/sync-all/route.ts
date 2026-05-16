@@ -26,10 +26,16 @@ export async function POST(request: NextRequest) {
   }
 
   // Fetch a batch of orders from Shopify
-  const BATCH = 20
-  const params = new URLSearchParams({ limit: String(BATCH), status: 'any' })
-  if (cursor) params.set('page_info', cursor)
-  else params.set('order', 'created_at asc')  // oldest first so we don't miss any
+  // NOTE: Shopify cursor pagination (page_info) allows ONLY "limit" alongside it.
+  // All other filters must only appear on the first (non-cursor) request.
+  const BATCH = 50
+  const params = new URLSearchParams({ limit: String(BATCH) })
+  if (cursor) {
+    params.set('page_info', cursor)
+  } else {
+    params.set('status', 'any')
+    params.set('order', 'created_at asc')  // oldest first so we don't miss any
+  }
 
   const shopifyRes = await fetch(
     `https://${business.shopifyDomain}/admin/api/2024-01/orders.json?${params}`,
