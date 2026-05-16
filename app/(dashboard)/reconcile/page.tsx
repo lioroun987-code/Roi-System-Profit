@@ -797,11 +797,37 @@ export default function ReconcilePage() {
                           : r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
                       </span>
 
-                      <div className="flex items-center gap-1.5">
-                        <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
-                          <Icon className="w-3 h-3" />
-                          {meta?.label}
-                        </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {exclusions[r.orderNumber] ? (
+                          <button
+                            onClick={() => toggleExclusion(r.orderNumber)}
+                            disabled={togglingExclusion === r.orderNumber}
+                            className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-70"
+                            style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}
+                            title="לחץ להסרת הסימון"
+                          >
+                            <Briefcase className="w-3 h-3" />
+                            שימוש עסקי ✓
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
+                              <Icon className="w-3 h-3" />
+                              {meta?.label}
+                            </div>
+                            {(r.status === 'agent_higher' || r.status === 'we_higher') && (
+                              <button
+                                onClick={() => toggleExclusion(r.orderNumber)}
+                                disabled={togglingExclusion === r.orderNumber}
+                                className="px-2 py-1 rounded-full text-xs transition-all hover:opacity-80"
+                                style={{ background: '#1A1D2A', color: '#6B7280', border: '1px solid #1E2130' }}
+                                title="סמן כשימוש עסקי"
+                              >
+                                <Briefcase className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
