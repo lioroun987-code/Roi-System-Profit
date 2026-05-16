@@ -228,6 +228,7 @@ export default function ReconcilePage() {
 
             breakdown = `
               <div class="breakdown">
+                ${r.sheetReason ? `<div style="margin-bottom:8px;color:#7c3aed"><strong>סטטוס בגיליון:</strong> ${r.sheetReason}</div>` : ''}
                 <strong>פירוט חישוב נכון:</strong><br/>
                 ${items}${shipping}${gifts}${discounts}
                 <br/>&nbsp;&nbsp;&nbsp;<strong>סה"כ נכון: $${((r.ourCost ?? 0) / exchangeRate).toFixed(2)}</strong>
