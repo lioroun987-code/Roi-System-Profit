@@ -105,30 +105,12 @@ export function calculateOrderCost(
     const key   = `${item.product_id}_${item.variant_id}`
     const entry = customCosts[key]
 
-    const listPrice     = parseFloat(item.price)
-    const totalDiscount = parseFloat((item as any).total_discount ?? '0')
+    const listPrice          = parseFloat(item.price)
+    const totalDiscount      = parseFloat((item as any).total_discount ?? '0')
     const effectiveUnitPrice = Math.max(0, listPrice - totalDiscount / item.quantity)
 
-    // ── Bundle check FIRST — capsule display items included in deal cost $0 ──
-    // This takes priority over the catalog entry (even if catalog shows $5.95)
-    const bundled = isBundleIncluded(item)
-    if (bundled) {
-      parsedItems.push({
-        name:           item.title,
-        quantity:       item.quantity,
-        unitPriceIls:   effectiveUnitPrice,
-        totalPriceIls:  effectiveUnitPrice * item.quantity,
-        unitCostUsd:    0,
-        totalCostUsd:   0,
-        isGift:         true,
-        isSurprise:     false,
-        type:           'capsule',
-      })
-      continue
-    }
-
-    // ── Catalog lookup ──
-    if (entry && entry.costUsd > 0) {
+    // ── Catalog lookup (user-defined costs — includes $0 entries) ──
+    if (entry) {
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
@@ -136,16 +118,16 @@ export function calculateOrderCost(
         totalPriceIls:  effectiveUnitPrice * item.quantity,
         unitCostUsd:    entry.costUsd,
         totalCostUsd:   entry.costUsd * item.quantity,
-        isGift:         effectiveUnitPrice === 0,  // free to customer but business still pays
+        isGift:         effectiveUnitPrice === 0,
         isSurprise:     false,
         type:           getProductType(item.title),
       })
       continue
     }
 
-    // ── Gift / surprise items NOT in catalog ──
+    // ── Gift / reward items not in catalog ──
     if (isGiftItem(item)) {
-      const giftCostUsd = (dr as any)?.surpriseCapsuleCostUsd ?? (dr as any)?.giftCapsuleCostUsd ?? 0.85
+      const giftCostUsd = (dr as any)?.surpriseCapsuleCostUsd ?? 0.85
       parsedItems.push({
         name:           item.title,
         quantity:       item.quantity,
@@ -154,13 +136,13 @@ export function calculateOrderCost(
         unitCostUsd:    giftCostUsd,
         totalCostUsd:   giftCostUsd * item.quantity,
         isGift:         true,
-        isSurprise:     item.title?.includes('הפתעה') ?? false,
+        isSurprise:     true,
         type:           'capsule',
       })
       continue
     }
 
-    if (!entry) return null   // Unknown product → fall back to AI
+    return null   // Unknown product → fall back to AI
 
     parsedItems.push({
       name:           item.title,
