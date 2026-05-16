@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const userId = (session.user as any).id
-  const { businessId, orderNumber, remove = false } = await request.json()
+  const { businessId, orderNumber, remove = false, reason } = await request.json()
 
   const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
   if (!business) return Response.json({ error: 'Not found' }, { status: 404 })
@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
   if (remove) {
     delete exclusions[orderNumber]
   } else {
-    exclusions[orderNumber] = new Date().toISOString()
+    exclusions[orderNumber] = JSON.stringify({
+      date: new Date().toISOString(),
+      reason: reason ?? 'business',
+    })
   }
 
   await prisma.business.update({
