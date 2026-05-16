@@ -2,6 +2,26 @@ import { ShopifyOrder, ShopifyLineItem, BusinessConfig, AIOrderAnalysis, AIParse
 
 /* ─── Helpers ─── */
 
+// Items added by bundle apps (kaching, etc.) as part of a deal —
+// cost is already included in the main deal item, so $0 additional cost
+function isBundleIncluded(item: ShopifyLineItem): boolean {
+  if (item.properties?.some(p =>
+    p.name === '___kaching_bundles' ||
+    p.name === '__kaching_bundles'  ||
+    p.name?.toLowerCase().includes('_bundle')
+  )) return true
+
+  // Capsule packs (סט קפסולות) with 100% discount — display item included in deal price
+  const price         = parseFloat(item.price)
+  const totalDiscount = parseFloat((item as any).total_discount ?? '0')
+  const isCapsulePack = price > 0 && (
+    item.title?.includes('קפסולות') ||
+    item.title?.toLowerCase().includes('capsule')
+  )
+  const isFullyDiscounted = totalDiscount >= price * item.quantity - 0.01
+  return isCapsulePack && isFullyDiscounted
+}
+
 function isGiftItem(item: ShopifyLineItem): boolean {
   const price      = parseFloat(item.price)
   const compareAt  = item.compare_at_price ? parseFloat(item.compare_at_price) : 0
