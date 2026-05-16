@@ -9,7 +9,11 @@ function isGiftItem(item: ShopifyLineItem): boolean {
   const isReward    = item.properties?.some(
     p => p.name === '_upcartRewardProduct' || p.name === '__upcartRewardProduct'
   )
-  return price === 0 && (compareAt > 0 || isReward || hasSurprise)
+  // Standard free items (price = ₪0)
+  if (price === 0 && (compareAt > 0 || isReward || hasSurprise)) return true
+  // 100% discounted capsule packs — display items included in the deal cost
+  if (isBundleIncluded(item)) return true
+  return false
 }
 
 // Items added by bundle apps (kaching, etc.) as part of a deal —
