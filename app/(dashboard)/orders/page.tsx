@@ -207,6 +207,73 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* Reanalyze All Modal */}
+      {reanalyzeAllOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+            {reanalyzeAllStatus === 'running' ? (
+              <>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"
+                  style={{ background: '#1E1846' }}>
+                  <Zap className="w-7 h-7" style={{ color: '#8B5CF6' }} />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">מחשב מחדש את כל ההזמנות</h3>
+                <p className="text-sm mb-4" style={{ color: '#6B7280' }}>זה עשוי לקחת מספר שניות...</p>
+                {/* Progress bar */}
+                <div className="w-full rounded-full h-2 mb-6" style={{ background: '#1E2130' }}>
+                  <div className="h-2 rounded-full transition-all" style={{ width: `${reanalyzeAllStats.percentDone}%`, background: 'linear-gradient(90deg,#6366F1,#8B5CF6)' }} />
+                </div>
+                <p className="text-xs mb-4" style={{ color: '#4A5174' }}>
+                  {reanalyzeAllStats.percentDone}% · {reanalyzeAllStats.processed} מתוך {reanalyzeAllStats.total} הזמנות
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    { label: 'עודכנו',   val: reanalyzeAllStats.changed,   color: '#8B5CF6' },
+                    { label: 'עובדו',    val: reanalyzeAllStats.processed,  color: '#22C55E' },
+                    { label: 'שגיאות',  val: reanalyzeAllStats.failed,     color: '#EF4444' },
+                    { label: 'דולגו',   val: reanalyzeAllStats.skipped,    color: '#6B7280' },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                      <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ background: '#1E1846' }}>
+                  <Zap className="w-7 h-7" style={{ color: '#8B5CF6' }} />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">העדכון הושלם!</h3>
+                <p className="text-sm mb-2" style={{ color: '#6B7280' }}>
+                  עובדו {reanalyzeAllStats.processed} הזמנות מתוך {reanalyzeAllStats.total}
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-sm mb-6">
+                  {[
+                    { label: 'עודכנו (ערך שונה)',  val: reanalyzeAllStats.changed,   color: '#8B5CF6' },
+                    { label: 'לא השתנו',           val: reanalyzeAllStats.processed - reanalyzeAllStats.changed, color: '#22C55E' },
+                    { label: 'שגיאות',             val: reanalyzeAllStats.failed,    color: '#EF4444' },
+                    { label: 'דולגו (אין נתונים)', val: reanalyzeAllStats.skipped,   color: '#6B7280' },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                      <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => { setReanalyzeAllOpen(false); setReanalyzeAllStatus('idle') }}
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                  סגור
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -216,14 +283,14 @@ export default function OrdersPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleReanalyzeAll}
-            disabled={reanalyzeAllRunning}
+            disabled={reanalyzeAllStatus === 'running'}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-60"
-            style={{ background: reanalyzeAllRunning ? '#1E2130' : 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff' }}
+            style={{ background: reanalyzeAllStatus === 'running' ? '#1E2130' : 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff' }}
             title="מחשב מחדש את כל ההזמנות לפי הקונפיג הנוכחי"
           >
-            <Zap className={`w-4 h-4 ${reanalyzeAllRunning ? 'animate-pulse' : ''}`} />
-            {reanalyzeAllRunning
-              ? `מחשב... (${reanalyzeAllProgress.done})`
+            <Zap className={`w-4 h-4 ${reanalyzeAllStatus === 'running' ? 'animate-pulse' : ''}`} />
+            {reanalyzeAllStatus === 'running'
+              ? `מחשב... ${reanalyzeAllStats.percentDone}%`
               : 'עדכן כל ההזמנות'}
           </button>
           <button
