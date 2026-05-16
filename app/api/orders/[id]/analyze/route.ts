@@ -37,9 +37,18 @@ export async function POST(
     }
 
     const shopifyOrder = order.rawData as unknown as ShopifyOrder
+
+    // Log cost rules for debugging
+    const costRules = (config.discountRules as any)?.costRules ?? []
+    if (costRules.length > 0) {
+      console.log(`[analyze] Applying ${costRules.length} cost rule(s) for order ${order.orderNumber}:`, costRules.map((r: any) => r.name))
+    }
+
     // Try deterministic calculator first (picks up config changes instantly, no AI cache)
     const analysis = calculateOrderCost(shopifyOrder, config)
       ?? await analyzeOrder(shopifyOrder, config)
+
+    console.log(`[analyze] Order ${order.orderNumber}: cost=${analysis.my_cost_ils?.toFixed(2)} items=${analysis.line_items_parsed?.map((i: any) => `${i.name}=$${i.unitCostUsd}`).join(', ')}`)
 
     const updated = await prisma.order.update({
       where: { id },
