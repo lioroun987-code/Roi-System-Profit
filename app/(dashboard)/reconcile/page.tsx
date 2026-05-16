@@ -886,8 +886,8 @@ export default function ReconcilePage() {
         </>
       )}
 
-      {/* Business Expenses Section */}
-      {results && (() => {
+      {/* Business Expenses Section — hidden when filter=business since table shows them */}
+      {results && filter !== 'business' && (() => {
         const contentCreators = results.filter(r => r.status === 'content_creator')
         const manuallyMarked  = results.filter(r => r.status !== 'content_creator' && exclusions[r.orderNumber])
         const allBizExpenses  = [...contentCreators, ...manuallyMarked]
