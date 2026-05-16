@@ -465,10 +465,15 @@ export default function ReconcilePage() {
     a.click()
   }
 
+  const bizExpenses = (results ?? []).filter(r =>
+    r.status === 'content_creator' || exclusions[r.orderNumber]
+  )
+
   const filtered = (results ?? [])
-    // Exclude business expenses and content creators from main table — they appear in dedicated section
-    .filter(r => r.status !== 'content_creator' && !exclusions[r.orderNumber])
     .filter(r => {
+      if (filter === 'business') return r.status === 'content_creator' || !!exclusions[r.orderNumber]
+      // All other filters: exclude business expenses from main table
+      if (r.status === 'content_creator' || exclusions[r.orderNumber]) return false
       if (filter === 'issues')  return r.status === 'agent_higher' || r.status === 'we_higher'
       if (filter === 'match')   return r.status === 'match'
       if (filter === 'missing') return r.status === 'missing_our_cost'
