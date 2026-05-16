@@ -60,61 +60,79 @@ export async function POST(request: NextRequest) {
   let usedAI    = 0
   let errors    = 0
 
-  for (const order of orders) {
-    try {
-      // Skip if already analyzed (unless reanalyze=true)
-      const existing = await prisma.order.findUnique({
-        where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: String(order.id) } },
-        select: { id: true, aiAnalysis: true },
-      })
-      if (existing?.aiAnalysis && !reanalyze) { skipped++; continue }
+  // Batch-check which orders already exist
+  const shopifyIds = orders.map(o => String(o.id))
+  const existing = await prisma.order.findMany({
+    where: { businessId, shopifyOrderId: { in: shopifyIds } },
+    select: { shopifyOrderId: true, status: true },
+  })
+  const existingMap = new Map(existing.map(e => [e.shopifyOrderId, e.status]))
 
-      // Try deterministic first, fall back to AI
-      let analysis = calculateOrderCost(order, config)
-      if (!analysis) {
-        analysis = await analyzeOrder(order, config)
-        usedAI++
+  for (const order of orders) {
+    const sid = String(order.id)
+    const existingStatus = existingMap.get(sid)
+
+    // Skip already-analyzed orders unless reanalyze=true
+    if (existingStatus === 'analyzed' && !reanalyze) { skipped++; continue }
+
+    try {
+      // Try deterministic calculator — no AI during bulk import (avoids timeout)
+      const analysis = calculateOrderCost(order, config)
+
+      const commonFields = {
+        businessId,
+        shopifyOrderId: sid,
+        orderNumber:    String(order.order_number),
+        orderDate:      new Date(order.created_at),
+        customerName:   order.customer
+          ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+          : null,
+        customerEmail:  order.customer?.email ?? null,
+        rawData:        order as any,
       }
 
-      await prisma.order.upsert({
-        where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: String(order.id) } },
-        create: {
-          businessId,
-          shopifyOrderId:  String(order.id),
-          orderNumber:     String(order.order_number),
-          orderDate:       new Date(order.created_at),
-          customerName:    order.customer
-            ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
-            : null,
-          customerEmail:   order.customer?.email ?? null,
-          rawData:         order as any,
-          aiAnalysis:      analysis as any,
-          orderSummary:    analysis.order_summary,
-          storePrice:      analysis.store_price_breakdown.total,
-          myCostUsd:       analysis.my_cost_breakdown.total_usd,
-          myCostIls:       analysis.my_cost_ils,
-          grossProfitIls:  analysis.gross_profit_ils,
-          paymentFeeIls:   analysis.payment_fee_ils,
-          vatIls:          analysis.vat_ils,
-          netProfitIls:    analysis.net_profit_ils,
-          netProfitUsd:    analysis.net_profit_usd,
-          paymentMethod:   analysis.payment_method,
-          status:          'analyzed',
-        },
-        update: {
-          aiAnalysis:     analysis as any,
-          orderSummary:   analysis.order_summary,
-          storePrice:     analysis.store_price_breakdown.total,
-          myCostUsd:      analysis.my_cost_breakdown.total_usd,
-          myCostIls:      analysis.my_cost_ils,
-          grossProfitIls: analysis.gross_profit_ils,
-          paymentFeeIls:  analysis.payment_fee_ils,
-          netProfitIls:   analysis.net_profit_ils,
-          netProfitUsd:   analysis.net_profit_usd,
-          paymentMethod:  analysis.payment_method,
-          status:         'analyzed',
-        },
-      })
+      if (analysis) {
+        await prisma.order.upsert({
+          where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
+          create: {
+            ...commonFields,
+            aiAnalysis:     analysis as any,
+            orderSummary:   analysis.order_summary,
+            storePrice:     analysis.store_price_breakdown.total,
+            myCostUsd:      analysis.my_cost_breakdown.total_usd,
+            myCostIls:      analysis.my_cost_ils,
+            grossProfitIls: analysis.gross_profit_ils,
+            paymentFeeIls:  analysis.payment_fee_ils,
+            vatIls:         analysis.vat_ils,
+            netProfitIls:   analysis.net_profit_ils,
+            netProfitUsd:   analysis.net_profit_usd,
+            paymentMethod:  analysis.payment_method,
+            status:         'analyzed',
+          },
+          update: {
+            rawData:        order as any,
+            aiAnalysis:     analysis as any,
+            orderSummary:   analysis.order_summary,
+            storePrice:     analysis.store_price_breakdown.total,
+            myCostUsd:      analysis.my_cost_breakdown.total_usd,
+            myCostIls:      analysis.my_cost_ils,
+            grossProfitIls: analysis.gross_profit_ils,
+            paymentFeeIls:  analysis.payment_fee_ils,
+            vatIls:         analysis.vat_ils,
+            netProfitIls:   analysis.net_profit_ils,
+            netProfitUsd:   analysis.net_profit_usd,
+            paymentMethod:  analysis.payment_method,
+            status:         'analyzed',
+          },
+        })
+      } else {
+        // Calculator can't handle — save rawData as pending for later reanalysis
+        await prisma.order.upsert({
+          where: { businessId_shopifyOrderId: { businessId, shopifyOrderId: sid } },
+          create:  { ...commonFields, status: 'pending' },
+          update:  { rawData: order as any },
+        })
+      }
 
       processed++
     } catch (e) {
