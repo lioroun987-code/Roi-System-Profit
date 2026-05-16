@@ -54,7 +54,16 @@ export default function ReconcilePage() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [exclusions, setExclusions]             = useState<Record<string, string>>({})
   const [togglingExclusion, setTogglingExclusion] = useState<string | null>(null)
+  const [expenseTypeModal, setExpenseTypeModal] = useState<string | null>(null) // orderNumber being categorised
   const autoRunRef = useRef(false)
+
+  const EXPENSE_TYPES = [
+    { id: 'content_creator', label: 'יוצר תוכן' },
+    { id: 'photography',     label: 'צילום מוצרים' },
+    { id: 'gift',            label: 'מתנה / שי' },
+    { id: 'employee',        label: 'עובד / צוות' },
+    { id: 'other',           label: 'אחר' },
+  ]
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
