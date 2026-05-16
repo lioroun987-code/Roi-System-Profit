@@ -814,9 +814,17 @@ export default function ReconcilePage() {
                       </span>
 
                       {/* System cost from DB */}
-                      <span className="text-sm font-medium" style={{ color: r.systemCost != null ? '#818CF8' : '#374151' }}>
-                        {r.systemCost != null ? `₪${r.systemCost.toFixed(2)}` : '—'}
-                      </span>
+                      <div>
+                        {r.systemCost != null ? (
+                          <span className="text-sm font-semibold" style={{ color: '#818CF8' }}>
+                            ₪{r.systemCost.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>
+                            לא נותח
+                          </span>
+                        )}
+                      </div>
 
                       <span className="text-sm font-bold" style={{
                         color: r.diff <= 0.5 ? '#22C55E'
