@@ -388,19 +388,91 @@ export default function SettingsPage() {
           )
         })()}
 
-        {tab === 'discounts' && business && (
-          <DiscountRulesForm
-            defaultValues={business.discountRules ?? DEFAULT_DISCOUNTS}
-            onSave={async (data) => save({ discountRules: data }, 'discounts')}
-          />
-        )}
+        {tab === 'payment' && business && (() => {
+          const ps = business.paymentSettings ?? {}
+          const vatEnabled        = (ps as any).vatEnabled        ?? false
+          const vatPercent        = (ps as any).vatPercent        ?? 17
+          const averageFeePercent = (ps as any).averageFeePercent ?? 2.5
 
-        {tab === 'payment' && business && (
-          <PaymentSettingsForm
-            defaultValues={business.paymentSettings ?? DEFAULT_PAYMENT}
-            onSave={async (data) => save({ paymentSettings: data }, 'payment')}
-          />
-        )}
+          return (
+            <div className="space-y-6 max-w-sm">
+              <div>
+                <h3 className="text-white font-bold mb-1">עמלת סליקה ממוצעת</h3>
+                <p className="text-sm" style={{ color: '#6B7280' }}>
+                  אחוז קבוע שיחוסר מכל הזמנה — ממוצע של כל אמצעי התשלום שלך
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>עמלה %</label>
+                <div className="relative max-w-xs">
+                  <input
+                    type="number" step="0.1" min="0" max="20"
+                    defaultValue={averageFeePercent}
+                    id="avg-fee"
+                    style={{
+                      background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+                      borderRadius: '10px', padding: '10px 36px 10px 14px',
+                      fontSize: '16px', fontWeight: '600', outline: 'none', width: '100%',
+                    }}
+                    dir="ltr"
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: '#4A5174' }}>%</span>
+                </div>
+                <p className="text-xs" style={{ color: '#4A5174' }}>
+                  לדוגמה: אם Bit = 3%, אשראי = 1.5% ואתה מקבל 50/50 → ממוצע ~2.25%
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    defaultChecked={vatEnabled}
+                    id="vat-enabled"
+                    className="w-4 h-4 rounded accent-blue-500"
+                  />
+                  <span className="text-sm" style={{ color: '#CBD5E1' }}>העסק גובה מע"מ</span>
+                </label>
+                {vatEnabled && (
+                  <div className="relative max-w-xs mr-7">
+                    <input
+                      type="number" defaultValue={vatPercent} id="vat-percent"
+                      style={{
+                        background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+                        borderRadius: '10px', padding: '8px 36px 8px 14px',
+                        fontSize: '14px', outline: 'none', width: '100%',
+                      }}
+                      dir="ltr"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={async () => {
+                  const fee = parseFloat((document.getElementById('avg-fee') as HTMLInputElement).value) || 2.5
+                  const vat = (document.getElementById('vat-enabled') as HTMLInputElement).checked
+                  const vatPct = parseFloat((document.getElementById('vat-percent') as HTMLInputElement)?.value ?? '17') || 17
+                  await save({
+                    paymentSettings: {
+                      ...(ps as any),
+                      flatFeeMode: true,
+                      averageFeePercent: fee,
+                      vatEnabled: vat,
+                      vatPercent: vatPct,
+                    }
+                  }, 'payment')
+                }}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg,#3B82F6,#6366F1)' }}
+              >
+                שמור
+              </button>
+            </div>
+          )
+        })()}
 
 
         {tab === 'simulation' && business && (() => {
