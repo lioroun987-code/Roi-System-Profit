@@ -292,12 +292,11 @@ export async function POST(request: NextRequest) {
     const sheetUpdates: { range: string; value: string; color: any }[] = []
 
     for (const [orderNum, agentData] of agentByOrder) {
-      const agentCost = agentData.costIls
-      const orderDate = agentData.date
-      const ourData = ourByOrder.get(orderNum)
-      const ourCost = ourData?.cost ?? null
-      const systemCost = dbCostByOrder.get(orderNum) ?? null
-      const diff = ourCost != null ? Math.abs(agentCost - ourCost) : 0
+      const agentCost  = agentData.costIls
+      const orderDate  = agentData.date
+      const ourCost    = dbCostByOrder.get(orderNum) ?? null   // use DB cost — authoritative
+      const systemCost = ourCost                                // same source
+      const diff       = ourCost != null ? Math.abs(agentCost - ourCost) : 0
 
       let status: string
       if (ourCost == null) status = 'missing_our_cost'
@@ -306,25 +305,24 @@ export async function POST(request: NextRequest) {
       else status = 'we_higher'
 
       const sheetReason = colCByOrder.get(orderNum) ?? null
-      // Content creator orders: agent cost is 0 because order was gifted — not a real gap
-      if (isContentCreator(sheetReason) || (agentCost === 0 && isContentCreator(sheetReason))) {
-        status = 'content_creator'
-      }
-      results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate, sheetReason })
+      if (isContentCreator(sheetReason)) status = 'content_creator'
 
-      // No longer writing to user's sheet to avoid overwriting columns
+      const rowIdx = ourByOrder.get(orderNum)?.rowIndex ?? -1
+      results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: rowIdx, orderDate, sheetReason })
     }
 
-    for (const [orderNum, ourData] of ourByOrder) {
-      if (!agentByOrder.has(orderNum) && ourData.cost != null) {
+    // Orders in DB (for this month) but missing from agent sheet
+    for (const orderNum of dbOrderNumbers) {
+      if (!agentByOrder.has(orderNum)) {
+        const ourCost = dbCostByOrder.get(orderNum) ?? null
         results.push({
           orderNumber: orderNum,
-          agentCost: 0,
-          ourCost: ourData.cost,
-          systemCost: dbCostByOrder.get(orderNum) ?? null,
-          diff: 0,
-          status: 'missing_in_agent',
-          rowIndex: ourData.rowIndex,
+          agentCost:   0,
+          ourCost,
+          systemCost:  ourCost,
+          diff:        0,
+          status:      'missing_in_agent',
+          rowIndex:    ourByOrder.get(orderNum)?.rowIndex ?? -1,
           sheetReason: colCByOrder.get(orderNum) ?? null,
         })
       }
