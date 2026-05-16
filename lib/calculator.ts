@@ -247,9 +247,9 @@ export function calculateOrderCost(
   const secondUnitDiscountUsd = [...mainUnitsByType.values()]
     .reduce((total, qty) => total + Math.max(0, qty - 1) * discountPerUnit, 0)
 
-  /* ── 3. Customer price (use Shopify ground truth) ── */
+  /* ── 3. Customer price (effective prices — what customer actually paid) ── */
+  // parsedItems now use effectiveUnitPrice, so subtotal = sum of what customer paid per item
   const subtotalBeforeDiscounts = parsedItems.reduce((s, i) => s + i.totalPriceIls, 0)
-  const totalDiscountsIls       = parseFloat(order.total_discounts ?? '0')
   const homeDelivery            = detectHomeDelivery(order)
   const shippingCustomerIls     = order.shipping_lines
     ?.reduce((s, l) => s + parseFloat(l.discounted_price ?? l.price ?? '0'), 0) ?? 0
@@ -257,10 +257,9 @@ export function calculateOrderCost(
   // Pickup fee: if no home delivery and subtotal < threshold
   const pickupThreshold = (pc as any).pickupFeeThresholdIls ?? 200
   const pickupFeeAmt    = (pc as any).pickupFeeAmountIls    ?? 10
-  const subtotalAfterDiscount = subtotalBeforeDiscounts - totalDiscountsIls
-  const pickupFee = !homeDelivery && subtotalAfterDiscount < pickupThreshold ? pickupFeeAmt : 0
+  const pickupFee = !homeDelivery && subtotalBeforeDiscounts < pickupThreshold ? pickupFeeAmt : 0
 
-  // Use Shopify's total_price as the authoritative customer payment
+  // Use Shopify's total_price as the authoritative customer payment (ground truth)
   const totalCustomerPrice = parseFloat(order.total_price)
 
   /* ── 4. Detect discount types (for labeling) ── */
