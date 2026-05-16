@@ -703,7 +703,7 @@ export default function ReconcilePage() {
                   return (
                     <div
                       key={r.orderNumber}
-                      className="grid grid-cols-6 gap-4 px-5 py-4 items-center transition-colors"
+                      className="grid grid-cols-7 gap-3 px-5 py-4 items-center transition-colors"
                       style={{ background: r.status !== 'match' ? `${meta?.bg}88` : 'transparent', borderBottom: '1px solid #1A1D2A' }}
                     >
                       <span className="font-mono font-semibold text-sm text-white">#{r.orderNumber}</span>
@@ -718,6 +718,11 @@ export default function ReconcilePage() {
 
                       <span className="text-sm" style={{ color: r.ourCost == null ? '#4A5174' : '#CBD5E1' }}>
                         {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
+                      </span>
+
+                      {/* System cost from DB */}
+                      <span className="text-sm font-medium" style={{ color: r.systemCost != null ? '#818CF8' : '#374151' }}>
+                        {r.systemCost != null ? `₪${r.systemCost.toFixed(2)}` : '—'}
                       </span>
 
                       <span className="text-sm font-bold" style={{
