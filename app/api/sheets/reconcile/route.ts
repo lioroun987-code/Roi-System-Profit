@@ -314,8 +314,10 @@ export async function POST(request: NextRequest) {
       ...Array.from(agentByOrder.keys()),
       ...Array.from(ourByOrder.keys()),
     ]
+    // Also try with leading zeros stripped and '#' removed (normalise formats)
+    const normNums = [...new Set(allOrderNums.map(n => n.replace(/^0+/, '').replace('#','')))]
     const dbOrders = await prisma.order.findMany({
-      where: { businessId, orderNumber: { in: allOrderNums } },
+      where: { businessId, orderNumber: { in: normNums } },
       select: { orderNumber: true, myCostIls: true, netProfitIls: true, storePrice: true },
     })
     const dbCostByOrder = new Map(dbOrders.map(o => [o.orderNumber, o.myCostIls]))
