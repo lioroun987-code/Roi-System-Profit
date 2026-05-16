@@ -31,7 +31,7 @@ export interface CostRule {
   name: string       // Hebrew display name
   active: boolean
   condition: {
-    type: 'quantity_of_type' | 'quantity_same_product' | 'total_items' | 'product_in_order'
+    type: 'quantity_of_type' | 'quantity_same_product' | 'total_items' | 'product_in_order' | 'customer_price_is_zero'
     productType?: 'deal' | 'coolDeal' | 'bottle' | 'capsule' | 'any'
     productKey?: string    // specific Shopify product key
     operator: '>=' | '>' | '==' | '<='
