@@ -236,15 +236,19 @@ export default function ReconcilePage() {
           }
 
           const dateFmt = r.orderDate ? r.orderDate.split(' ')[0] : '—'
+          const cardId  = `order-${r.orderNumber}`
           return `
-            <div class="order-card">
-              <div class="order-header">
+            <div class="order-card" id="${cardId}">
+              <div class="order-header" onclick="toggleBreakdown('${cardId}')" style="cursor:pointer">
                 <div>
                   <span class="order-num">הזמנה #${r.orderNumber}</span>
                   <span class="order-date">${dateFmt}</span>
                   ${db?.orderSummary ? `<span class="order-summary">${db.orderSummary}</span>` : ''}
                 </div>
-                <div class="diff-badge">+₪${r.diff.toFixed(2)} ביתר</div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div class="diff-badge">+₪${r.diff.toFixed(2)} ביתר</div>
+                  <span class="toggle-icon" id="${cardId}-icon">▼ פירוט</span>
+                </div>
               </div>
               <div class="costs-row">
                 <div class="cost-item wrong">
@@ -261,7 +265,9 @@ export default function ReconcilePage() {
                   <div class="cost-value">₪${r.diff.toFixed(2)}</div>
                 </div>
               </div>
-              ${breakdown}
+              <div id="${cardId}-breakdown" style="display:none">
+                ${breakdown}
+              </div>
             </div>`
         }).join('')
 
