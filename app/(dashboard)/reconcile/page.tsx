@@ -414,42 +414,16 @@ export default function ReconcilePage() {
   <div class="section-title">פירוט הזמנות — ממויין לפי גודל הפער</div>
   ${rows}
 
-  ${(() => {
-    const creators = results.filter(r => r.status === 'content_creator')
-    if (!creators.length) return ''
-    return `
-  <div style="margin-top:32px;padding:20px;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd">
-    <p style="font-weight:700;color:#0369a1;margin-bottom:12px">📸 הזמנות יוצרי תוכן / צלמים (${creators.length} הזמנות — לא נכללות בחישוב הפערים)</p>
-    ${creators.map(r => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #e0f2fe">
-      <span>#${r.orderNumber} ${r.orderDate ? `— ${r.orderDate.split(' ')[0]}` : ''}</span>
-      <span style="color:#0369a1">${r.sheetReason ?? 'יוצר תוכן'}</span>
-    </div>`).join('')}
-  </div>`
-  })()}
-
-  ${(() => {
-    const bizUse = results.filter(r => exclusions[r.orderNumber])
-    if (!bizUse.length) return ''
-    const totalAmt = bizUse.reduce((s, r) => s + r.diff, 0)
-    return `
-  <div style="margin-top:16px;padding:20px;background:#faf5ff;border-radius:10px;border:1px solid #e9d5ff">
-    <p style="font-weight:700;color:#7c3aed;margin-bottom:12px">💼 שימוש עסקי (${bizUse.length} הזמנות — לא נכללות בחישוב הפערים)</p>
-    ${bizUse.map(r => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #ede9fe">
-      <span>#${r.orderNumber} ${r.orderDate ? `— ${r.orderDate.split(' ')[0]}` : ''}</span>
-      <span style="color:#7c3aed">₪${r.diff.toFixed(2)} הפרש (סומן כשימוש עסקי)</span>
-    </div>`).join('')}
-    <div style="margin-top:8px;font-size:12px;color:#7c3aed;font-weight:600">סה"כ: ₪${totalAmt.toFixed(2)}</div>
-  </div>`
-  })()}
-
   <div class="footer">
     דוח זה הופק על ידי מערכת מנהל רווחיות • כל הסכומים בשקלים ישראלים (₪)
   </div>
-</div>
 
-<script>
-  window.onload = function() { window.print(); }
-<\/script>
+  <div class="no-print" style="text-align:center;margin-top:24px">
+    <button onclick="window.print()" style="background:#1e3a5f;color:white;border:none;padding:12px 32px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">
+      🖨️ הדפס / שמור PDF
+    </button>
+  </div>
+</div>
 </body>
 </html>`
 
