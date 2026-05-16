@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: `שגיאה בקריאת גיליון הסוכן: ${msg}` }, { status: 400 })
     }
 
-    // ── 2. Read main sheet ──
+    // ── 2. Read main sheet (A=order status context, C=reason/status, up to J) ──
     let mainRows: any[][] = []
     try {
       const mainRes = await sheets.spreadsheets.values.get({
@@ -192,6 +192,9 @@ export async function POST(request: NextRequest) {
       const msg = e?.message ?? ''
       return Response.json({ error: `שגיאה בקריאת הגיליון שלך: ${msg}` }, { status: 400 })
     }
+
+    // Build map of order# → col C value (status/reason)
+    const colCByOrder = new Map<string, string>()
 
     // ── 3. Group agent by order number: SUM(K+L+M) in USD → convert to ILS ──
     const agentByOrderUsd = new Map<string, { total: number; date: string }>()
