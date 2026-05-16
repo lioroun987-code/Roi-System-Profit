@@ -123,7 +123,12 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
       {/* ── Expanded detail ── */}
       {expanded && (
         <div className="border-t px-5 py-5 space-y-5" style={{ borderColor: '#1E2130', background: '#0D0F14' }}>
-          {analysis ? (
+          {loadingAnalysis ? (
+            <div className="flex items-center gap-2 py-2" style={{ color: '#4A5174' }}>
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <span className="text-sm">טוען פירוט...</span>
+            </div>
+          ) : analysis ? (
             <>
               {/* Source badge */}
               <div className="flex items-center justify-between">
