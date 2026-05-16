@@ -322,14 +322,28 @@ export default function ReconcilePage() {
     .breakdown strong { color: #1e293b; }
 
     .footer { margin-top: 36px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
+    .toggle-icon { font-size: 12px; color: #64748b; user-select: none; }
+    .order-header:hover .toggle-icon { color: #3b82f6; }
 
     @media print {
       body { background: white; padding: 0; }
       .page { box-shadow: none; padding: 20px; }
       .order-card { break-inside: avoid; }
       .no-print { display: none; }
+      [id$="-breakdown"] { display: block !important; }
+      .toggle-icon { display: none; }
     }
   </style>
+  <script>
+    function toggleBreakdown(id) {
+      const el   = document.getElementById(id + '-breakdown')
+      const icon = document.getElementById(id + '-icon')
+      if (!el) return
+      const open = el.style.display === 'none'
+      el.style.display   = open ? 'block' : 'none'
+      icon.textContent   = open ? '▲ סגור' : '▼ פירוט'
+    }
+  <\/script>
 </head>
 <body>
 <div class="page">
