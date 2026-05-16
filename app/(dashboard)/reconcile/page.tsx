@@ -305,7 +305,7 @@ export default function ReconcilePage() {
                   <div class="cost-value">₪${r.diff.toFixed(2)}</div>
                 </div>
               </div>
-              <div id="${cardId}-breakdown" style="display:none">
+              <div id="${cardId}-breakdown" style="display:block">
                 ${breakdown}
               </div>
             </div>`
