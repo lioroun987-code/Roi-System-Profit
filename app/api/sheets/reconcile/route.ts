@@ -339,6 +339,10 @@ export async function POST(request: NextRequest) {
       else status = 'we_higher'
 
       const sheetReason = colCByOrder.get(orderNum) ?? null
+      // Content creator orders: agent cost is 0 because order was gifted — not a real gap
+      if (isContentCreator(sheetReason) || (agentCost === 0 && isContentCreator(sheetReason))) {
+        status = 'content_creator'
+      }
       results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate, sheetReason })
 
       // No longer writing to user's sheet to avoid overwriting columns
