@@ -12,6 +12,16 @@ function isGiftItem(item: ShopifyLineItem): boolean {
   return price === 0 && (compareAt > 0 || isReward || hasSurprise)
 }
 
+// Items added by bundle apps (kaching, etc.) as part of a deal —
+// cost is already included in the main deal item, so $0 additional cost
+function isBundleIncluded(item: ShopifyLineItem): boolean {
+  return item.properties?.some(p =>
+    p.name === '___kaching_bundles' ||
+    p.name === '__kaching_bundles'  ||
+    p.name?.toLowerCase().includes('_bundle')
+  ) ?? false
+}
+
 function getProductType(title: string): AIParsedItem['type'] {
   const t = (title ?? '').toLowerCase()
   if (t.includes('cool') || t.includes('שומר קור'))             return 'coolDeal'
