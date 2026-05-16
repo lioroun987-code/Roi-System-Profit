@@ -24,10 +24,26 @@ function MarginBar({ value, max = 60 }: { value: number; max?: number }) {
 }
 
 export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
-  const [expanded, setExpanded]     = useState(false)
+  const [expanded, setExpanded]       = useState(false)
   const [reanalyzing, setReanalyzing] = useState(false)
+  const [analysis, setAnalysis]       = useState<AIOrderAnalysis | null>(
+    order.aiAnalysis as AIOrderAnalysis | null ?? null
+  )
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false)
 
-  const analysis  = order.aiAnalysis as AIOrderAnalysis | null
+  async function toggleExpand() {
+    if (!expanded && !analysis && order.status === 'analyzed') {
+      setLoadingAnalysis(true)
+      try {
+        const res = await fetch(`/api/orders/${order.id}`)
+        const data = await res.json()
+        if (data.aiAnalysis) setAnalysis(data.aiAnalysis as AIOrderAnalysis)
+      } finally {
+        setLoadingAnalysis(false)
+      }
+    }
+    setExpanded(v => !v)
+  }
   const profit    = order.netProfitIls ?? 0
   const isLoss    = profit < 0
   const margin    = order.storePrice && order.storePrice > 0 ? (profit / order.storePrice) * 100 : null
