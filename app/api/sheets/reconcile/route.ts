@@ -329,7 +329,8 @@ export async function POST(request: NextRequest) {
       else if (agentCost > ourCost) status = 'agent_higher'
       else status = 'we_higher'
 
-      results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate })
+      const sheetReason = colCByOrder.get(orderNum) ?? null
+      results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: ourData?.rowIndex ?? -1, orderDate, sheetReason })
 
       // No longer writing to user's sheet to avoid overwriting columns
     }
