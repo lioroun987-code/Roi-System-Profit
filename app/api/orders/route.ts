@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
         adSpendAlloc: true,
         paymentMethod: true,
         status: true,
-        aiAnalysis: true,
       } as const,
     }),
     prisma.order.count({ where }),
