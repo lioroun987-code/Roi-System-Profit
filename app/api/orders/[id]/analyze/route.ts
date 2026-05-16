@@ -25,15 +25,21 @@ export async function POST(
   if (order.business.userId !== userId) return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   try {
-    const business = order.business
+    // Re-fetch business fresh from DB to get latest config (not cached)
+    const business = await prisma.business.findUnique({ where: { id: order.businessId } })
+    if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
+
     const config: BusinessConfig = {
-      productCosts: business.productCosts as any,
-      discountRules: business.discountRules as any,
+      productCosts:    business.productCosts    as any,
+      discountRules:   business.discountRules   as any,
       paymentSettings: business.paymentSettings as any,
-      aiNotes: business.aiNotes ?? '',
+      aiNotes:         business.aiNotes ?? '',
     }
 
-    const analysis = await analyzeOrder(order.rawData as unknown as ShopifyOrder, config)
+    const shopifyOrder = order.rawData as unknown as ShopifyOrder
+    // Try deterministic calculator first (picks up config changes instantly, no AI cache)
+    const analysis = calculateOrderCost(shopifyOrder, config)
+      ?? await analyzeOrder(shopifyOrder, config)
 
     const updated = await prisma.order.update({
       where: { id },
