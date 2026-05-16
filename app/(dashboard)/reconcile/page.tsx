@@ -24,11 +24,12 @@ interface Summary {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  match:            { label: 'תואם',                  color: '#22C55E', bg: '#0D2818', icon: CheckCircle },
-  agent_higher:     { label: 'סוכן חייב פחות',        color: '#F59E0B', bg: '#2A1800', icon: AlertTriangle },
-  we_higher:        { label: 'חישוב שלנו גבוה',       color: '#F97316', bg: '#2A1200', icon: AlertTriangle },
-  missing_our_cost: { label: 'חסרה עלות אצלנו',       color: '#6B7280', bg: '#1A1D2A', icon: XCircle },
-  missing_in_agent: { label: 'חסר בגיליון סוכן',      color: '#8B5CF6', bg: '#1A1040', icon: XCircle },
+  match:            { label: 'תואם',                    color: '#22C55E', bg: '#0D2818', icon: CheckCircle },
+  agent_higher:     { label: 'סוכן חייב פחות',          color: '#F59E0B', bg: '#2A1800', icon: AlertTriangle },
+  we_higher:        { label: 'חישוב שלנו גבוה',         color: '#F97316', bg: '#2A1200', icon: AlertTriangle },
+  missing_our_cost: { label: 'חסרה עלות אצלנו',         color: '#6B7280', bg: '#1A1D2A', icon: XCircle },
+  missing_in_agent: { label: 'חסר בגיליון סוכן',        color: '#8B5CF6', bg: '#1A1040', icon: XCircle },
+  content_creator:  { label: 'יוצר תוכן / צלם',        color: '#06B6D4', bg: '#0C1A2A', icon: CheckCircle },
 }
 
 export default function ReconcilePage() {
