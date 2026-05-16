@@ -345,6 +345,7 @@ export async function POST(request: NextRequest) {
           diff: 0,
           status: 'missing_in_agent',
           rowIndex: ourData.rowIndex,
+          sheetReason: colCByOrder.get(orderNum) ?? null,
         })
       }
     }
