@@ -70,6 +70,8 @@ AI notes: ${business.aiNotes || '(none)'}
 RULES:
 - Reply in 1-2 short Hebrew sentences only — state exactly what you changed.
 - If nothing to change, say so in one sentence.
+- CRITICAL: If the user mentions a cost, price, fee, or rule — ALWAYS update the actual config field (productCosts / discountRules / paymentSettings), NOT just aiNotes. aiNotes is only for edge cases that cannot be expressed as structured config.
+- Never say "I added this to aiNotes" for something that has a real config field.
 - Always return a JSON object with this exact structure:
 
 {
