@@ -173,6 +173,7 @@ const TABS = [
   { id: 'costs',      label: 'עלויות מוצרים' },
   { id: 'discounts',  label: 'כללי הנחה' },
   { id: 'payment',    label: 'תשלום ומע"מ' },
+  { id: 'cost-rules', label: '⚙️ כללי עלות' },
   { id: 'simulation', label: '📈 סימולציה' },
   { id: 'ai-chat',    label: '✨ עדכן עם AI' },
   { id: 'ai',         label: 'הנחיות AI' },
