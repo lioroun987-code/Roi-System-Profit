@@ -203,8 +203,10 @@ export default function ReconcilePage() {
 
   async function generateAgentReport() {
     if (!results || !activeBusiness) return
-    // Exclude content creator orders from gap report — they are intentional 0-cost orders
-    const overcharged = results.filter(r => r.status === 'agent_higher')
+    // Exclude content creator and business-use orders from gap report
+    const overcharged = results.filter(r =>
+      r.status === 'agent_higher' && !exclusions[r.orderNumber]
+    )
     if (overcharged.length === 0) { alert('אין הזמנות עם חיוב עודף'); return }
 
     setGeneratingReport(true)
