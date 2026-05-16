@@ -215,13 +215,17 @@ export function calculateOrderCost(
     }
   }
 
-  /* ── 3. Legacy second-unit cost discount (config field) ── */
-  const mainUnitCount = parsedItems
-    .filter(i => !i.isGift && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))
-    .reduce((s, i) => s + i.quantity, 0)
-  const secondUnitDiscountUsd = mainUnitCount > 1
-    ? (mainUnitCount - 1) * ((pc as any).secondUnitDiscount ?? 2)
-    : 0
+  /* ── 3. Second-unit cost discount — per SAME product type (not cross-type) ── */
+  // Rule: discount applies only when 2+ units of the SAME type are ordered.
+  // 1 deal + 1 coolDeal = 0 discount (different types).
+  // 2 deals = 1 × discount. 3 deals = 2 × discount. etc.
+  const discountPerUnit = (pc as any).secondUnitDiscount ?? 2
+  const mainUnitsByType = new Map<string, number>()
+  for (const item of parsedItems.filter(i => !i.isGift && (i.type === 'deal' || i.type === 'coolDeal' || i.type === 'bottle'))) {
+    mainUnitsByType.set(item.type, (mainUnitsByType.get(item.type) ?? 0) + item.quantity)
+  }
+  const secondUnitDiscountUsd = [...mainUnitsByType.values()]
+    .reduce((total, qty) => total + Math.max(0, qty - 1) * discountPerUnit, 0)
 
   /* ── 3. Customer price (use Shopify ground truth) ── */
   const subtotalBeforeDiscounts = parsedItems.reduce((s, i) => s + i.totalPriceIls, 0)
