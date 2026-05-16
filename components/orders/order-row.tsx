@@ -126,56 +126,163 @@ export function OrderRowComponent({ order, onReanalyze }: OrderRowProps) {
                 )}
               </div>
 
-              {/* Line items per product */}
-              {analysis.line_items_parsed.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: '#4A5174' }}>
-                    <Package className="w-3.5 h-3.5" /> מוצרים
-                  </h4>
-                  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #1E2130' }}>
+              {/* ── Full cost breakdown ── */}
+              {(() => {
+                const rate        = analysis.exchange_rate_used ?? 3.7
+                const mainItems   = analysis.line_items_parsed.filter(i => !i.isGift)
+                const giftItems   = analysis.line_items_parsed.filter(i => i.isGift)
+                const rawItemCost = mainItems.reduce((s, i) => s + i.totalCostUsd, 0)
+                const giftCost    = analysis.my_cost_breakdown.gift_capsule_cost ?? 0
+                const shipCost    = analysis.my_cost_breakdown.shipping_cost ?? 0
+                const supplierDiscount = Math.max(0,
+                  parseFloat((rawItemCost - (analysis.my_cost_breakdown.total_usd - shipCost - giftCost)).toFixed(4))
+                )
+                return (
+                  <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #1E2130' }}>
                     {/* Header */}
-                    <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs font-semibold uppercase"
-                      style={{ background: '#13161F', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
-                      <span className="col-span-4">מוצר</span>
-                      <span className="col-span-1 text-center">כמות</span>
-                      <span className="col-span-2 text-right">מחיר יחידה</span>
-                      <span className="col-span-2 text-right">עלות יחידה</span>
-                      <span className="col-span-3 text-right">מרווח</span>
+                    <div className="flex items-center gap-2 px-4 py-3"
+                      style={{ background: '#13161F', borderBottom: '1px solid #1E2130' }}>
+                      <Package className="w-4 h-4" style={{ color: '#4A5174' }} />
+                      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#4A5174' }}>
+                        פירוט עלות מלא
+                      </span>
                     </div>
-                    {analysis.line_items_parsed.map((item, i) => {
-                      const itemMargin = item.unitPriceIls > 0
-                        ? ((item.unitPriceIls - item.unitCostUsd * (analysis.exchange_rate_used ?? 3.7)) / item.unitPriceIls) * 100
-                        : 0
-                      return (
-                        <div key={i} className="grid grid-cols-12 gap-2 px-4 py-3 items-center"
-                          style={{ borderBottom: i < analysis.line_items_parsed.length - 1 ? '1px solid #13161F' : 'none' }}>
-                          <div className="col-span-4">
-                            <p className="text-sm text-white leading-tight">{item.name}</p>
-                            {item.isGift && (
-                              <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#2A1800', color: '#F59E0B' }}>מתנה</span>
-                            )}
+
+                    <div className="divide-y" style={{ background: '#0D0F14', borderColor: '#13161F' }}>
+
+                      {/* Main products */}
+                      {mainItems.map((item, i) => {
+                        const itemMargin = item.unitPriceIls > 0
+                          ? ((item.unitPriceIls - item.unitCostUsd * rate) / item.unitPriceIls) * 100
+                          : 0
+                        return (
+                          <div key={i} className="px-4 py-3">
+                            {/* Product name + selling price */}
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <p className="text-sm font-semibold text-white">{item.name}</p>
+                                <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>
+                                  מחיר מכירה: {item.unitPriceIls > 0 ? formatCurrency(item.unitPriceIls) : '₪0 (מתנה ללקוח)'} × {item.quantity}
+                                </p>
+                              </div>
+                              {!item.isGift && item.unitPriceIls > 0 && (
+                                <MarginBar value={itemMargin} />
+                              )}
+                            </div>
+
+                            {/* Cost per unit — show each unit if qty > 1 */}
+                            <div className="space-y-1 mr-2">
+                              {Array.from({ length: item.quantity }, (_, ui) => (
+                                <div key={ui} className="flex items-center justify-between text-sm">
+                                  <span style={{ color: '#8B8FA8' }}>
+                                    יחידה {ui + 1}
+                                    {ui === 0 && item.quantity > 1 && (
+                                      <span className="text-xs mr-1" style={{ color: '#4A5174' }}>(ראשונה)</span>
+                                    )}
+                                    {ui > 0 && (
+                                      <span className="text-xs mr-1" style={{ color: '#4A5174' }}>
+                                        ({ui + 1}{ui === 1 ? 'ה' : 'ה'})
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="font-mono" style={{ color: '#EF4444' }}>
+                                    ${item.unitCostUsd.toFixed(2)}
+                                    <span className="text-xs mr-1.5" style={{ color: '#4A5174' }}>
+                                      = ₪{(item.unitCostUsd * rate).toFixed(2)}
+                                    </span>
+                                  </span>
+                                </div>
+                              ))}
+                              {/* Subtotal per product if qty > 1 */}
+                              {item.quantity > 1 && (
+                                <div className="flex items-center justify-between text-sm pt-1"
+                                  style={{ borderTop: '1px dashed #1E2130' }}>
+                                  <span className="font-medium" style={{ color: '#CBD5E1' }}>
+                                    סה"כ {item.name.split(' ').slice(0, 2).join(' ')}
+                                  </span>
+                                  <span className="font-bold" style={{ color: '#EF4444' }}>
+                                    ${item.totalCostUsd.toFixed(2)}
+                                    <span className="text-xs mr-1.5 font-normal" style={{ color: '#4A5174' }}>
+                                      = ₪{(item.totalCostUsd * rate).toFixed(2)}
+                                    </span>
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <span className="col-span-1 text-center text-sm" style={{ color: '#CBD5E1' }}>×{item.quantity}</span>
-                          <span className="col-span-2 text-right text-sm" style={{ color: '#CBD5E1' }}>
-                            {item.isGift ? '₪0' : formatCurrency(item.unitPriceIls)}
-                          </span>
-                          <span className="col-span-2 text-right text-sm" style={{ color: '#EF4444' }}>
-                            <span className="font-semibold">${item.unitCostUsd.toFixed(2)}</span>
-                            <span className="text-xs mr-1" style={{ color: '#4A5174' }}>
-                              = ₪{(item.unitCostUsd * (analysis.exchange_rate_used ?? 3.7)).toFixed(1)}
+                        )
+                      })}
+
+                      {/* Supplier quantity discount */}
+                      {supplierDiscount > 0.01 && (
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <div>
+                            <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>
+                              הנחת כמות מהסוכן
+                            </p>
+                            <p className="text-xs" style={{ color: '#4A5174' }}>
+                              {analysis.notes || `${Math.round(supplierDiscount / (analysis.my_cost_breakdown.items?.length ?? 1) * 10) / 10}$ ליחידה נוספת מאותו סוג`}
+                            </p>
+                          </div>
+                          <span className="font-bold text-sm" style={{ color: '#22C55E' }}>
+                            -${supplierDiscount.toFixed(2)}
+                            <span className="text-xs mr-1.5 font-normal" style={{ color: '#4A5174' }}>
+                              = -₪{(supplierDiscount * rate).toFixed(2)}
                             </span>
                           </span>
-                          <div className="col-span-3 flex justify-end">
-                            {!item.isGift && item.unitPriceIls > 0
-                              ? <MarginBar value={itemMargin} />
-                              : <span className="text-xs" style={{ color: '#4A5174' }}>—</span>}
-                          </div>
                         </div>
-                      )
-                    })}
+                      )}
+
+                      {/* Shipping cost */}
+                      {shipCost > 0 && (
+                        <div className="flex items-center justify-between px-4 py-3">
+                          <p className="text-sm" style={{ color: '#8B8FA8' }}>משלוח לבית (עלות לעסק)</p>
+                          <span className="text-sm" style={{ color: '#EF4444' }}>
+                            ${shipCost.toFixed(2)}
+                            <span className="text-xs mr-1.5" style={{ color: '#4A5174' }}>
+                              = ₪{(shipCost * rate).toFixed(2)}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Gift/surprise items */}
+                      {giftItems.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between px-4 py-2.5">
+                          <div>
+                            <p className="text-sm" style={{ color: '#8B8FA8' }}>{item.name} × {item.quantity}</p>
+                            <p className="text-xs" style={{ color: '#4A5174' }}>
+                              {item.unitCostUsd === 0 ? 'חלק מהדיל — עלות $0' : `מתנה/הפתעה: $${item.unitCostUsd.toFixed(2)} ליחידה`}
+                            </p>
+                          </div>
+                          <span className="text-sm" style={{ color: item.totalCostUsd === 0 ? '#374151' : '#EF4444' }}>
+                            {item.totalCostUsd === 0 ? '$0.00' : `$${item.totalCostUsd.toFixed(2)}`}
+                          </span>
+                        </div>
+                      ))}
+
+                      {/* Grand total cost */}
+                      <div className="flex items-center justify-between px-4 py-3"
+                        style={{ background: '#13161F' }}>
+                        <div>
+                          <p className="font-bold text-sm text-white">סה"כ עלות</p>
+                          <p className="text-xs" style={{ color: '#4A5174' }}>
+                            ${rawItemCost.toFixed(2)} − ${supplierDiscount.toFixed(2)} הנחה + ${shipCost.toFixed(2)} משלוח
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-sm" style={{ color: '#EF4444' }}>
+                            ${analysis.my_cost_breakdown.total_usd.toFixed(2)}
+                          </p>
+                          <p className="font-bold text-base" style={{ color: '#EF4444' }}>
+                            ₪{analysis.my_cost_ils.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {/* P&L breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
