@@ -889,16 +889,15 @@ export default function ReconcilePage() {
 
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {exclusions[r.orderNumber] ? (
-                          <button
-                            onClick={() => toggleExclusion(r.orderNumber)}
-                            disabled={togglingExclusion === r.orderNumber}
-                            className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-70"
-                            style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}
-                            title="לחץ להסרת הסימון"
-                          >
-                            <Briefcase className="w-3 h-3" />
-                            הוצאה עסקית ✓
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1"
+                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}>
+                              <Briefcase className="w-3 h-3" />
+                              {getExclusionLabel(r.orderNumber)} ✓
+                            </div>
+                            <button onClick={() => toggleExclusion(r.orderNumber)}
+                              className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                          </div>
                         ) : (
                           <div className="flex items-center gap-1.5">
                             <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
@@ -906,12 +905,10 @@ export default function ReconcilePage() {
                               {meta?.label}
                             </div>
                             <button
-                              onClick={() => toggleExclusion(r.orderNumber)}
+                              onClick={() => setExpenseTypeModal(r.orderNumber)}
                               disabled={togglingExclusion === r.orderNumber}
                               className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
-                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}
-                              title="העבר להוצאה עסקית"
-                            >
+                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
                               <Briefcase className="w-3 h-3" />
                               הוצאה עסקית
                             </button>
