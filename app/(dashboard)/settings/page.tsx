@@ -318,13 +318,23 @@ export default function SettingsPage() {
                             </span>
                           </div>
                           <p className="text-xs" style={{ color: '#6B7280' }}>
-                            {rule.condition.type === 'quantity_of_type'     && `≥${rule.condition.value} יחידות מסוג ${rule.condition.productType}`}
-                            {rule.condition.type === 'quantity_same_product' && `≥${rule.condition.value} אותו מוצר`}
-                            {rule.condition.type === 'total_items'           && `סך ≥${rule.condition.value} פריטים`}
-                            {' → '}
-                            {rule.effect.type === 'reduce_cost_per_unit'  && `הפחתה $${rule.effect.value} ליחידה נוספת`}
-                            {rule.effect.type === 'set_cost_per_unit'      && `עלות $${rule.effect.value} ליחידה`}
-                            {rule.effect.type === 'percent_off_total'       && `${rule.effect.value}% הנחה`}
+                            {(() => {
+                              const c = rule.condition
+                              const e = rule.effect
+                              const cond =
+                                c.type === 'quantity_of_type'      ? `≥${c.value} יחידות מסוג ${c.productType}` :
+                                c.type === 'quantity_same_product'  ? `≥${c.value} מאותו מוצר` :
+                                c.type === 'total_items'            ? `סך הכל ≥${c.value} פריטים` :
+                                c.type === 'product_in_order'       ? `מוצר "${c.productType ?? c.productKey}" בהזמנה` :
+                                c.type === 'customer_price_is_zero' ? `לקוח קיבל "${c.productType ?? c.productKey}" בחינם` :
+                                c.type
+                              const effect =
+                                e.type === 'reduce_cost_per_unit' ? `הסוכן מוריד $${e.value} ליחידה` :
+                                e.type === 'set_cost_per_unit'    ? `עלות $${e.value} ליחידה${e.productKey ? ` ("${e.productKey}")` : ''}` :
+                                e.type === 'percent_off_total'    ? `${e.value}% הנחה על העלות` :
+                                e.type
+                              return `${cond} → ${effect}`
+                            })()}
                           </p>
                           {rule.note && <p className="text-xs mt-0.5" style={{ color: '#374151' }}>{rule.note}</p>}
                         </div>
