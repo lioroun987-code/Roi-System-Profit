@@ -54,8 +54,25 @@ export default function ReconcilePage() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [exclusions, setExclusions]             = useState<Record<string, string>>({})
   const [togglingExclusion, setTogglingExclusion] = useState<string | null>(null)
-  const [expenseTypeModal, setExpenseTypeModal] = useState<string | null>(null) // orderNumber being categorised
+  const [expenseTypeModal, setExpenseTypeModal] = useState<string | null>(null)
+  const [expandedOrder, setExpandedOrder]       = useState<string | null>(null)
+  const [expandedData, setExpandedData]         = useState<Record<string, any>>({})
+  const [loadingExpand, setLoadingExpand]       = useState<string | null>(null)
   const autoRunRef = useRef(false)
+
+  async function toggleOrderExpand(orderNumber: string) {
+    if (expandedOrder === orderNumber) { setExpandedOrder(null); return }
+    setExpandedOrder(orderNumber)
+    if (expandedData[orderNumber]) return
+    setLoadingExpand(orderNumber)
+    try {
+      const res = await fetch(`/api/orders/by-number?businessId=${activeBusiness}&orderNumber=${orderNumber}`)
+      if (res.ok) {
+        const data = await res.json()
+        setExpandedData(prev => ({ ...prev, [orderNumber]: data }))
+      }
+    } finally { setLoadingExpand(null) }
+  }
 
   const EXPENSE_TYPES = [
     { id: 'content_creator', label: 'יוצר תוכן' },
