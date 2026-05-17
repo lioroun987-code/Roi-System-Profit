@@ -597,7 +597,10 @@ export default function IntegrationsPage() {
 }
 
 function ShopifyConnectForm({ businessId, onConnected }: { businessId: string; onConnected: () => void }) {
-  const [shop, setShop] = useState('')
+  const [shop, setShop]         = useState('')
+  const [mode, setMode]         = useState<'oauth' | 'token'>('oauth')
+  const [token, setToken]       = useState('')
+  const [saving, setSaving]     = useState(false)
 
   const inputStyle = {
     background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
@@ -607,33 +610,82 @@ function ShopifyConnectForm({ businessId, onConnected }: { businessId: string; o
 
   const shopDomain = shop.includes('.') ? shop : shop ? `${shop}.myshopify.com` : ''
 
+  async function handleTokenSave() {
+    if (!shopDomain || !token) return
+    setSaving(true)
+    await fetch(`/api/businesses/${businessId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ shopifyDomain: shopDomain, shopifyAccessToken: token }),
+    })
+    setSaving(false)
+    onConnected()
+  }
+
   return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
-        <label className="text-sm" style={{ color: '#8B8FA8' }}>כתובת החנות</label>
-        <div className="flex gap-2 items-center">
-          <input
-            value={shop}
-            onChange={e => setShop(e.target.value.replace('https://', '').replace('http://', ''))}
-            placeholder="my-store.myshopify.com"
-            style={inputStyle}
-          />
-        </div>
-        {shopDomain && (
-          <p className="text-xs" style={{ color: '#4A5174' }}>יתחבר ל: {shopDomain}</p>
-        )}
+    <div className="space-y-4">
+      {/* Mode selector */}
+      <div className="flex gap-2">
+        {[
+          { id: 'oauth', label: 'חיבור אוטומטי' },
+          { id: 'token', label: 'Custom App Token' },
+        ].map(m => (
+          <button key={m.id} onClick={() => setMode(m.id as any)}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            style={{
+              background: mode === m.id ? '#1E2846' : '#13161F',
+              color:      mode === m.id ? '#60A5FA' : '#6B7280',
+              border:     `1px solid ${mode === m.id ? '#2D4A8A' : '#1E2130'}`,
+            }}>
+            {m.label}
+          </button>
+        ))}
       </div>
-      <a
-        href={shopDomain ? `/api/shopify/auth?businessId=${businessId}&shop=${shopDomain}` : '#'}
-        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all ${!shopDomain ? 'opacity-50 pointer-events-none' : 'hover:-translate-y-0.5'}`}
-        style={{ background: !shopDomain ? '#4F6EF7' : 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}
-      >
-        <Store className="w-4 h-4" />
-        חבר את Shopify
-      </a>
-      <p className="text-xs" style={{ color: '#4A5174' }}>
-        תועבר לשופיפיי לאישור הגישה — בטוח ומאובטח
-      </p>
+
+      {mode === 'oauth' ? (
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-sm" style={{ color: '#8B8FA8' }}>כתובת החנות</label>
+            <input value={shop}
+              onChange={e => setShop(e.target.value.replace('https://', '').replace('http://', ''))}
+              placeholder="my-store.myshopify.com" style={inputStyle} />
+            {shopDomain && <p className="text-xs" style={{ color: '#4A5174' }}>יתחבר ל: {shopDomain}</p>}
+          </div>
+          <a href={shopDomain ? `/api/shopify/auth?businessId=${businessId}&shop=${shopDomain}` : '#'}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white ${!shopDomain ? 'opacity-50 pointer-events-none' : ''}`}
+            style={{ background: 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}>
+            <Store className="w-4 h-4" />חבר את Shopify
+          </a>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="rounded-xl p-3 text-xs leading-relaxed" style={{ background: '#0D1A2A', color: '#60A5FA', border: '1px solid #1E3A5F' }}>
+            <p className="font-semibold mb-1">כיצד ליצור Custom App עם גישה לכל ההזמנות:</p>
+            <ol className="list-decimal list-inside space-y-0.5" style={{ color: '#8B8FA8' }}>
+              <li>Shopify Admin → Settings → Apps → Develop apps</li>
+              <li>Create an app → שם כלשהו</li>
+              <li>Configure Admin API scopes → סמן: <span style={{ color: '#60A5FA' }}>read_orders, read_all_orders, read_products</span></li>
+              <li>Save → Install app → Reveal token once → העתק</li>
+            </ol>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm" style={{ color: '#8B8FA8' }}>כתובת החנות</label>
+            <input value={shop}
+              onChange={e => setShop(e.target.value.replace('https://', '').replace('http://', ''))}
+              placeholder="my-store.myshopify.com" style={inputStyle} />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm" style={{ color: '#8B8FA8' }}>Admin API Access Token</label>
+            <input value={token} onChange={e => setToken(e.target.value)}
+              placeholder="shpat_..." style={inputStyle} type="password" />
+          </div>
+          <button onClick={handleTokenSave} disabled={!shopDomain || !token || saving}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
+            {saving ? 'שומר...' : '✓ שמור Token'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
