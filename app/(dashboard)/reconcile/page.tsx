@@ -835,79 +835,138 @@ export default function ReconcilePage() {
                 </div>
               ) : (
                 filtered.map(r => {
-                  const meta = STATUS_LABELS[r.status]
-                  const Icon = meta?.icon ?? CheckCircle
+                  const meta     = STATUS_LABELS[r.status]
+                  const Icon     = meta?.icon ?? CheckCircle
+                  const isOpen   = expandedOrder === r.orderNumber
+                  const orderData = expandedData[r.orderNumber]
+                  const analysis  = orderData?.aiAnalysis
+                  const rate      = analysis?.exchange_rate_used ?? 3.7
+
                   return (
-                    <div
-                      key={r.orderNumber}
-                      className="grid grid-cols-7 gap-3 px-5 py-4 items-center transition-colors"
-                      style={{ background: r.status !== 'match' ? `${meta?.bg}88` : 'transparent', borderBottom: '1px solid #1A1D2A' }}
-                    >
-                      <span className="font-mono font-semibold text-sm text-white">#{r.orderNumber}</span>
+                    <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
+                      {/* Main row */}
+                      <div
+                        className="grid grid-cols-7 gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5"
+                        style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
+                        onClick={() => toggleOrderExpand(r.orderNumber)}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" style={{ color: '#4A5174', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+                          <span className="font-mono font-semibold text-sm text-white">#{r.orderNumber}</span>
+                        </div>
 
-                      <span className="text-xs" style={{ color: '#6B7280' }}>
-                        {r.orderDate ? r.orderDate.split(' ')[0] : '—'}
-                      </span>
+                        <span className="text-xs" style={{ color: '#6B7280' }}>
+                          {r.orderDate ? r.orderDate.split(' ')[0] : '—'}
+                        </span>
 
-                      <span className="text-sm" style={{ color: '#CBD5E1' }}>
-                        ₪{r.agentCost.toFixed(2)}
-                      </span>
+                        <span className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</span>
 
-                      <span className="text-sm" style={{ color: r.ourCost == null ? '#4A5174' : '#CBD5E1' }}>
-                        {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
-                      </span>
+                        <span className="text-sm" style={{ color: r.ourCost == null ? '#4A5174' : '#CBD5E1' }}>
+                          {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
+                        </span>
 
-                      {/* System cost from DB */}
-                      <div>
-                        {r.systemCost != null ? (
-                          <span className="text-sm font-semibold" style={{ color: '#818CF8' }}>
-                            ₪{r.systemCost.toFixed(2)}
-                          </span>
-                        ) : (
-                          <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>
-                            לא נותח
-                          </span>
-                        )}
+                        <div>
+                          {r.systemCost != null ? (
+                            <span className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>לא נותח</span>
+                          )}
+                        </div>
+
+                        <span className="text-sm font-bold" style={{ color: r.diff <= 0.5 ? '#22C55E' : r.status === 'agent_higher' ? '#EF4444' : '#22C55E' }}>
+                          {r.diff > 0.5 ? `${r.status === 'agent_higher' ? '▲' : '▼'} ₪${r.diff.toFixed(2)}` : r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
+                        </span>
+
+                        <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
+                          {exclusions[r.orderNumber] ? (
+                            <div className="flex items-center gap-1.5">
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}>
+                                <Briefcase className="w-3 h-3" />{getExclusionLabel(r.orderNumber)} ✓
+                              </div>
+                              <button onClick={() => toggleExclusion(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
+                                <Icon className="w-3 h-3" />{meta?.label}
+                              </div>
+                              <button onClick={() => setExpenseTypeModal(r.orderNumber)} disabled={togglingExclusion === r.orderNumber}
+                                className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                                style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
+                                <Briefcase className="w-3 h-3" />הוצאה עסקית
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <span className="text-sm font-bold" style={{
-                        color: r.diff <= 0.5 ? '#22C55E'
-                          : r.status === 'agent_higher' ? '#EF4444'
-                          : '#22C55E'
-                      }}>
-                        {r.diff > 0.5
-                          ? `${r.status === 'agent_higher' ? '▲' : '▼'} ₪${r.diff.toFixed(2)}`
-                          : r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
-                      </span>
-
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {exclusions[r.orderNumber] ? (
-                          <div className="flex items-center gap-1.5">
-                            <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1"
-                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}>
-                              <Briefcase className="w-3 h-3" />
-                              {getExclusionLabel(r.orderNumber)} ✓
+                      {/* Expanded breakdown */}
+                      {isOpen && (
+                        <div className="px-5 pb-4" style={{ background: '#0D0F14', borderTop: '1px solid #1E2130' }}>
+                          {loadingExpand === r.orderNumber ? (
+                            <div className="py-4 flex items-center gap-2 text-sm" style={{ color: '#4A5174' }}>
+                              <RefreshCw className="w-4 h-4 animate-spin" />טוען פירוט...
                             </div>
-                            <button onClick={() => toggleExclusion(r.orderNumber)}
-                              className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5">
-                            <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
-                              <Icon className="w-3 h-3" />
-                              {meta?.label}
+                          ) : analysis ? (
+                            <div className="pt-4 space-y-3">
+                              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#4A5174' }}>פירוט עלויות המערכת</p>
+                              {/* Line items */}
+                              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #1E2130' }}>
+                                {analysis.line_items_parsed?.map((item: any, i: number) => (
+                                  <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: '#1E2130' }}>
+                                    <div>
+                                      <p className="text-sm text-white">{item.name} × {item.quantity}</p>
+                                      <p className="text-xs" style={{ color: '#4A5174' }}>
+                                        {item.isGift ? 'מתנה' : `מחיר ללקוח: ₪${item.unitPriceIls?.toFixed(2)}`}
+                                      </p>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="text-sm font-medium" style={{ color: item.totalCostUsd === 0 ? '#374151' : '#EF4444' }}>
+                                        ${item.totalCostUsd?.toFixed(2)}
+                                      </p>
+                                      <p className="text-xs" style={{ color: '#4A5174' }}>
+                                        ₪{(item.totalCostUsd * rate).toFixed(2)}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                                {/* Shipping */}
+                                {(analysis.my_cost_breakdown?.shipping_cost ?? 0) > 0 && (
+                                  <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: '#1E2130' }}>
+                                    <p className="text-sm" style={{ color: '#8B8FA8' }}>משלוח לבית</p>
+                                    <p className="text-sm" style={{ color: '#EF4444' }}>${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}</p>
+                                  </div>
+                                )}
+                                {/* Total */}
+                                <div className="flex items-center justify-between px-4 py-3" style={{ background: '#13161F' }}>
+                                  <p className="text-sm font-bold text-white">סה"כ עלות</p>
+                                  <div className="text-right">
+                                    <p className="text-sm font-bold" style={{ color: '#EF4444' }}>${analysis.my_cost_breakdown?.total_usd?.toFixed(2)}</p>
+                                    <p className="text-sm font-bold" style={{ color: '#EF4444' }}>₪{analysis.my_cost_ils?.toFixed(2)}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Summary row */}
+                              <div className="grid grid-cols-3 gap-3 text-sm">
+                                {[
+                                  { label: 'עלות סוכן',  val: `₪${r.agentCost.toFixed(2)}`,           color: '#CBD5E1' },
+                                  { label: 'עלות מערכת', val: `₪${(r.systemCost ?? 0).toFixed(2)}`,   color: '#818CF8' },
+                                  { label: 'פער',         val: `₪${r.diff.toFixed(2)}`,                color: r.diff > 0.5 ? '#EF4444' : '#22C55E' },
+                                ].map(s => (
+                                  <div key={s.label} className="rounded-xl px-3 py-2 text-center" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                                    <p className="text-xs mb-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                                    <p className="font-bold" style={{ color: s.color }}>{s.val}</p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <button
-                              onClick={() => setExpenseTypeModal(r.orderNumber)}
-                              disabled={togglingExclusion === r.orderNumber}
-                              className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
-                              style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
-                              <Briefcase className="w-3 h-3" />
-                              הוצאה עסקית
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                          ) : (
+                            <p className="py-4 text-sm" style={{ color: '#4A5174' }}>
+                              {orderData ? 'אין נתוני ניתוח להזמנה זו' : 'הזמנה לא נמצאה במערכת'}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )
                 })
