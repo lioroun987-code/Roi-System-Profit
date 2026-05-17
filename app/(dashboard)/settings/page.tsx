@@ -250,119 +250,154 @@ export default function SettingsPage() {
 
         {tab === 'costs' && business && (() => {
           const pc  = business.productCosts ?? {}
-          const dr  = business.discountRules ?? {}
           const customCosts: Record<string, any> = pc.customProductCosts ?? {}
           const hasCustom = Object.keys(customCosts).length > 0
+          return hasCustom
+            ? <ShopifyProductCosts pc={pc} customCosts={customCosts} onSave={(updated) => save({ productCosts: updated }, 'costs')} />
+            : <ProductCostsForm defaultValues={pc ?? DEFAULT_COSTS} onSave={async (data) => save({ productCosts: data }, 'costs')} />
+        })()}
+
+        {tab === 'rules' && business && (() => {
+          const dr    = business.discountRules ?? {}
           const rules: any[] = (dr as any).costRules ?? []
+          const notes: string = business.aiNotes ?? ''
+
+          const ruleDescription = (rule: any) => {
+            const c = rule.condition
+            const e = rule.effect
+            const cond =
+              c.type === 'quantity_of_type'      ? `כשיש ${c.operator === '>=' ? 'לפחות' : ''} ${c.value} יחידות מסוג "${c.productType}"` :
+              c.type === 'quantity_same_product'  ? `כשיש לפחות ${c.value} מאותו מוצר` :
+              c.type === 'total_items'            ? `כשיש סך הכל לפחות ${c.value} פריטים בהזמנה` :
+              c.type === 'product_in_order'       ? `כש"${c.productType ?? c.productKey}" נמצא בהזמנה` :
+              c.type === 'customer_price_is_zero' ? `כשהלקוח קיבל "${c.productType ?? c.productKey ?? 'מוצר'}" בחינם` :
+              c.type
+            const eff =
+              e.type === 'reduce_cost_per_unit' ? `הסוכן מוריד $${e.value} מהעלות לכל יחידה נוספת` :
+              e.type === 'set_cost_per_unit'    ? `העלות נקבעת ל-$${e.value} ליחידה${e.productKey ? ` (רק עבור "${e.productKey}")` : ''}` :
+              e.type === 'percent_off_total'    ? `${e.value}% הנחה על סך העלות` :
+              e.type
+            return { cond, eff }
+          }
 
           return (
             <div className="space-y-8">
-              {/* ── Section 1: Product costs ── */}
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-5 rounded-full" style={{ background: '#3B82F6' }} />
-                  <h3 className="text-white font-bold">עלות מוצרים</h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1E2130', color: '#6B7280' }}>
-                    עלות בסיסית לכל מוצר
-                  </span>
-                </div>
-                {hasCustom
-                  ? <ShopifyProductCosts pc={pc} customCosts={customCosts} onSave={(updated) => save({ productCosts: updated }, 'costs')} />
-                  : <ProductCostsForm defaultValues={pc ?? DEFAULT_COSTS} onSave={async (data) => save({ productCosts: data }, 'costs')} />
-                }
-              </div>
 
-              {/* ── Divider ── */}
-              <div style={{ borderTop: '2px dashed #1E2130' }} />
-
-              {/* ── Section 2: Cost rules ── */}
+              {/* ── Cost rules ── */}
               <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-5 rounded-full" style={{ background: '#8B5CF6' }} />
-                  <h3 className="text-white font-bold">חוקי עלות</h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1E2130', color: '#6B7280' }}>
-                    הנחות מהסוכן ותנאים מורכבים
-                  </span>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1A0D2E' }}>
+                      <span style={{ fontSize: 16 }}>⚙️</span>
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold">חוקי עלות</h3>
+                      <p className="text-xs" style={{ color: '#4A5174' }}>חוקים שה-AI הגדיר לחישוב עלות מדויק</p>
+                    </div>
+                    {rules.length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#1A0D2E', color: '#A78BFA' }}>
+                        {rules.filter(r => r.active).length} פעילים
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {rules.length === 0 ? (
-                  <div className="rounded-xl p-6 text-center" style={{ background: '#13161F', border: '1px dashed #1E2130' }}>
-                    <p className="text-white font-medium mb-1">אין חוקי עלות מוגדרים</p>
-                    <p className="text-sm mb-3" style={{ color: '#4A5174' }}>
-                      תאר לעוזר ה-AI ✨ הנחות מהסוכן שתלויות בכמות או בתנאים אחרים
-                    </p>
-                    <p className="text-xs px-4 py-2 rounded-xl inline-block" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
+                  <div className="rounded-xl p-8 text-center" style={{ background: '#0D0F14', border: '2px dashed #1E2130' }}>
+                    <p className="text-2xl mb-2">⚙️</p>
+                    <p className="text-white font-medium mb-1">אין חוקים מוגדרים עדיין</p>
+                    <p className="text-sm" style={{ color: '#4A5174' }}>לחץ על "עדכן עם AI" ✨ ותאר כל חוק עסקי</p>
+                    <p className="text-xs mt-3 px-4 py-2 rounded-lg inline-block" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
                       לדוגמה: "כשקונים 2+ דילים מאותו סוג, הסוכן מוריד $3.60 לכל דיל נוסף"
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2.5">
-                    {rules.map((rule: any, idx: number) => (
-                      <div key={rule.id}
-                        className="rounded-xl p-4 flex items-start justify-between gap-4"
-                        style={{
-                          background:   rule.active ? '#13161F' : '#0D0F14',
-                          border:       `1px solid ${rule.active ? '#2D1F4A' : '#1A1D2A'}`,
-                          opacity:      rule.active ? 1 : 0.55,
-                        }}>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="text-sm font-semibold text-white">{rule.name}</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full"
-                              style={{
-                                background: rule.active ? '#1A0D2E' : '#1A1D2A',
-                                color:      rule.active ? '#A78BFA' : '#4A5174',
-                                border:     `1px solid ${rule.active ? '#4C1D95' : '#1E2130'}`,
-                              }}>
-                              {rule.active ? 'פעיל' : 'מושבת'}
-                            </span>
+                  <div className="space-y-3">
+                    {rules.map((rule: any, idx: number) => {
+                      const { cond, eff } = ruleDescription(rule)
+                      return (
+                        <div key={rule.id} className="rounded-xl overflow-hidden"
+                          style={{ border: `1px solid ${rule.active ? '#2D1F4A' : '#1E2130'}`, opacity: rule.active ? 1 : 0.6 }}>
+                          {/* Header */}
+                          <div className="flex items-center justify-between px-4 py-3"
+                            style={{ background: rule.active ? '#110D1E' : '#0D0F14', borderBottom: `1px solid ${rule.active ? '#2D1F4A' : '#1E2130'}` }}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-bold text-white">{rule.name}</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full"
+                                style={{ background: rule.active ? '#1A0D2E' : '#1A1D2A', color: rule.active ? '#A78BFA' : '#6B7280' }}>
+                                {rule.active ? '● פעיל' : '○ מושבת'}
+                              </span>
+                            </div>
+                            <div className="flex gap-2">
+                              <button onClick={async () => {
+                                const updated = rules.map((r: any, i: number) => i === idx ? { ...r, active: !r.active } : r)
+                                await save({ discountRules: { ...dr, costRules: updated } }, 'rules')
+                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E2130', color: '#CBD5E1' }}>
+                                {rule.active ? 'השבת' : 'הפעל'}
+                              </button>
+                              <button onClick={async () => {
+                                if (!confirm('למחוק את החוק הזה?')) return
+                                const updated = rules.filter((_: any, i: number) => i !== idx)
+                                await save({ discountRules: { ...dr, costRules: updated } }, 'rules')
+                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                                מחק
+                              </button>
+                            </div>
                           </div>
-                          <p className="text-xs" style={{ color: '#6B7280' }}>
-                            {(() => {
-                              const c = rule.condition
-                              const e = rule.effect
-                              const cond =
-                                c.type === 'quantity_of_type'      ? `≥${c.value} יחידות מסוג ${c.productType}` :
-                                c.type === 'quantity_same_product'  ? `≥${c.value} מאותו מוצר` :
-                                c.type === 'total_items'            ? `סך הכל ≥${c.value} פריטים` :
-                                c.type === 'product_in_order'       ? `מוצר "${c.productType ?? c.productKey}" בהזמנה` :
-                                c.type === 'customer_price_is_zero' ? `לקוח קיבל "${c.productType ?? c.productKey}" בחינם` :
-                                c.type
-                              const effect =
-                                e.type === 'reduce_cost_per_unit' ? `הסוכן מוריד $${e.value} ליחידה` :
-                                e.type === 'set_cost_per_unit'    ? `עלות $${e.value} ליחידה${e.productKey ? ` ("${e.productKey}")` : ''}` :
-                                e.type === 'percent_off_total'    ? `${e.value}% הנחה על העלות` :
-                                e.type
-                              return `${cond} → ${effect}`
-                            })()}
-                          </p>
-                          {rule.note && <p className="text-xs mt-0.5" style={{ color: '#374151' }}>{rule.note}</p>}
+                          {/* Body */}
+                          <div className="px-4 py-3 space-y-2" style={{ background: '#0D0F14' }}>
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>תנאי:</span>
+                              <span className="text-sm text-white">{cond}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>אז:</span>
+                              <span className="text-sm font-medium" style={{ color: '#A78BFA' }}>{eff}</span>
+                            </div>
+                            {rule.note && (
+                              <div className="flex items-start gap-2">
+                                <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>הערה:</span>
+                                <span className="text-xs" style={{ color: '#6B7280' }}>{rule.note}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={async () => {
-                              const updated = rules.map((r: any, i: number) =>
-                                i === idx ? { ...r, active: !r.active } : r
-                              )
-                              await save({ discountRules: { ...dr, costRules: updated } }, 'costs')
-                            }}
-                            className="text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-                            style={{ background: '#1E2130', color: '#CBD5E1' }}>
-                            {rule.active ? 'השבת' : 'הפעל'}
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const updated = rules.filter((_: any, i: number) => i !== idx)
-                              await save({ discountRules: { ...dr, costRules: updated } }, 'costs')
-                            }}
-                            className="text-xs px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-                            style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
-                            מחק
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
+                )}
+              </div>
+
+              {/* ── AI Notes ── */}
+              <div style={{ borderTop: '1px solid #1E2130', paddingTop: '2rem' }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#0D1A2A' }}>
+                    <span style={{ fontSize: 16 }}>📋</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold">הנחיות מיוחדות ל-AI</h3>
+                    <p className="text-xs" style={{ color: '#4A5174' }}>הוראות חופשיות שה-AI משתמש בהן לכל ניתוח הזמנה</p>
+                  </div>
+                </div>
+
+                {notes ? (
+                  <div className="rounded-xl p-4 whitespace-pre-wrap text-sm leading-relaxed"
+                    style={{ background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1' }}>
+                    {notes}
+                  </div>
+                ) : (
+                  <div className="rounded-xl p-6 text-center" style={{ background: '#0D0F14', border: '2px dashed #1E2130' }}>
+                    <p className="text-white font-medium mb-1">אין הנחיות מיוחדות</p>
+                    <p className="text-sm" style={{ color: '#4A5174' }}>ניתן להוסיף הנחיות דרך "עדכן עם AI" ✨</p>
+                  </div>
+                )}
+
+                {notes && (
+                  <button onClick={() => save({ aiNotes: '' }, 'rules')}
+                    className="mt-3 text-xs px-3 py-1.5 rounded-lg"
+                    style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                    נקה הנחיות
+                  </button>
                 )}
               </div>
             </div>
