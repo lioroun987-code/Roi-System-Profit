@@ -165,7 +165,8 @@ export function calculateOrderCost(
       // True when ANY matching item in the order has effectivePrice=0 (customer got it free)
       conditionMet = parsedItems.some(i =>
         i.isGift &&
-        (!cond.productType || cond.productType === 'any' || i.type === cond.productType)
+        (!cond.productType || cond.productType === 'any' || i.type === cond.productType) &&
+        (!cond.productKey  || i.name?.includes(cond.productKey))
       )
     } else if (cond.type === 'quantity_of_type') {
       const qty = nonGiftItems
