@@ -73,8 +73,13 @@ function detectHomeDelivery(order: ShopifyOrder): boolean {
   if (!order.shipping_lines?.length) return false
   return order.shipping_lines.some(s => {
     const t = (s.title ?? '').toLowerCase()
-    const p = parseFloat(s.price ?? '0')
-    return t.includes('בית') || t.includes('home') || t.includes('deliver') || p > 0
+    // Pickup point keywords — never home delivery
+    const isPickup = t.includes('איסוף') || t.includes('נקודת') || t.includes('חלוקה') ||
+                     t.includes('pickup') || t.includes('עצמי') || t.includes('locker')
+    if (isPickup) return false
+    // Home delivery: explicit keyword OR any paid shipping line that isn't pickup
+    return t.includes('בית') || t.includes('home') || t.includes('deliver') ||
+           t.includes('door') || t.includes('שליח') || parseFloat(s.price ?? '0') > 0
   })
 }
 
