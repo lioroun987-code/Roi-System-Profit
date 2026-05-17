@@ -543,33 +543,6 @@ export default function SettingsPage() {
           />
         )}
 
-        {tab === 'ai' && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-white font-medium mb-2">הנחיות מיוחדות ל-AI</h3>
-              <p className="text-gray-400 text-sm mb-4">
-                כתוב כאן כל כלל עסקי מיוחד, מקרי קצה, הנחיות ספציפיות שה-AI צריך להכיר.
-                הטקסט הזה נשלח לקלוד עם כל ניתוח הזמנה.
-              </p>
-            </div>
-            <div className="space-y-1.5">
-              <Label>הנחיות ל-AI (עברית מועדפת)</Label>
-              <Textarea
-                value={aiNotes}
-                onChange={e => setAiNotes(e.target.value)}
-                placeholder="לדוגמה: כשקונים 2 דילים עם 10% הנחה, ההנחה מחליפה את הנחת הכמות — אין כפל. אבל קופון 50 ₪ תמיד מצטבר. קפסולות הפתעה עולות לי 0.85$ כל אחת גם אם חינם ללקוח..."
-                rows={10}
-                className="min-h-48"
-              />
-            </div>
-            <Button
-              onClick={() => save({ aiNotes }, 'ai')}
-              loading={saving}
-            >
-              שמור הנחיות AI
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   )
