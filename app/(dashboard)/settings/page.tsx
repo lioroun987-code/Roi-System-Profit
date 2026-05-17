@@ -141,11 +141,11 @@ const DEFAULT_COSTS: ProductCosts = {
 
 const TABS = [
   { id: 'general',    label: 'כללי' },
-  { id: 'costs',      label: 'עלויות וחוקים' },
+  { id: 'costs',      label: 'עלויות' },
+  { id: 'rules',      label: 'חוקים והנחיות' },
   { id: 'payment',    label: 'תשלום' },
   { id: 'simulation', label: '📈 סימולציה' },
   { id: 'ai-chat',    label: '✨ עדכן עם AI' },
-  { id: 'ai',         label: 'הנחיות AI' },
 ]
 
 export default function SettingsPage() {
