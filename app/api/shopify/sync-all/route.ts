@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   const userId = (session.user as any).id
-  const { businessId, cursor, reanalyze = false } = await request.json()
+  // sinceId = last Shopify order ID processed (0 = start from beginning)
+  const { businessId, sinceId = '0', reanalyze = false } = await request.json()
 
   const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
   if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
@@ -24,15 +25,15 @@ export async function POST(request: NextRequest) {
     aiNotes:        business.aiNotes ?? '',
   }
 
-  // 250 = Shopify's max per page — fewer round trips = much faster for large stores
+  // since_id pagination: sort by ID asc, fetch orders with ID > sinceId
+  // More reliable than cursor pagination for large stores
   const BATCH = 250
-  const params = new URLSearchParams({ limit: String(BATCH) })
-  if (cursor) {
-    params.set('page_info', cursor)
-  } else {
-    params.set('status', 'any')
-    params.set('order', 'created_at asc')
-  }
+  const params = new URLSearchParams({
+    limit:    String(BATCH),
+    status:   'any',
+    order:    'id asc',
+    since_id: sinceId,
+  })
 
   const shopifyRes = await fetch(
     `https://${business.shopifyDomain}/admin/api/2024-01/orders.json?${params}`,
@@ -47,9 +48,8 @@ export async function POST(request: NextRequest) {
   const shopifyData = await shopifyRes.json()
   const orders: ShopifyOrder[] = shopifyData.orders ?? []
 
-  const linkHeader = shopifyRes.headers.get('link') ?? ''
-  const nextMatch  = linkHeader.match(/<[^>]*page_info=([^&>]+)[^>]*>;\s*rel="next"/)
-  const nextCursor = nextMatch?.[1] ?? null
+  // Next sinceId = last order ID in this batch
+  const nextSinceId = orders.length > 0 ? String(orders[orders.length - 1].id) : null
 
   let processed = 0, skipped = 0, errors = 0
 
