@@ -158,8 +158,8 @@ export async function POST(request: NextRequest) {
     processed,
     skipped,
     errors,
-    batchSize:  orders.length,
-    nextCursor,
-    done:       !nextCursor || orders.length < BATCH,
+    batchSize:   orders.length,
+    nextSinceId,
+    done:        orders.length < BATCH,  // fewer than requested = last page
   })
 }
