@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (toProcess.length === 0) {
-    return Response.json({ processed: 0, skipped, errors: 0, batchSize: orders.length, nextCursor, done: !nextCursor || orders.length < BATCH })
+    return Response.json({ processed: 0, skipped, errors: 0, batchSize: orders.length, nextSinceId, done: orders.length < BATCH })
   }
 
   // ── 3. Split into new vs existing ──
