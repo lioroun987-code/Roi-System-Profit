@@ -67,25 +67,47 @@ Discounts: qty2=${dr.qty2Percent}%, qty3=${dr.qty3Percent}%, surpriseCost=$${dr.
 Payment: ${(ps as any).flatFeeMode ? `flat ${(ps as any).averageFeePercent}%` : (ps.paymentMethods ?? []).filter((m: any) => m.enabled).map((m: any) => `${m.name}=${m.feePercent}%`).join(', ')}
 AI notes: ${business.aiNotes || '(none)'}
 
-ROUTING DECISION — before doing anything, decide:
-  IS THIS A PRICE CHANGE? → update productCosts (costUsd / selling price / shipping / exchange rate)
-  IS THIS A RULE? → add/update discountRules.costRules (condition-based supplier discounts)
-  IS THIS A FEE? → update paymentSettings
-  IS THIS AN EDGE CASE? → aiNotes (only if no structured field exists)
+## ROUTING DECISION — read carefully before acting
 
-HOW TO TELL:
-- "עלות X עלתה ל-$Y" → PRICE CHANGE (productCosts)
-- "כשקונים N מוצרים מאותו סוג, הסוכן מוריד $Z" → RULE (costRules)
-- "הנחת יחידה שנייה היא $X" → PRICE CHANGE (productCosts.secondUnitDiscount)
-- "עמלת Bit X%" → FEE (paymentSettings)
-- Complex business logic with no field → aiNotes
+### 1. PRICE CHANGE → productCosts
+- "עלות X עלתה ל-$Y" → costUsd
+- "שער חליפין X" → exchangeRate
+- "הנחת יחידה שנייה $X" → secondUnitDiscount
+- "עלות משלוח $X" → homeDeliveryCostUsd
 
-RULES:
-- Reply in 1-2 short Hebrew sentences only — state exactly what you changed.
-- If nothing to change, say so in one sentence.
-- CRITICAL: Always update the actual config field. aiNotes is ONLY for edge cases.
-- Always return a JSON object with this exact structure:
+### 2. CONDITIONAL RULE → discountRules.costRules
+Use ONLY when the cost depends on a CONDITION (quantity, order content, customer got item free).
+- "כשקונים N+ מסוג X, הסוכן מוריד $Y" → costRule
+- "כשהלקוח מקבל מוצר X בחינם, העלות שלי $0" → costRule (customer_price_is_zero)
+- "אם יש X בהזמנה, Y עולה $Z" → costRule
 
+### 3. FEE → paymentSettings
+- "עמלת סליקה X%" → flatFeeMode + averageFeePercent
+
+### 4. aiNotes → LAST RESORT ONLY
+Use aiNotes ONLY for genuine edge cases with no structured field.
+NEVER write debug notes, explanations, or problem descriptions in aiNotes.
+aiNotes is ONLY for real business instructions the AI needs to follow every time.
+
+## CRITICAL DISTINCTION: catalog $0 vs cost rule $0
+
+WRONG approach: setting costUsd=0 in catalog for a product the business actually pays for.
+→ This makes ALL orders with that product show $0 cost, even when customer PAID for it.
+
+CORRECT approach:
+- Product has a REAL cost from supplier → set costUsd = real price in catalog
+- When customer gets it FREE as gift → add costRule: customer_price_is_zero → set_cost=0
+- The costRule only applies when customer paid $0; catalog cost applies when customer paid > $0
+
+EXAMPLE (capsule set that costs $5.95 but sometimes given as gift):
+- Catalog: costUsd = 5.95 (always the real supplier cost)
+- costRule: condition=customer_price_is_zero, productKey="סט 7 קפסולות" → effect=set_cost_per_unit=0
+→ Result: customer paid for it = $5.95 cost ✓ | customer got it free = $0 cost ✓
+
+NEVER set catalog costUsd=0 unless the supplier literally gives it for free every time.
+
+## RESPONSE FORMAT
+Reply in 1-2 short Hebrew sentences. Always return JSON:
 {
   "reply": "עדכנתי X מ-Y ל-Z",
   "patches": [
@@ -94,23 +116,11 @@ RULES:
 }
 
 PATCH EXAMPLES:
-- Change product cost: { "section": "productCosts", "path": "customProductCosts.{exact key}.costUsd", "value": 9.0 }
-- Change shipping: { "section": "productCosts", "path": "homeDeliveryCostUsd", "value": 3.5 }
-- Change exchange rate: { "section": "productCosts", "path": "exchangeRate", "value": 3.65 }
-- Change discount: { "section": "discountRules", "path": "qty2Percent", "value": 12 }
-- Change payment fee: { "section": "paymentSettings", "path": "paymentMethods.0.feePercent", "value": 2.5 }  (use array index)
-- Flat fee mode: { "section": "paymentSettings", "path": "flatFeeMode", "value": true }
-- AI notes (only for edge cases with no config field): { "section": "aiNotes", "path": "", "value": "new notes text" }
-
-EXAMPLES of what goes WHERE:
-- "עלות דיל $9" → patch productCosts.customProductCosts.{key}.costUsd = 9.0
-- "סט הקפסולות בחינם / עלות $0" → patch productCosts.customProductCosts.{key}.costUsd = 0 for ALL capsule set variants
-- "עמלת סליקה 2.5%" → patch paymentSettings.flatFeeMode=true, averageFeePercent=2.5
-- "כשקונים 2 דילים הסוכן מוריד $3.60" → cost rule (conditional pricing)
-- "לוגיקה מורכבת ללא שדה" → aiNotes
-
-CRITICAL: "X costs $0" or "X is free" or "don't charge for X" → ALWAYS set customProductCosts[key].costUsd = 0.
-Cost rules = ONLY for conditional pricing (if qty >= 2 → discount). NOT for fixed $0 costs.
+- Product cost: { "section": "productCosts", "path": "customProductCosts.{key}.costUsd", "value": 9.0 }
+- Shipping: { "section": "productCosts", "path": "homeDeliveryCostUsd", "value": 3.5 }
+- Exchange rate: { "section": "productCosts", "path": "exchangeRate", "value": 3.65 }
+- Payment fee: { "section": "paymentSettings", "path": "flatFeeMode", "value": true }
+- AI notes: { "section": "aiNotes", "path": "", "value": "הנחיה אמיתית בלבד — לא debugging" }
 
 COST RULES — for complex supplier pricing:
 Use type "costRules" to add/update/remove rules in discountRules.costRules array.
