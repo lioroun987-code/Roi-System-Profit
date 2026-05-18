@@ -73,7 +73,7 @@ export default function ReconcilePage() {
   const [summary, setSummary]             = useState<Summary | null>(null)
   const [debug, setDebug]                 = useState<any | null>(null)
   const [error, setError]                 = useState('')
-  const [filter, setFilter]               = useState<'all' | 'issues' | 'match' | 'business' | 'totals'>('all')
+  const [filter, setFilter]               = useState<'all' | 'issues' | 'match' | 'missing' | 'business' | 'personal' | 'totals'>('all')
   const [search, setSearch]               = useState('')
   const [sortBy, setSortBy]               = useState<'diff' | 'order'>('diff')
   const [sortDir, setSortDir]             = useState<'desc' | 'asc'>('desc')
@@ -534,8 +534,10 @@ export default function ReconcilePage() {
       // All other filters: exclude business expenses from main table
       if (r.status === 'content_creator' || exclusions[r.orderNumber]) return false
       const isReclassified = !!reclassifications[r.orderNumber]
-      if (filter === 'issues') return r.status === 'agent_higher' || r.status === 'we_higher' || r.status === 'personal_diff' || isReclassified
-      if (filter === 'match')  return r.status === 'match'
+      if (filter === 'issues')   return r.status === 'agent_higher' || r.status === 'we_higher' || isReclassified
+      if (filter === 'personal') return r.status === 'personal_diff' && !isReclassified
+      if (filter === 'match')    return r.status === 'match'
+      if (filter === 'missing')  return r.status === 'missing_our_cost'
       return true
     })
     .filter(r => !search || r.orderNumber.includes(search))
@@ -923,16 +925,54 @@ export default function ReconcilePage() {
             )
           })()}
 
+          {/* Debug panel */}
+          {debug && summary && summary.matches === 0 && (
+            <div className="rounded-xl border p-4 text-xs" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
+              <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין התאמות — טווחי מספרי הזמנה</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>סוכן ({debug.agentTotal} הזמנות)</p>
+                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.agentFirst5?.join(', ')}</p>
+                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.agentLast5?.join(', ')}</p>
+                </div>
+                <div>
+                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>שלך ({debug.ourTotal} הזמנות)</p>
+                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.ourFirst5?.join(', ')}</p>
+                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.ourLast5?.join(', ')}</p>
+                </div>
+              </div>
+              <p className="mt-2" style={{ color: '#8B8FA8' }}>
+                תאריכים: <span className="text-yellow-400">{debug.dateRangeParsed}</span>
+              </p>
+              {debug.detectedCols && (
+                <p className="mt-1" style={{ color: '#8B8FA8' }}>
+                  עמודות שזוהו: <span className="text-yellow-400">{debug.detectedCols}</span>
+                </p>
+              )}
+              {debug.directMatchTest && (
+                <div className="mt-2">
+                  <p style={{ color: '#8B8FA8' }}>בדיקת התאמה ישירה:</p>
+                  {debug.directMatchTest.map((t: any) => (
+                    <p key={t.key} style={{ color: t.inOur ? '#22C55E' : '#EF4444' }}>
+                      #{t.key}: {t.inOur ? '✓ נמצא בגיליון שלך' : '✗ לא נמצא בגיליון שלך'}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Table controls */}
           <div className="flex flex-wrap items-center gap-3 justify-between">
             <div className="flex gap-2 flex-wrap">
               {[
                 { key: 'all',      label: 'הכל' },
-                { key: 'issues',   label: `⚠️ פערים${(results ?? []).filter(r => ['agent_higher','we_higher','personal_diff'].includes(r.status) && !exclusions[r.orderNumber]).length > 0 ? ` (${(results ?? []).filter(r => ['agent_higher','we_higher','personal_diff'].includes(r.status) && !exclusions[r.orderNumber]).length})` : ''}` },
+                { key: 'issues',   label: '⚠️ פערים מול סוכן' },
+                { key: 'personal', label: `🔍 פערים אישיים${(results ?? []).filter(r => r.status === 'personal_diff').length > 0 ? ` (${(results ?? []).filter(r => r.status === 'personal_diff').length})` : ''}` },
                 { key: 'match',    label: '✓ תואמים' },
+                { key: 'missing',  label: '⏳ חסרה עלות' },
                 { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
-                { key: 'totals',   label: '📊 סה״כ' },
+                { key: 'totals',   label: '📊 סה״כ עלויות מערכת' },
               ].map(f => (
                 <button
                   key={f.key}
@@ -1028,7 +1068,7 @@ export default function ReconcilePage() {
           {/* Table */}
           {filter !== 'totals' && <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
             {/* Table header */}
-            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-7' : 'grid-cols-6'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 מספר הזמנה {sortBy === 'order' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
@@ -1036,6 +1076,7 @@ export default function ReconcilePage() {
               <span>עלות סוכן (₪)</span>
               {effectiveCol.warSurcharge && <span style={{ color: '#F59E0B' }}>תוספת מלחמה (₪)</span>}
               <span>עלות שלי (₪)</span>
+              <span style={{ color: '#4F6EF7' }}>עלות מערכת (₪)</span>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('diff'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 פער {sortBy === 'diff' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
@@ -1061,7 +1102,7 @@ export default function ReconcilePage() {
                     <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
                       {/* Main row */}
                       <div
-                        className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-7' : 'grid-cols-6'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
+                        className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
                         style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
                         onClick={() => toggleOrderExpand(r.orderNumber)}
                       >
@@ -1107,6 +1148,16 @@ export default function ReconcilePage() {
                           ) : <span className="text-sm" style={{ color: '#4A5174' }}>—</span>}
                         </div>
 
+                        <div>
+                          {r.systemCost != null ? (
+                            <>
+                              <p className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</p>
+                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.systemCost / exchangeRate).toFixed(2)}</p>
+                            </>
+                          ) : (
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>לא נותח</span>
+                          )}
+                        </div>
 
                         {(() => {
                           const signed = r.agentCost - (r.ourCost ?? r.agentCost)
@@ -1129,11 +1180,26 @@ export default function ReconcilePage() {
                               </div>
                               <button onClick={() => toggleExclusion(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
                             </div>
+                          ) : reclassifications[r.orderNumber] ? (
+                            <div className="flex items-center gap-1.5">
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                                ↗ מועבר לסוכן
+                              </div>
+                              <span className="text-xs" style={{ color: '#6B7280' }}>{reclassifications[r.orderNumber]}</span>
+                              <button onClick={() => removeReclassification(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                            </div>
                           ) : (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
                                 <Icon className="w-3 h-3" />{meta?.label}
                               </div>
+                              {r.status === 'personal_diff' && (
+                                <button onClick={() => { setReclassifyModal(r.orderNumber); setReclassifyReason('') }}
+                                  className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                                  style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                                  ↗ העבר לסוכן
+                                </button>
+                              )}
                               <button onClick={() => setExpenseTypeModal(r.orderNumber)} disabled={togglingExclusion === r.orderNumber}
                                 className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
                                 style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
