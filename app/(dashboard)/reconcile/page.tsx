@@ -562,9 +562,15 @@ export default function ReconcilePage() {
   const nonBizResults = (results ?? []).filter(r =>
     r.status !== 'content_creator' && !exclusions[r.orderNumber]
   )
-  const realAgentTotal = nonBizResults.reduce((s, r) => s + r.agentCost, 0)
-  const realOurTotal   = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
-  const realDiff       = realAgentTotal - realOurTotal
+  const bizResults    = (results ?? []).filter(r =>
+    r.status === 'content_creator' || !!exclusions[r.orderNumber]
+  )
+  const realAgentTotal  = nonBizResults.reduce((s, r) => s + r.agentCost, 0)
+  const realOurTotal    = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+  const realDiff        = realAgentTotal - realOurTotal
+  const realSystemTotal = nonBizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0)
+  const bizAgentTotal   = bizResults.reduce((s, r) => s + r.agentCost, 0)
+  const bizSystemTotal  = bizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0)
 
   // Parse stored exclusion reason
   function getExclusionReason(orderNumber: string): string {
