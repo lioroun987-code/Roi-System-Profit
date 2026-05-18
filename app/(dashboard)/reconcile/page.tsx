@@ -977,8 +977,48 @@ export default function ReconcilePage() {
             </div>
           </div>
 
+          {/* Totals tab */}
+          {filter === 'totals' && (() => {
+            const allNonBiz = (results ?? []).filter(r => !exclusions[r.orderNumber] && r.status !== 'content_creator')
+            const totalSystem  = allNonBiz.reduce((s, r) => s + (r.systemCost ?? 0), 0)
+            const totalAgent   = allNonBiz.reduce((s, r) => s + r.agentCost, 0)
+            const totalOur     = allNonBiz.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+            const totalMatches = allNonBiz.filter(r => r.status === 'match').reduce((s, r) => s + (r.systemCost ?? 0), 0)
+            const totalIssues  = allNonBiz.filter(r => r.status === 'agent_higher' || r.status === 'we_higher').reduce((s, r) => s + (r.systemCost ?? 0), 0)
+            const totalWar     = allNonBiz.reduce((s, r) => s + (r.warIls ?? 0), 0)
+            return (
+              <div className="rounded-2xl border overflow-hidden space-y-0" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+                <div className="px-5 py-4" style={{ background: '#0D0F14', borderBottom: '1px solid #1E2130' }}>
+                  <p className="text-sm font-bold text-white">סה״כ עלויות לפי חישוב המערכת — {agentSheetName || 'כל התקופה'}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>מבוסס על {allNonBiz.length} הזמנות (ללא הוצאות עסקיות)</p>
+                </div>
+                <div className="divide-y" style={{ borderColor: '#1E2130' }}>
+                  {[
+                    { label: 'סה״כ עלות מערכת (כל ההזמנות)',       val: totalSystem,  color: '#818CF8', desc: 'סכום myCostIls מה-DB' },
+                    { label: 'סה״כ עלות שלי (גיליון)',              val: totalOur,     color: '#A78BFA', desc: 'סכום עמודת עלות שלי' },
+                    { label: 'סה״כ עלות סוכן (גיליון סוכן)',        val: totalAgent,   color: '#60A5FA', desc: 'סכום K+M+N מגיליון הסוכן' },
+                    { label: 'עלות מערכת — הזמנות תואמות',          val: totalMatches, color: '#22C55E', desc: 'רק הזמנות ללא פער' },
+                    { label: 'עלות מערכת — הזמנות עם פער',          val: totalIssues,  color: '#F59E0B', desc: 'הזמנות שיש בהן מחלוקת' },
+                    ...(effectiveCol.warSurcharge ? [{ label: 'סה״כ תוספת מלחמה', val: totalWar, color: '#F59E0B', desc: 'ממגיליון הסוכן' }] : []),
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center justify-between px-5 py-4">
+                      <div>
+                        <p className="text-sm font-medium text-white">{s.label}</p>
+                        <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.desc}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold" style={{ color: s.color }}>₪{s.val.toFixed(2)}</p>
+                        <p className="text-xs" style={{ color: '#4A5174' }}>${(s.val / exchangeRate).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Table */}
-          <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+          {filter !== 'totals' && <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
             {/* Table header */}
             <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
