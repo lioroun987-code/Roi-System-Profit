@@ -890,17 +890,40 @@ export default function ReconcilePage() {
             )
           })()}
 
-          {/* Column debug panel — always show when ourCostCol configured */}
-          {debug?.colDebug && effectiveCol.ourCostCol && (
-            <div className="rounded-xl border p-4 text-xs" style={{ background: '#0D1A0D', borderColor: '#1E3A1E' }}>
-              <p className="font-semibold text-sm mb-2" style={{ color: '#4ADE80' }}>🔍 מה נקרא מגיליון שלך (3 שורות ראשונות)</p>
-              <div className="space-y-1">
-                <p style={{ color: '#6B7280' }}>עמודת הזמנה ({effectiveCol.ourOrderCol}): {debug.colDebug.sampleRows?.map((r: any) => r.orderVal).join(' | ')}</p>
-                <p style={{ color: '#6B7280' }}>עמודת עלות ({effectiveCol.ourCostCol}): {debug.colDebug.sampleRows?.map((r: any) => r.costVal).join(' | ')}</p>
-                <p style={{ color: '#4ADE80' }}>הזמנות שנמצאו בגיליון שלך: {debug.colDebug.totalOurRows}</p>
+          {/* Missing from sheet warning */}
+          {effectiveCol.ourCostCol && results && (() => {
+            const missingFromSheet = results.filter(r =>
+              r.ourCostSource === 'db' &&
+              !exclusions[r.orderNumber] &&
+              r.status !== 'content_creator'
+            )
+            if (missingFromSheet.length === 0) return null
+            const missingTotal = missingFromSheet.reduce((s, r) => s + (r.systemCost ?? 0), 0)
+            return (
+              <div className="rounded-xl border p-4" style={{ background: '#1A1200', borderColor: '#78350F' }}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-sm mb-1" style={{ color: '#F59E0B' }}>
+                      ⚠ {missingFromSheet.length} הזמנות לא נמצאו בגיליון שלך
+                    </p>
+                    <p className="text-xs" style={{ color: '#92400E' }}>
+                      עבורן המערכת השתמשה בעלות ה-DB במקום בגיליון שלך.
+                      העלות שלהן לפי DB: <strong style={{ color: '#F59E0B' }}>₪{missingTotal.toFixed(2)}</strong>
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {missingFromSheet.map(r => (
+                    <span key={r.orderNumber}
+                      className="text-xs px-2 py-1 rounded-lg font-mono"
+                      style={{ background: '#2A1800', color: '#FCD34D', border: '1px solid #78350F' }}>
+                      #{r.orderNumber}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Debug panel */}
           {debug && summary && summary.matches === 0 && (
