@@ -382,7 +382,7 @@ export async function POST(request: NextRequest) {
 
       const rowIdx    = ourByOrder.get(orderNum)?.rowIndex ?? -1
       const agentRows = agentData.rows ?? []
-      results.push({ orderNumber: orderNum, agentCost, warIls, ourCost, systemCost, diff, status, rowIndex: rowIdx, orderDate, sheetReason, agentRows })
+      results.push({ orderNumber: orderNum, agentCost, warIls, ourCost, systemCost, diff, status, rowIndex: rowIdx, orderDate, sheetReason, agentRows, ourCostSource })
     }
 
     // Orders in DB (for this month) but missing from agent sheet
