@@ -284,15 +284,25 @@ export async function POST(request: NextRequest) {
       if (count > bestCount) { bestCount = count; detectedOrderCol = col }
     }
 
-    const ourByOrder = new Map<string, { rowIndex: number }>()
+    const ourByOrder = new Map<string, { rowIndex: number; sheetCost: number | null }>()
     for (let i = 0; i < mainRows.length; i++) {
-      const row = mainRows[i]
-      const colIdx   = detectedOrderCol >= 0 ? detectedOrderCol : 1
-      const orderRaw = row[colIdx]?.toString().trim()
+      const row      = mainRows[i]
+      const orderCol = COL_OUR_ORDER >= 0 ? COL_OUR_ORDER : (detectedOrderCol >= 0 ? detectedOrderCol : 1)
+      const orderRaw = row[orderCol]?.toString().trim()
       if (!orderRaw) continue
       const cleaned  = orderRaw.replace('#', '').trim()
       if (!/^\d{3,6}$/.test(cleaned)) continue
-      ourByOrder.set(cleaned, { rowIndex: i + 2 })
+
+      // Read our cost from sheet if column is configured
+      let sheetCost: number | null = null
+      if (COL_OUR_COST >= 0) {
+        const raw = row[COL_OUR_COST]?.toString().replace(/[₪,\s]/g, '').replace(',', '.').trim()
+        if (raw && raw !== '' && raw !== '-' && !isNaN(parseFloat(raw))) {
+          sheetCost = parseFloat(raw)
+        }
+      }
+
+      ourByOrder.set(cleaned, { rowIndex: i + 2, sheetCost })
 
       const colCVal = row[2]?.toString().trim()
       if (colCVal) colCByOrder.set(cleaned, colCVal)
