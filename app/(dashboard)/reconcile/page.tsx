@@ -434,11 +434,11 @@ export default function ReconcilePage() {
       <div class="summary-label">הזמנות עם חיוב עודף</div>
     </div>
     <div class="summary-card orange">
-      <div class="summary-num">₪${totalOvercharge.toFixed(2)}</div>
+      <div class="summary-num">$${(totalOvercharge / exchangeRate).toFixed(2)}</div>
       <div class="summary-label">סה"כ חיוב עודף</div>
     </div>
     <div class="summary-card blue">
-      <div class="summary-num">₪${(totalOvercharge / overcharged.length).toFixed(2)}</div>
+      <div class="summary-num">$${(totalOvercharge / exchangeRate / overcharged.length).toFixed(2)}</div>
       <div class="summary-label">ממוצע פער להזמנה</div>
     </div>
   </div>
