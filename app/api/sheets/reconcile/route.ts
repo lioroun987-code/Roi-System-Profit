@@ -332,20 +332,38 @@ export async function POST(request: NextRequest) {
 
       const dbCost     = dbCostByOrder.get(orderNum) ?? null
       const sheetEntry = ourByOrder.get(orderNum)
-      // Use sheet cost if column configured, else fall back to DB
       const ourCost    = (COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null)
         ? sheetEntry.sheetCost
         : dbCost
-      const systemCost = dbCost   // always show DB cost separately
-      const diff       = ourCost != null ? Math.abs(agentCost - ourCost) : 0
+      const systemCost = dbCost
+
+      // Primary: compare agent vs system (DB) — determines agent discrepancy
+      const agentVsSystem = systemCost != null ? Math.abs(agentCost - systemCost) : null
+      // Secondary: compare our sheet vs system — personal discrepancy
+      const sheetVsSystem = (ourCost != null && systemCost != null && ourCost !== systemCost)
+        ? Math.abs(ourCost - systemCost)
+        : 0
 
       let status: string
-      if (ourCost == null) status = 'missing_our_cost'
-      else if (diff <= THRESHOLD) status = 'match'
-      else if (agentCost > ourCost) status = 'agent_higher'
-      else status = 'we_higher'
+      let diff: number
 
       const sheetReason = colCByOrder.get(orderNum) ?? null
+
+      if (agentVsSystem == null) {
+        status = 'missing_our_cost'; diff = 0
+      } else if (agentVsSystem <= THRESHOLD) {
+        // Agent matches system — check if our sheet differs from system
+        if (sheetVsSystem > THRESHOLD) {
+          status = 'personal_diff'; diff = sheetVsSystem
+        } else {
+          status = 'match'; diff = agentVsSystem
+        }
+      } else if (agentCost > (systemCost ?? 0)) {
+        status = 'agent_higher'; diff = agentVsSystem
+      } else {
+        status = 'we_higher'; diff = agentVsSystem
+      }
+
       if (isContentCreator(sheetReason)) status = 'content_creator'
 
       const rowIdx = ourByOrder.get(orderNum)?.rowIndex ?? -1
