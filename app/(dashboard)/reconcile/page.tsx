@@ -534,10 +534,8 @@ export default function ReconcilePage() {
       // All other filters: exclude business expenses from main table
       if (r.status === 'content_creator' || exclusions[r.orderNumber]) return false
       const isReclassified = !!reclassifications[r.orderNumber]
-      if (filter === 'issues')   return r.status === 'agent_higher' || r.status === 'we_higher' || isReclassified
-      if (filter === 'personal') return r.status === 'personal_diff' && !isReclassified
-      if (filter === 'match')    return r.status === 'match'
-      if (filter === 'missing')  return r.status === 'missing_our_cost'
+      if (filter === 'issues') return r.status === 'agent_higher' || r.status === 'we_higher' || r.status === 'personal_diff' || isReclassified
+      if (filter === 'match')  return r.status === 'match'
       return true
     })
     .filter(r => !search || r.orderNumber.includes(search))
