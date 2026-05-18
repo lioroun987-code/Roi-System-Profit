@@ -1245,13 +1245,18 @@ export default function ReconcilePage() {
                               {/* Summary row */}
                               <div className="grid grid-cols-3 gap-3 text-sm">
                                 {[
-                                  { label: 'עלות סוכן',  val: `₪${r.agentCost.toFixed(2)}`,           color: '#CBD5E1' },
-                                  { label: 'עלות מערכת', val: `₪${(r.systemCost ?? 0).toFixed(2)}`,   color: '#818CF8' },
-                                  { label: 'פער',         val: `₪${r.diff.toFixed(2)}`,                color: r.diff > 0.5 ? '#EF4444' : '#22C55E' },
+                                  { label: 'עלות סוכן',  ils: r.agentCost,          color: '#CBD5E1' },
+                                  { label: 'עלות שלי',   ils: r.ourCost ?? 0,       color: '#A78BFA' },
+                                  { label: 'עלות מערכת', ils: r.systemCost ?? 0,    color: '#818CF8' },
+                                  { label: 'פער',         ils: r.diff,               color: r.diff > 0.5 ? '#EF4444' : '#22C55E' },
+                                  ...(effectiveCol.warSurcharge && (r.warIls ?? 0) > 0
+                                    ? [{ label: 'מלחמה', ils: r.warIls ?? 0, color: '#F59E0B' }]
+                                    : []),
                                 ].map(s => (
                                   <div key={s.label} className="rounded-xl px-3 py-2 text-center" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
                                     <p className="text-xs mb-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
-                                    <p className="font-bold" style={{ color: s.color }}>{s.val}</p>
+                                    <p className="font-bold" style={{ color: s.color }}>₪{s.ils.toFixed(2)}</p>
+                                    <p className="text-xs" style={{ color: '#374151' }}>${(s.ils / exchangeRate).toFixed(2)}</p>
                                   </div>
                                 ))}
                               </div>
