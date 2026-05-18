@@ -52,8 +52,20 @@ export default function ReconcilePage() {
   const [agentTabs, setAgentTabs]         = useState<string[]>([])
   const [loadingTabs, setLoadingTabs]     = useState(false)
   const [exchangeRate, setExchangeRate]   = useState(3.4)
-  const [colMapping, setColMapping]       = useState<ColMapping>({ order: 'B', price: 'K', discount: 'M', homeDelivery: 'N', warSurcharge: '', ourOrderCol: 'A', ourCostCol: '' })
+  const [colMapping, setColMapping]       = useState<ColMapping>(() => {
+    try { return JSON.parse(localStorage.getItem('reconcile_colMapping') ?? '{}') } catch { return {} }
+    return { order: 'B', price: 'K', discount: 'M', homeDelivery: 'N', warSurcharge: '', ourOrderCol: 'A', ourCostCol: '' }
+  })
   const [showColConfig, setShowColConfig] = useState(false)
+
+  const DEFAULT_COL: ColMapping = { order: 'B', price: 'K', discount: 'M', homeDelivery: 'N', warSurcharge: '', ourOrderCol: 'A', ourCostCol: '' }
+  const effectiveCol = { ...DEFAULT_COL, ...colMapping }
+
+  function updateColMapping(key: keyof ColMapping, val: string) {
+    const updated = { ...effectiveCol, [key]: val }
+    setColMapping(updated)
+    localStorage.setItem('reconcile_colMapping', JSON.stringify(updated))
+  }
   const [running, setRunning]             = useState(false)
   const [results, setResults]             = useState<ReconcileResult[] | null>(null)
   const [summary, setSummary]             = useState<Summary | null>(null)
