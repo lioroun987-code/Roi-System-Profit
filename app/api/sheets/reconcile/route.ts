@@ -118,8 +118,18 @@ export async function POST(request: NextRequest) {
     if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
     const userId = (session.user as any).id
-    const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride, exchangeRate } = await request.json()
+    const { businessId, agentSheetId, agentSheetName, ourSheetId: ourSheetIdOverride, exchangeRate, colMapping } = await request.json()
     const EXCHANGE_RATE = parseFloat(exchangeRate) || 3.4
+
+    // Convert letter (A=1, B=2...) to 0-based index
+    const letterToIdx = (letter: string) => letter ? letter.toUpperCase().charCodeAt(0) - 65 : -1
+
+    // Column mapping — defaults match existing hardcoded values
+    const COL_ORDER       = letterToIdx(colMapping?.order       || 'B')   // 1
+    const COL_PRICE       = letterToIdx(colMapping?.price       || 'K')   // 10
+    const COL_DISCOUNT    = letterToIdx(colMapping?.discount    || 'M')   // 12
+    const COL_HD          = letterToIdx(colMapping?.homeDelivery|| 'N')   // 13
+    const COL_WAR         = letterToIdx(colMapping?.warSurcharge|| '')    // -1 = disabled
 
     if (!businessId) return Response.json({ error: 'businessId חסר' }, { status: 400 })
     if (!agentSheetId) return Response.json({ error: 'מזהה גיליון הסוכן חסר' }, { status: 400 })
