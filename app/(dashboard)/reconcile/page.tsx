@@ -1221,6 +1221,7 @@ export default function ReconcilePage() {
               </span>
             </div>
           </div>
+        </>
       )}
 
       {/* Business Expenses Section — hidden when filter=business since table shows them */}
