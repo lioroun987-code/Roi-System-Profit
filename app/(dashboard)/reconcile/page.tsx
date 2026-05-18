@@ -923,42 +923,6 @@ export default function ReconcilePage() {
             )
           })()}
 
-          {/* Debug panel */}
-          {debug && summary && summary.matches === 0 && (
-            <div className="rounded-xl border p-4 text-xs" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
-              <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין התאמות — טווחי מספרי הזמנה</p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>סוכן ({debug.agentTotal} הזמנות)</p>
-                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.agentFirst5?.join(', ')}</p>
-                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.agentLast5?.join(', ')}</p>
-                </div>
-                <div>
-                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>שלך ({debug.ourTotal} הזמנות)</p>
-                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.ourFirst5?.join(', ')}</p>
-                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.ourLast5?.join(', ')}</p>
-                </div>
-              </div>
-              <p className="mt-2" style={{ color: '#8B8FA8' }}>
-                תאריכים: <span className="text-yellow-400">{debug.dateRangeParsed}</span>
-              </p>
-              {debug.detectedCols && (
-                <p className="mt-1" style={{ color: '#8B8FA8' }}>
-                  עמודות שזוהו: <span className="text-yellow-400">{debug.detectedCols}</span>
-                </p>
-              )}
-              {debug.directMatchTest && (
-                <div className="mt-2">
-                  <p style={{ color: '#8B8FA8' }}>בדיקת התאמה ישירה:</p>
-                  {debug.directMatchTest.map((t: any) => (
-                    <p key={t.key} style={{ color: t.inOur ? '#22C55E' : '#EF4444' }}>
-                      #{t.key}: {t.inOur ? '✓ נמצא בגיליון שלך' : '✗ לא נמצא בגיליון שלך'}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Table controls */}
           <div className="flex flex-wrap items-center gap-3 justify-between">
