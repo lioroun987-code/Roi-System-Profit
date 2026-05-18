@@ -315,7 +315,7 @@ export default function ReconcilePage() {
                   ${db?.orderSummary ? `<span class="order-summary">${db.orderSummary}</span>` : ''}
                 </div>
                 <div style="display:flex;align-items:center;gap:12px">
-                  <div class="diff-badge">+₪${r.diff.toFixed(2)} ביתר</div>
+                  <div class="diff-badge">+$${(r.diff / exchangeRate).toFixed(2)} ביתר</div>
                   <span class="toggle-icon" id="${cardId}-icon">▲ סגור</span>
                 </div>
               </div>
