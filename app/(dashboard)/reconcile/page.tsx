@@ -277,9 +277,12 @@ export default function ReconcilePage() {
 
   async function generateAgentReport() {
     if (!results || !activeBusiness) return
-    // Exclude content creator and business-use orders from gap report
+    // Include: agent_higher orders + reclassified personal_diff orders
     const overcharged = results.filter(r =>
-      r.status === 'agent_higher' && !exclusions[r.orderNumber]
+      !exclusions[r.orderNumber] && (
+        r.status === 'agent_higher' ||
+        (r.status === 'personal_diff' && !!reclassifications[r.orderNumber])
+      )
     )
     if (overcharged.length === 0) { alert('אין הזמנות עם חיוב עודף'); return }
 
