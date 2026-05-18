@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
     const colCByOrder = new Map<string, string>()
 
     // ── 3. Group agent by order number ──
-    const agentByOrderUsd = new Map<string, { total: number; war: number; date: string }>()
+    const agentByOrderUsd = new Map<string, { total: number; war: number; date: string; rows: any[] }>()
     for (const row of agentRows) {
       const orderRaw = row[COL_ORDER]?.toString().trim()
       if (!orderRaw) continue
@@ -230,10 +230,12 @@ export async function POST(request: NextRequest) {
       const hd       = parseFloat(row[COL_HD]?.toString().replace(',', '.') ?? '0')       || 0
       const war      = COL_WAR >= 0 ? (parseFloat(row[COL_WAR]?.toString().replace(',', '.') ?? '0') || 0) : 0
       const existing = agentByOrderUsd.get(orderNum)
+      const rowDebug = { price, discount, hd, war, raw: row[COL_PRICE], subtotal: price + discount + hd + war }
       agentByOrderUsd.set(orderNum, {
         total: (existing?.total ?? 0) + price + discount + hd + war,
         war:   (existing?.war   ?? 0) + war,
         date:  existing?.date || date,
+        rows:  [...(existing?.rows ?? []), rowDebug],
       })
     }
 
