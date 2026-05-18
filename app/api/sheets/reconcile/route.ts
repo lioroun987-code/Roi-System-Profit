@@ -344,12 +344,12 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      const dbCost     = dbCostByOrder.get(orderNum) ?? null
-      const sheetEntry = ourByOrder.get(orderNum)
-      const ourCost    = (COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null)
-        ? sheetEntry.sheetCost
-        : dbCost
-      const systemCost = dbCost
+      const dbCost        = dbCostByOrder.get(orderNum) ?? null
+      const sheetEntry    = ourByOrder.get(orderNum)
+      const hasSheetCost  = COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null
+      const ourCost       = hasSheetCost ? sheetEntry!.sheetCost! : dbCost
+      const ourCostSource = hasSheetCost ? 'sheet' : 'db'
+      const systemCost    = dbCost
 
       // Primary: compare agent vs system (DB) — determines agent discrepancy
       const agentVsSystem = systemCost != null ? Math.abs(agentCost - systemCost) : null
