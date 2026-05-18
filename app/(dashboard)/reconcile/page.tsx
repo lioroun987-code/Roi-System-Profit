@@ -1028,7 +1028,7 @@ export default function ReconcilePage() {
           {/* Table */}
           {filter !== 'totals' && <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
             {/* Table header */}
-            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-7' : 'grid-cols-6'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 מספר הזמנה {sortBy === 'order' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
@@ -1061,7 +1061,7 @@ export default function ReconcilePage() {
                     <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
                       {/* Main row */}
                       <div
-                        className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
+                        className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-7' : 'grid-cols-6'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
                         style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
                         onClick={() => toggleOrderExpand(r.orderNumber)}
                       >
@@ -1107,16 +1107,6 @@ export default function ReconcilePage() {
                           ) : <span className="text-sm" style={{ color: '#4A5174' }}>—</span>}
                         </div>
 
-                        <div>
-                          {r.systemCost != null ? (
-                            <>
-                              <p className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</p>
-                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.systemCost / exchangeRate).toFixed(2)}</p>
-                            </>
-                          ) : (
-                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>לא נותח</span>
-                          )}
-                        </div>
 
                         {(() => {
                           const signed = r.agentCost - (r.ourCost ?? r.agentCost)
