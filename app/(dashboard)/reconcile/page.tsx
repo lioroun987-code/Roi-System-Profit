@@ -835,7 +835,8 @@ export default function ReconcilePage() {
             <div className="flex gap-2 flex-wrap">
               {[
                 { key: 'all',      label: 'הכל' },
-                { key: 'issues',   label: '⚠️ פערים' },
+                { key: 'issues',   label: '⚠️ פערים מול סוכן' },
+                { key: 'personal', label: `🔍 פערים אישיים${(results ?? []).filter(r => r.status === 'personal_diff').length > 0 ? ` (${(results ?? []).filter(r => r.status === 'personal_diff').length})` : ''}` },
                 { key: 'match',    label: '✓ תואמים' },
                 { key: 'missing',  label: '⏳ חסרה עלות' },
                 { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
