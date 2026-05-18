@@ -80,8 +80,13 @@ export default function ReconcilePage() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [exclusions, setExclusions]             = useState<Record<string, string>>({})
   const [togglingExclusion, setTogglingExclusion] = useState<string | null>(null)
-  const [expenseTypeModal, setExpenseTypeModal] = useState<string | null>(null)
-  const [expandedOrder, setExpandedOrder]       = useState<string | null>(null)
+  const [expenseTypeModal, setExpenseTypeModal]   = useState<string | null>(null)
+  const [reclassifyModal, setReclassifyModal]     = useState<string | null>(null)
+  const [reclassifyReason, setReclassifyReason]   = useState('')
+  const [reclassifications, setReclassifications] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem('reconcile_reclassify') ?? '{}') } catch { return {} }
+  })
+  const [expandedOrder, setExpandedOrder]         = useState<string | null>(null)
   const [expandedData, setExpandedData]         = useState<Record<string, any>>({})
   const [loadingExpand, setLoadingExpand]       = useState<string | null>(null)
   const autoRunRef = useRef(false)
