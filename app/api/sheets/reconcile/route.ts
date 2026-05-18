@@ -240,12 +240,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert USD → ILS (war surcharge excluded from costIls — shown separately)
-    const agentByOrder = new Map<string, { costIls: number; warIls: number; date: string }>()
+    const agentByOrder = new Map<string, { costIls: number; warIls: number; date: string; rows: any[] }>()
     for (const [order, data] of agentByOrderUsd) {
       agentByOrder.set(order, {
         costIls: parseFloat(((data.total - data.war) * EXCHANGE_RATE).toFixed(2)),
         warIls:  parseFloat((data.war               * EXCHANGE_RATE).toFixed(2)),
         date:    data.date,
+        rows:    data.rows,
       })
     }
 
