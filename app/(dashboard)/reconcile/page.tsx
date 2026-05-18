@@ -1029,11 +1029,26 @@ export default function ReconcilePage() {
                               </div>
                               <button onClick={() => toggleExclusion(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
                             </div>
-                          ) : (
+                          ) : reclassifications[r.orderNumber] ? (
                             <div className="flex items-center gap-1.5">
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                                ↗ מועבר לסוכן
+                              </div>
+                              <span className="text-xs" style={{ color: '#6B7280' }}>{reclassifications[r.orderNumber]}</span>
+                              <button onClick={() => removeReclassification(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: meta?.bg, color: meta?.color }}>
                                 <Icon className="w-3 h-3" />{meta?.label}
                               </div>
+                              {r.status === 'personal_diff' && (
+                                <button onClick={() => { setReclassifyModal(r.orderNumber); setReclassifyReason('') }}
+                                  className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
+                                  style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                                  ↗ העבר לסוכן
+                                </button>
+                              )}
                               <button onClick={() => setExpenseTypeModal(r.orderNumber)} disabled={togglingExclusion === r.orderNumber}
                                 className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
                                 style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
