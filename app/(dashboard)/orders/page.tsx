@@ -38,13 +38,20 @@ export default function OrdersPage() {
     if (!activeBusiness) return
     setLoading(true)
     try {
-      const params = new URLSearchParams({ businessId: activeBusiness, page: String(page), limit: '50', ...(dateFrom && { dateFrom }), ...(dateTo && { dateTo }) })
+      const params = new URLSearchParams({
+        businessId: activeBusiness,
+        page: String(page),
+        limit: '50',
+        ...(dateFrom && { dateFrom }),
+        ...(dateTo   && { dateTo }),
+        ...(search   && { search }),
+      })
       const res = await fetch(`/api/orders?${params}`)
       const data = await res.json()
       setOrders(data.orders ?? [])
       setTotal(data.total ?? 0)
     } finally { setLoading(false) }
-  }, [activeBusiness, page, dateFrom, dateTo])
+  }, [activeBusiness, page, dateFrom, dateTo, search])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
