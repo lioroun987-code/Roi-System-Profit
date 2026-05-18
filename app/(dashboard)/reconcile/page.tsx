@@ -1109,6 +1109,14 @@ export default function ReconcilePage() {
                             <>
                               <p className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.ourCost.toFixed(2)}</p>
                               <p className="text-xs" style={{ color: '#4A5174' }}>${(r.ourCost / exchangeRate).toFixed(2)}</p>
+                              {effectiveCol.ourCostCol && (
+                                <span className="text-xs px-1 rounded" style={{
+                                  background: r.ourCostSource === 'sheet' ? '#0D2818' : '#1A1D2A',
+                                  color:      r.ourCostSource === 'sheet' ? '#22C55E' : '#6B7280',
+                                }}>
+                                  {r.ourCostSource === 'sheet' ? '📄 גיליון' : '⚙ DB'}
+                                </span>
+                              )}
                             </>
                           ) : <span className="text-sm" style={{ color: '#4A5174' }}>—</span>}
                         </div>
