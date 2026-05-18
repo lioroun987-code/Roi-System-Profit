@@ -71,7 +71,7 @@ export default function ReconcilePage() {
   const [summary, setSummary]             = useState<Summary | null>(null)
   const [debug, setDebug]                 = useState<any | null>(null)
   const [error, setError]                 = useState('')
-  const [filter, setFilter]               = useState<'all' | 'issues' | 'match' | 'missing' | 'business' | 'personal'>('all')
+  const [filter, setFilter]               = useState<'all' | 'issues' | 'match' | 'missing' | 'business' | 'personal' | 'totals'>('all')
   const [search, setSearch]               = useState('')
   const [sortBy, setSortBy]               = useState<'diff' | 'order'>('diff')
   const [sortDir, setSortDir]             = useState<'desc' | 'asc'>('desc')
