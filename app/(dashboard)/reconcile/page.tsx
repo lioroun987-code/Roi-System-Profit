@@ -21,6 +21,8 @@ interface ColMapping {
   discount: string
   homeDelivery: string
   warSurcharge: string
+  ourOrderCol: string   // column in OUR sheet with order number
+  ourCostCol: string    // column in OUR sheet with our cost
 }
 
 interface Summary {
