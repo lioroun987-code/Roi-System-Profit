@@ -806,6 +806,18 @@ export default function ReconcilePage() {
             )
           })()}
 
+          {/* Column debug panel — always show when ourCostCol configured */}
+          {debug?.colDebug && effectiveCol.ourCostCol && (
+            <div className="rounded-xl border p-4 text-xs" style={{ background: '#0D1A0D', borderColor: '#1E3A1E' }}>
+              <p className="font-semibold text-sm mb-2" style={{ color: '#4ADE80' }}>🔍 מה נקרא מגיליון שלך (3 שורות ראשונות)</p>
+              <div className="space-y-1">
+                <p style={{ color: '#6B7280' }}>עמודת הזמנה ({effectiveCol.ourOrderCol}): {debug.colDebug.sampleRows?.map((r: any) => r.orderVal).join(' | ')}</p>
+                <p style={{ color: '#6B7280' }}>עמודת עלות ({effectiveCol.ourCostCol}): {debug.colDebug.sampleRows?.map((r: any) => r.costVal).join(' | ')}</p>
+                <p style={{ color: '#4ADE80' }}>הזמנות שנמצאו בגיליון שלך: {debug.colDebug.totalOurRows}</p>
+              </div>
+            </div>
+          )}
+
           {/* Debug panel */}
           {debug && summary && summary.matches === 0 && (
             <div className="rounded-xl border p-4 text-xs" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
