@@ -166,7 +166,10 @@ export default function OrdersPage() {
     } finally { setExporting(false) }
   }
 
-  const filtered = search ? orders.filter(o => o.orderNumber.includes(search) || o.orderSummary?.includes(search) || o.customerName?.includes(search)) : orders
+  // Search is server-side — reset to page 1 when search changes
+  useEffect(() => { setPage(1) }, [search])
+
+  const filtered = orders  // filtering is done server-side
   const totalRevenue = orders.reduce((s, o) => s + (o.storePrice ?? 0), 0)
   const totalProfit = orders.reduce((s, o) => s + (o.netProfitIls ?? 0), 0)
   const losingOrders = orders.filter(o => (o.netProfitIls ?? 0) < 0).length
