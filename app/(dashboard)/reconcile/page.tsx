@@ -322,16 +322,19 @@ export default function ReconcilePage() {
               <div class="costs-row">
                 <div class="cost-item wrong">
                   <div class="cost-label">חויבתי על ידי הסוכן</div>
-                  <div class="cost-value">₪${r.agentCost.toFixed(2)}</div>
+                  <div class="cost-value">$${(r.agentCost / exchangeRate).toFixed(2)}</div>
+                  <div style="font-size:11px;color:#94a3b8">₪${r.agentCost.toFixed(2)}</div>
                 </div>
                 <div class="cost-arrow">→</div>
                 <div class="cost-item correct">
                   <div class="cost-label">עלות נכונה</div>
-                  <div class="cost-value">₪${r.ourCost?.toFixed(2) ?? '—'}</div>
+                  <div class="cost-value">$${((r.ourCost ?? 0) / exchangeRate).toFixed(2)}</div>
+                  <div style="font-size:11px;color:#94a3b8">₪${r.ourCost?.toFixed(2) ?? '—'}</div>
                 </div>
                 <div class="cost-item diff">
                   <div class="cost-label">הפרש</div>
-                  <div class="cost-value">₪${r.diff.toFixed(2)}</div>
+                  <div class="cost-value">$${(r.diff / exchangeRate).toFixed(2)}</div>
+                  <div style="font-size:11px;color:#94a3b8">₪${r.diff.toFixed(2)}</div>
                 </div>
               </div>
               <div id="${cardId}-breakdown" style="display:block">
