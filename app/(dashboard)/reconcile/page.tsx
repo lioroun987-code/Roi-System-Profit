@@ -739,24 +739,30 @@ export default function ReconcilePage() {
       {summary && results && (
         <>
           {/* Summary cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {[
+          {(() => {
+            const totalWar = colMapping.warSurcharge
+              ? results.filter(r => !exclusions[r.orderNumber]).reduce((s, r) => s + (r.warIls ?? 0), 0)
+              : 0
+            const cards = [
               { label: 'סה"כ הזמנות', val: String(summary.total), color: '#CBD5E1', bg: '#13161F' },
               { label: '✓ תואמות', val: String(summary.matches), color: '#22C55E', bg: '#0D2818' },
               { label: '⚠️ פערים', val: String(summary.agentHigher + summary.weHigher), color: '#F59E0B', bg: '#2A1800' },
               { label: 'עלות סוכן (ללא עסקי)', val: `₪${realAgentTotal.toFixed(2)}`, color: '#60A5FA', bg: '#0D1A2A' },
               { label: 'עלות שלי (ללא עסקי)', val: `₪${realOurTotal.toFixed(2)}`, color: '#A78BFA', bg: '#150D2A' },
-              (() => {
-                const isGood = realDiff <= 0
-                return { label: `הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(realDiff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' }
-              })(),
-            ].map(s => (
-              <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
-                <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
-                <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
+              (() => { const isGood = realDiff <= 0; return { label: `הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(realDiff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' } })(),
+              ...(colMapping.warSurcharge ? [{ label: '⚔️ תוספת מלחמה סה"כ', val: `₪${totalWar.toFixed(2)}`, color: '#F59E0B', bg: '#2A1800' }] : []),
+            ]
+            return (
+              <div className={`grid grid-cols-2 md:grid-cols-3 ${colMapping.warSurcharge ? 'lg:grid-cols-7' : 'lg:grid-cols-6'} gap-4`}>
+                {cards.map(s => (
+                  <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
+                    <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
+                    <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )
+          })()}
 
           {/* Debug panel */}
           {debug && summary && summary.matches === 0 && (
