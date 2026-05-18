@@ -893,7 +893,7 @@ export default function ReconcilePage() {
                     <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
                       {/* Main row */}
                       <div
-                        className="grid grid-cols-7 gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5"
+                        className={`grid ${colMapping.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
                         style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
                         onClick={() => toggleOrderExpand(r.orderNumber)}
                       >
@@ -907,6 +907,12 @@ export default function ReconcilePage() {
                         </span>
 
                         <span className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</span>
+
+                        {colMapping.warSurcharge && (
+                          <span className="text-sm font-medium" style={{ color: (r.warIls ?? 0) > 0 ? '#F59E0B' : '#374151' }}>
+                            {(r.warIls ?? 0) > 0 ? `₪${r.warIls!.toFixed(2)}` : '—'}
+                          </span>
+                        )}
 
                         <span className="text-sm" style={{ color: r.ourCost == null ? '#4A5174' : '#CBD5E1' }}>
                           {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
