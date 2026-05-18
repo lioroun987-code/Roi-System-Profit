@@ -1036,7 +1036,6 @@ export default function ReconcilePage() {
               <span>עלות סוכן (₪)</span>
               {effectiveCol.warSurcharge && <span style={{ color: '#F59E0B' }}>תוספת מלחמה (₪)</span>}
               <span>עלות שלי (₪)</span>
-              <span style={{ color: '#4F6EF7' }}>עלות מערכת (₪)</span>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('diff'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 פער {sortBy === 'diff' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
