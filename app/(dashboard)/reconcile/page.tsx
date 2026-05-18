@@ -882,6 +882,7 @@ export default function ReconcilePage() {
                   <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
                     <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
                     {s.sub && <p className="text-xs font-medium mt-0.5" style={{ color: s.color + '99' }}>{s.sub}</p>}
+                    {(s as any).sub2 && <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{(s as any).sub2}</p>}
                     <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
                   </div>
                 ))}
