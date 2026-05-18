@@ -351,6 +351,7 @@ export default function ReconcilePage() {
                   <span class="order-num">הזמנה #${r.orderNumber}</span>
                   <span class="order-date">${dateFmt}</span>
                   ${db?.orderSummary ? `<span class="order-summary">${db.orderSummary}</span>` : ''}
+                  ${reclassifications[r.orderNumber] ? `<span class="order-summary" style="color:#f59e0b">⚠ ${reclassifications[r.orderNumber]}</span>` : ''}
                 </div>
                 <div style="display:flex;align-items:center;gap:12px">
                   <div class="diff-badge">+$${(r.diff / exchangeRate).toFixed(2)} ביתר</div>
