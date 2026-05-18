@@ -1214,46 +1214,6 @@ export default function ReconcilePage() {
                       {isOpen && (
                         <div className="px-5 pb-4 space-y-4" style={{ background: '#0D0F14', borderTop: '1px solid #1E2130' }}>
 
-                          {/* Agent sheet rows breakdown */}
-                          {r.agentRows && r.agentRows.length > 0 && (
-                            <div className="pt-4">
-                              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#60A5FA' }}>
-                                פירוט גיליון הסוכן ({r.agentRows.length} שורות)
-                              </p>
-                              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #1E3A5F' }}>
-                                <div className="grid grid-cols-5 px-3 py-2 text-xs font-semibold" style={{ background: '#0D1A2A', color: '#4A5174', borderBottom: '1px solid #1E3A5F' }}>
-                                  <span>מחיר (K)</span><span>הנחה (M)</span><span>משלוח (N)</span><span>מלחמה (L)</span><span>סכום שורה</span>
-                                </div>
-                                {r.agentRows.map((row, i) => (
-                                  <div key={i} className="grid grid-cols-5 px-3 py-2 text-xs border-b" style={{ borderColor: '#1E3A5F', background: '#0A1520' }}>
-                                    <span style={{ color: '#CBD5E1' }}>${row.price.toFixed(2)}</span>
-                                    <span style={{ color: row.discount < 0 ? '#22C55E' : '#CBD5E1' }}>${row.discount.toFixed(2)}</span>
-                                    <span style={{ color: '#CBD5E1' }}>${row.hd.toFixed(2)}</span>
-                                    <span style={{ color: '#F59E0B' }}>${row.war.toFixed(2)}</span>
-                                    <span className="font-medium" style={{ color: '#60A5FA' }}>${row.subtotal.toFixed(2)}</span>
-                                  </div>
-                                ))}
-                                <div className="grid grid-cols-5 px-3 py-2 text-xs font-bold" style={{ background: '#0D1A2A' }}>
-                                  <span style={{ color: '#60A5FA' }}>
-                                    ${r.agentRows.reduce((s, row) => s + row.price, 0).toFixed(2)}
-                                  </span>
-                                  <span style={{ color: '#22C55E' }}>
-                                    ${r.agentRows.reduce((s, row) => s + row.discount, 0).toFixed(2)}
-                                  </span>
-                                  <span style={{ color: '#60A5FA' }}>
-                                    ${r.agentRows.reduce((s, row) => s + row.hd, 0).toFixed(2)}
-                                  </span>
-                                  <span style={{ color: '#F59E0B' }}>
-                                    ${r.agentRows.reduce((s, row) => s + row.war, 0).toFixed(2)}
-                                  </span>
-                                  <span style={{ color: '#60A5FA' }}>
-                                    ${r.agentRows.reduce((s, row) => s + row.subtotal, 0).toFixed(2)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
                           {loadingExpand === r.orderNumber ? (
                             <div className="py-2 flex items-center gap-2 text-sm" style={{ color: '#4A5174' }}>
                               <RefreshCw className="w-4 h-4 animate-spin" />טוען פירוט מערכת...
