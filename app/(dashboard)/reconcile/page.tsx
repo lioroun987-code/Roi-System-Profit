@@ -567,7 +567,9 @@ export default function ReconcilePage() {
     r.status === 'content_creator' || !!exclusions[r.orderNumber]
   )
   const realAgentTotal  = nonBizResults.reduce((s, r) => s + r.agentCost, 0)
-  const realOurTotal    = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+  const realOurTotal       = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+  const ourFromSheet       = nonBizResults.filter(r => r.ourCostSource === 'sheet').length
+  const ourFromDb          = nonBizResults.filter(r => r.ourCostSource === 'db' && r.ourCost != null).length
   const realDiff        = realAgentTotal - realOurTotal
   const realSystemTotal = nonBizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0)
   const bizAgentTotal   = bizResults.reduce((s, r) => s + r.agentCost, 0)
