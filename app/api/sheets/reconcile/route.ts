@@ -125,11 +125,13 @@ export async function POST(request: NextRequest) {
     const letterToIdx = (letter: string) => letter ? letter.toUpperCase().charCodeAt(0) - 65 : -1
 
     // Column mapping — defaults match existing hardcoded values
-    const COL_ORDER       = letterToIdx(colMapping?.order       || 'B')   // 1
-    const COL_PRICE       = letterToIdx(colMapping?.price       || 'K')   // 10
-    const COL_DISCOUNT    = letterToIdx(colMapping?.discount    || 'M')   // 12
-    const COL_HD          = letterToIdx(colMapping?.homeDelivery|| 'N')   // 13
+    const COL_ORDER       = letterToIdx(colMapping?.order       || 'B')
+    const COL_PRICE       = letterToIdx(colMapping?.price       || 'K')
+    const COL_DISCOUNT    = letterToIdx(colMapping?.discount    || 'M')
+    const COL_HD          = letterToIdx(colMapping?.homeDelivery|| 'N')
     const COL_WAR         = letterToIdx(colMapping?.warSurcharge|| '')    // -1 = disabled
+    const COL_OUR_ORDER   = letterToIdx(colMapping?.ourOrderCol || 'A')   // order# in our sheet
+    const COL_OUR_COST    = letterToIdx(colMapping?.ourCostCol  || '')    // our cost in our sheet (-1 = use DB)
 
     if (!businessId) return Response.json({ error: 'businessId חסר' }, { status: 400 })
     if (!agentSheetId) return Response.json({ error: 'מזהה גיליון הסוכן חסר' }, { status: 400 })
