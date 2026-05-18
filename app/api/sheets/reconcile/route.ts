@@ -169,11 +169,11 @@ export async function POST(request: NextRequest) {
       const sheetTitle = sheetsList.find(s => s.properties?.sheetId === targetSheetId)?.properties?.title ?? ''
 
       // Try by title first, fallback to just range
-      let agentRange = 'A2:M2000'
+      let agentRange = 'A2:R2000'
       if (sheetTitle) {
         // Escape single quotes in title
         const escapedTitle = sheetTitle.replace(/'/g, "''")
-        agentRange = `'${escapedTitle}'!A2:M2000`
+        agentRange = `'${escapedTitle}'!A2:R2000`
       }
 
       try {
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
         // Fallback: try without sheet name
         const fallbackRes = await sheets.spreadsheets.values.get({
           spreadsheetId: agentSheetId,
-          range: 'A2:M2000',
+          range: 'A2:R2000',
         })
         agentRows = fallbackRes.data.values ?? []
       }
