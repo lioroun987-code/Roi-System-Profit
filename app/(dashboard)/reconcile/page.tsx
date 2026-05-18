@@ -935,9 +935,18 @@ export default function ReconcilePage() {
                           )}
                         </div>
 
-                        <span className="text-sm font-bold" style={{ color: r.diff <= 0.5 ? '#22C55E' : r.status === 'agent_higher' ? '#EF4444' : '#22C55E' }}>
-                          {r.diff > 0.5 ? `${r.status === 'agent_higher' ? '▲' : '▼'} ₪${r.diff.toFixed(2)}` : r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
-                        </span>
+                        {(() => {
+                          const signed = r.agentCost - (r.ourCost ?? r.agentCost)
+                          const isOver  = signed > 0.5   // agent overcharged us
+                          const isUnder = signed < -0.5  // we overcharged agent
+                          return (
+                            <span className="text-sm font-bold" style={{ color: Math.abs(signed) <= 0.5 ? '#22C55E' : isOver ? '#EF4444' : '#22C55E' }}>
+                              {isOver  ? `▲ +₪${signed.toFixed(2)}` :
+                               isUnder ? `▼ ₪${signed.toFixed(2)}` :
+                               r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
+                            </span>
+                          )
+                        })()}
 
                         <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
                           {exclusions[r.orderNumber] ? (
