@@ -307,6 +307,17 @@ export async function POST(request: NextRequest) {
       const agentCost  = agentData.costIls
       const warIls     = agentData.warIls
       const orderDate  = agentData.date
+
+      // If agent wrote $0 → they didn't charge for this order — show as match, no comparison
+      if (agentCost <= 0) {
+        results.push({
+          orderNumber: orderNum, agentCost: 0, warIls, ourCost: 0, systemCost: 0,
+          diff: 0, status: 'match', rowIndex: ourByOrder.get(orderNum)?.rowIndex ?? -1,
+          orderDate, sheetReason: colCByOrder.get(orderNum) ?? null,
+        })
+        continue
+      }
+
       const ourCost    = dbCostByOrder.get(orderNum) ?? null
       const systemCost = ourCost
       const diff       = ourCost != null ? Math.abs(agentCost - ourCost) : 0
