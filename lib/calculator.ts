@@ -190,10 +190,11 @@ export function calculateOrderCost(
 
     // Apply effect — match items by type OR by name (whichever is configured)
     const targets = parsedItems.filter(item => {
+      // customer_price_is_zero rules only affect items the customer got for FREE —
+      // paid copies of the same product are NOT affected
+      if (cond.type === 'customer_price_is_zero' && !item.isGift) return false
       if (eff.appliesTo === 'all_items') return true
-      // Match by product type
       const typeMatch = !eff.productType || eff.productType === 'any' || item.type === eff.productType
-      // Match by product key (name substring)
       const keyMatch  = !eff.productKey || item.name?.includes(eff.productKey)
       return typeMatch && keyMatch
     })
