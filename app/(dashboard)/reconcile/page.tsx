@@ -13,6 +13,7 @@ interface ReconcileResult {
   diff: number
   sheetReason?: string | null
   status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator' | 'personal_diff'
+  agentRows?: Array<{ price: number; discount: number; hd: number; war: number; subtotal: number }>
 }
 
 interface ColMapping {
