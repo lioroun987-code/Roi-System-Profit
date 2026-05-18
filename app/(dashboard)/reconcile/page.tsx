@@ -1220,7 +1220,7 @@ export default function ReconcilePage() {
                 </strong>
               </span>
             </div>
-          </div>
+          </div>}
         </>
       )}
 
