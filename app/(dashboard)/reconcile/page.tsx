@@ -663,32 +663,52 @@ export default function ReconcilePage() {
               ⚙️ {showColConfig ? 'סגור' : 'שנה מיפוי עמודות'}
             </button>
             {showColConfig && (
-              <div className="rounded-xl p-4 space-y-3" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
-                <p className="text-xs font-semibold" style={{ color: '#CBD5E1' }}>באיזו עמודה נמצא כל שדה? (אות: A, B, C...)</p>
-                <div className="grid grid-cols-2 gap-3">
-                  {([
-                    { key: 'order',       label: 'מספר הזמנה',    placeholder: 'B' },
-                    { key: 'price',       label: 'מחיר ($)',       placeholder: 'K' },
-                    { key: 'discount',    label: 'הנחה ($)',        placeholder: 'M' },
-                    { key: 'homeDelivery',label: 'משלוח לבית ($)', placeholder: 'N' },
-                    { key: 'warSurcharge',label: 'תוספת מלחמה ($)', placeholder: 'ריק = לא קיים' },
-                  ] as const).map(f => (
-                    <div key={f.key} className="space-y-1">
-                      <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
-                      <input
-                        value={colMapping[f.key]}
-                        onChange={e => setColMapping(prev => ({ ...prev, [f.key]: e.target.value.toUpperCase().slice(0, 2) }))}
-                        placeholder={f.placeholder}
-                        maxLength={2}
-                        style={{ ...inputStyle, width: '70px', padding: '6px 10px', textAlign: 'center', fontFamily: 'monospace' }}
-                        dir="ltr"
-                      />
-                    </div>
-                  ))}
+              <div className="rounded-xl p-4 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+                {/* Agent sheet columns */}
+                <div>
+                  <p className="text-xs font-semibold mb-2" style={{ color: '#60A5FA' }}>גיליון הסוכן — עמודות</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {([
+                      { key: 'order',        label: 'מספר הזמנה',     placeholder: 'B' },
+                      { key: 'price',        label: 'מחיר ($)',        placeholder: 'K' },
+                      { key: 'discount',     label: 'הנחה ($)',         placeholder: 'M' },
+                      { key: 'homeDelivery', label: 'משלוח לבית ($)',  placeholder: 'N' },
+                      { key: 'warSurcharge', label: 'תוספת מלחמה ($)', placeholder: 'ריק = לא קיים' },
+                    ] as const).map(f => (
+                      <div key={f.key} className="space-y-1">
+                        <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
+                        <input value={colMapping[f.key]}
+                          onChange={e => setColMapping(prev => ({ ...prev, [f.key]: e.target.value.toUpperCase().slice(0, 2) }))}
+                          placeholder={f.placeholder} maxLength={2}
+                          style={{ ...inputStyle, width: '70px', padding: '6px 10px', textAlign: 'center', fontFamily: 'monospace' }}
+                          dir="ltr" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs" style={{ color: '#4A5174' }}>
-                  תוספת מלחמה תוצג בנפרד בתוצאות — לא תסומן כפער
-                </p>
+
+                {/* Our sheet columns */}
+                <div style={{ borderTop: '1px solid #1E2130', paddingTop: '12px' }}>
+                  <p className="text-xs font-semibold mb-2" style={{ color: '#A78BFA' }}>גיליון שלי — עמודות</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {([
+                      { key: 'ourOrderCol', label: 'מספר הזמנה', placeholder: 'A' },
+                      { key: 'ourCostCol',  label: 'עלות שלי (₪) — ריק = מה-DB', placeholder: 'ריק' },
+                    ] as const).map(f => (
+                      <div key={f.key} className="space-y-1">
+                        <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
+                        <input value={colMapping[f.key]}
+                          onChange={e => setColMapping(prev => ({ ...prev, [f.key]: e.target.value.toUpperCase().slice(0, 2) }))}
+                          placeholder={f.placeholder} maxLength={2}
+                          style={{ ...inputStyle, width: '70px', padding: '6px 10px', textAlign: 'center', fontFamily: 'monospace' }}
+                          dir="ltr" />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs mt-2" style={{ color: '#4A5174' }}>
+                    אם תמלא עמודת עלות — "עלות שלי" תציג בדיוק מה שכתוב בגיליון שלך
+                  </p>
+                </div>
               </div>
             )}
           </div>
