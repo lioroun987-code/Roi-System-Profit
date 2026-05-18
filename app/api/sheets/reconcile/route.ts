@@ -305,9 +305,10 @@ export async function POST(request: NextRequest) {
 
     for (const [orderNum, agentData] of agentByOrder) {
       const agentCost  = agentData.costIls
+      const warIls     = agentData.warIls
       const orderDate  = agentData.date
-      const ourCost    = dbCostByOrder.get(orderNum) ?? null   // use DB cost — authoritative
-      const systemCost = ourCost                                // same source
+      const ourCost    = dbCostByOrder.get(orderNum) ?? null
+      const systemCost = ourCost
       const diff       = ourCost != null ? Math.abs(agentCost - ourCost) : 0
 
       let status: string
@@ -320,7 +321,7 @@ export async function POST(request: NextRequest) {
       if (isContentCreator(sheetReason)) status = 'content_creator'
 
       const rowIdx = ourByOrder.get(orderNum)?.rowIndex ?? -1
-      results.push({ orderNumber: orderNum, agentCost, ourCost, systemCost, diff, status, rowIndex: rowIdx, orderDate, sheetReason })
+      results.push({ orderNumber: orderNum, agentCost, warIls, ourCost, systemCost, diff, status, rowIndex: rowIdx, orderDate, sheetReason })
     }
 
     // Orders in DB (for this month) but missing from agent sheet
