@@ -691,8 +691,8 @@ export default function ReconcilePage() {
                     ] as const).map(f => (
                       <div key={f.key} className="space-y-1">
                         <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
-                        <input value={colMapping[f.key]}
-                          onChange={e => setColMapping(prev => ({ ...prev, [f.key]: e.target.value.toUpperCase().slice(0, 2) }))}
+                        <input value={effectiveCol[f.key]}
+                          onChange={e => updateColMapping(f.key, e.target.value.toUpperCase().slice(0, 2))}
                           placeholder={f.placeholder} maxLength={2}
                           style={{ ...inputStyle, width: '70px', padding: '6px 10px', textAlign: 'center', fontFamily: 'monospace' }}
                           dir="ltr" />
@@ -711,8 +711,8 @@ export default function ReconcilePage() {
                     ] as const).map(f => (
                       <div key={f.key} className="space-y-1">
                         <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
-                        <input value={colMapping[f.key]}
-                          onChange={e => setColMapping(prev => ({ ...prev, [f.key]: e.target.value.toUpperCase().slice(0, 2) }))}
+                        <input value={effectiveCol[f.key]}
+                          onChange={e => updateColMapping(f.key, e.target.value.toUpperCase().slice(0, 2))}
                           placeholder={f.placeholder} maxLength={2}
                           style={{ ...inputStyle, width: '70px', padding: '6px 10px', textAlign: 'center', fontFamily: 'monospace' }}
                           dir="ltr" />
@@ -782,7 +782,7 @@ export default function ReconcilePage() {
         <>
           {/* Summary cards */}
           {(() => {
-            const totalWar = colMapping.warSurcharge
+            const totalWar = effectiveCol.warSurcharge
               ? results.filter(r => !exclusions[r.orderNumber]).reduce((s, r) => s + (r.warIls ?? 0), 0)
               : 0
             const cards = [
@@ -792,10 +792,10 @@ export default function ReconcilePage() {
               { label: 'עלות סוכן (ללא עסקי)', val: `₪${realAgentTotal.toFixed(2)}`, color: '#60A5FA', bg: '#0D1A2A' },
               { label: 'עלות שלי (ללא עסקי)', val: `₪${realOurTotal.toFixed(2)}`, color: '#A78BFA', bg: '#150D2A' },
               (() => { const isGood = realDiff <= 0; return { label: `הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(realDiff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' } })(),
-              ...(colMapping.warSurcharge ? [{ label: '⚔️ תוספת מלחמה סה"כ', val: `₪${totalWar.toFixed(2)}`, color: '#F59E0B', bg: '#2A1800' }] : []),
+              ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה סה"כ', val: `₪${totalWar.toFixed(2)}`, color: '#F59E0B', bg: '#2A1800' }] : []),
             ]
             return (
-              <div className={`grid grid-cols-2 md:grid-cols-3 ${colMapping.warSurcharge ? 'lg:grid-cols-7' : 'lg:grid-cols-6'} gap-4`}>
+              <div className={`grid grid-cols-2 md:grid-cols-3 ${effectiveCol.warSurcharge ? 'lg:grid-cols-7' : 'lg:grid-cols-6'} gap-4`}>
                 {cards.map(s => (
                   <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
                     <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
@@ -908,13 +908,13 @@ export default function ReconcilePage() {
           {/* Table */}
           <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
             {/* Table header */}
-            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${colMapping.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 מספר הזמנה {sortBy === 'order' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
               <span>תאריך</span>
               <span>עלות סוכן (₪)</span>
-              {colMapping.warSurcharge && <span style={{ color: '#F59E0B' }}>תוספת מלחמה (₪)</span>}
+              {effectiveCol.warSurcharge && <span style={{ color: '#F59E0B' }}>תוספת מלחמה (₪)</span>}
               <span>עלות שלי (₪)</span>
               <span style={{ color: '#4F6EF7' }}>עלות מערכת (₪)</span>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('diff'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
@@ -942,7 +942,7 @@ export default function ReconcilePage() {
                     <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
                       {/* Main row */}
                       <div
-                        className={`grid ${colMapping.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
+                        className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
                         style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
                         onClick={() => toggleOrderExpand(r.orderNumber)}
                       >
@@ -957,7 +957,7 @@ export default function ReconcilePage() {
 
                         <span className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</span>
 
-                        {colMapping.warSurcharge && (
+                        {effectiveCol.warSurcharge && (
                           <span className="text-sm font-medium" style={{ color: (r.warIls ?? 0) > 0 ? '#F59E0B' : '#374151' }}>
                             {(r.warIls ?? 0) > 0 ? `₪${r.warIls!.toFixed(2)}` : '—'}
                           </span>

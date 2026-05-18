@@ -308,8 +308,19 @@ export async function POST(request: NextRequest) {
       if (colCVal) colCByOrder.set(cleaned, colCVal)
     }
 
-    const detectedCostCol = -1  // not used — we use DB costs below
+    const detectedCostCol = -1
     const detectedDateCol = -1
+
+    // ── Debug: sample what's in the configured columns ──
+    const colDebug = {
+      ourOrderCol:  COL_OUR_ORDER,
+      ourCostCol:   COL_OUR_COST,
+      sampleRows:   mainRows.slice(0, 3).map(row => ({
+        orderVal: row[COL_OUR_ORDER]?.toString() ?? '(empty)',
+        costVal:  COL_OUR_COST >= 0 ? (row[COL_OUR_COST]?.toString() ?? '(empty)') : 'לא מוגדר',
+      })),
+      totalOurRows: ourByOrder.size,
+    }
 
     // ── 6. Compare ──
     const results: any[] = []
