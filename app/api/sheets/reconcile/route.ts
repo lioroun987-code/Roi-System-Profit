@@ -453,6 +453,7 @@ export async function POST(request: NextRequest) {
       directMatchTest,
       rawDateSamples:   [],
       rawOrderSamples:  [],
+      colDebug,
     }
 
     // ── 7. Save report to DB ──
