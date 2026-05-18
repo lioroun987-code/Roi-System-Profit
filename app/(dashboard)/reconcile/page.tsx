@@ -1067,21 +1067,37 @@ export default function ReconcilePage() {
                           {r.orderDate ? r.orderDate.split(' ')[0] : '—'}
                         </span>
 
-                        <span className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</span>
+                        <div>
+                          <p className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</p>
+                          <p className="text-xs" style={{ color: '#4A5174' }}>${(r.agentCost / exchangeRate).toFixed(2)}</p>
+                        </div>
 
                         {effectiveCol.warSurcharge && (
-                          <span className="text-sm font-medium" style={{ color: (r.warIls ?? 0) > 0 ? '#F59E0B' : '#374151' }}>
-                            {(r.warIls ?? 0) > 0 ? `₪${r.warIls!.toFixed(2)}` : '—'}
-                          </span>
+                          <div>
+                            {(r.warIls ?? 0) > 0 ? (
+                              <>
+                                <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>₪{r.warIls!.toFixed(2)}</p>
+                                <p className="text-xs" style={{ color: '#78350F' }}>${(r.warIls! / exchangeRate).toFixed(2)}</p>
+                              </>
+                            ) : <span style={{ color: '#374151' }}>—</span>}
+                          </div>
                         )}
 
-                        <span className="text-sm" style={{ color: r.ourCost == null ? '#4A5174' : '#CBD5E1' }}>
-                          {r.ourCost != null ? `₪${r.ourCost.toFixed(2)}` : '—'}
-                        </span>
+                        <div>
+                          {r.ourCost != null ? (
+                            <>
+                              <p className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.ourCost.toFixed(2)}</p>
+                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.ourCost / exchangeRate).toFixed(2)}</p>
+                            </>
+                          ) : <span className="text-sm" style={{ color: '#4A5174' }}>—</span>}
+                        </div>
 
                         <div>
                           {r.systemCost != null ? (
-                            <span className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</span>
+                            <>
+                              <p className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</p>
+                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.systemCost / exchangeRate).toFixed(2)}</p>
+                            </>
                           ) : (
                             <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>לא נותח</span>
                           )}
