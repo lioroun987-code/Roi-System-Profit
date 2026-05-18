@@ -576,6 +576,40 @@ export default function ReconcilePage() {
     <div className="p-6 space-y-6">
 
       {/* Expense type modal */}
+      {reclassifyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="rounded-2xl p-6 w-96 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+            <h3 className="text-white font-bold">העבר לפערים מול סוכן</h3>
+            <p className="text-sm" style={{ color: '#6B7280' }}>הזמנה #{reclassifyModal}</p>
+            <p className="text-sm" style={{ color: '#CBD5E1' }}>כתוב סיבה מדוע הפער הזה קשור לסוכן:</p>
+            <textarea
+              value={reclassifyReason}
+              onChange={e => setReclassifyReason(e.target.value)}
+              placeholder="לדוגמה: הסוכן חייב על מוצר שלא קיבלתי..."
+              rows={3}
+              style={{
+                background: '#13161F', border: '1px solid #1E2130', color: '#CBD5E1',
+                borderRadius: '10px', padding: '10px', fontSize: '13px',
+                outline: 'none', width: '100%', resize: 'none',
+              }}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => reclassifyReason.trim() && saveReclassification(reclassifyModal!, reclassifyReason.trim())}
+                disabled={!reclassifyReason.trim()}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+                העבר לסוכן
+              </button>
+              <button onClick={() => setReclassifyModal(null)}
+                className="px-4 py-2.5 rounded-xl text-sm" style={{ background: '#1E2130', color: '#CBD5E1' }}>
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {expenseTypeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
           <div className="rounded-2xl p-6 w-80 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
