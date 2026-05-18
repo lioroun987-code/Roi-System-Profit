@@ -41,6 +41,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; 
   missing_our_cost: { label: 'חסרה עלות אצלנו',         color: '#6B7280', bg: '#1A1D2A', icon: XCircle },
   missing_in_agent: { label: 'חסר בגיליון סוכן',        color: '#8B5CF6', bg: '#1A1040', icon: XCircle },
   content_creator:  { label: 'יוצר תוכן / צלם',        color: '#06B6D4', bg: '#0C1A2A', icon: CheckCircle },
+  personal_diff:    { label: 'פער אישי לבדיקה',         color: '#E879F9', bg: '#1A0D2A', icon: AlertTriangle },
 }
 
 export default function ReconcilePage() {
