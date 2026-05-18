@@ -924,6 +924,7 @@ export default function ReconcilePage() {
                 { key: 'match',    label: '✓ תואמים' },
                 { key: 'missing',  label: '⏳ חסרה עלות' },
                 { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
+                { key: 'totals',   label: '📊 סה״כ עלויות מערכת' },
               ].map(f => (
                 <button
                   key={f.key}
