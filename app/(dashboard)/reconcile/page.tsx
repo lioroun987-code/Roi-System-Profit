@@ -496,12 +496,15 @@ export default function ReconcilePage() {
     })
     .filter(r => !search || r.orderNumber.includes(search))
     .sort((a, b) => {
-      const val = sortBy === 'diff'
-        ? (sortDir === 'desc' ? b.diff - a.diff : a.diff - b.diff)
-        : (sortDir === 'desc'
-            ? b.orderNumber.localeCompare(a.orderNumber)
-            : a.orderNumber.localeCompare(b.orderNumber))
-      return val
+      if (sortBy === 'diff') {
+        // signed diff: positive = agent overcharged, negative = we overcharged
+        const signedA = a.agentCost - (a.ourCost ?? a.agentCost)
+        const signedB = b.agentCost - (b.ourCost ?? b.agentCost)
+        return sortDir === 'desc' ? signedB - signedA : signedA - signedB
+      }
+      return sortDir === 'desc'
+        ? b.orderNumber.localeCompare(a.orderNumber)
+        : a.orderNumber.localeCompare(b.orderNumber)
     })
 
   const inputStyle = {
