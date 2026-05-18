@@ -851,20 +851,33 @@ export default function ReconcilePage() {
             const totalWar = effectiveCol.warSurcharge
               ? results.filter(r => !exclusions[r.orderNumber]).reduce((s, r) => s + (r.warIls ?? 0), 0)
               : 0
+            const mkCard = (label: string, ils: number, color: string, bg: string) => ({
+              label, color, bg,
+              val:  `₪${ils.toFixed(2)}`,
+              sub:  `$${(ils / exchangeRate).toFixed(2)}`,
+            })
+            const countCard = (label: string, val: string, color: string, bg: string) => ({
+              label, color, bg, val, sub: '',
+            })
             const cards = [
-              { label: 'סה"כ הזמנות', val: String(summary.total), color: '#CBD5E1', bg: '#13161F' },
-              { label: '✓ תואמות', val: String(summary.matches), color: '#22C55E', bg: '#0D2818' },
-              { label: '⚠️ פערים', val: String(summary.agentHigher + summary.weHigher), color: '#F59E0B', bg: '#2A1800' },
-              { label: 'עלות סוכן (ללא עסקי)', val: `₪${realAgentTotal.toFixed(2)}`, color: '#60A5FA', bg: '#0D1A2A' },
-              { label: 'עלות שלי (ללא עסקי)', val: `₪${realOurTotal.toFixed(2)}`, color: '#A78BFA', bg: '#150D2A' },
-              (() => { const isGood = realDiff <= 0; return { label: `הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, val: `₪${Math.abs(realDiff).toFixed(2)}`, color: isGood ? '#22C55E' : '#EF4444', bg: isGood ? '#0D2818' : '#2D0F0F' } })(),
-              ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה סה"כ', val: `₪${totalWar.toFixed(2)}`, color: '#F59E0B', bg: '#2A1800' }] : []),
+              countCard('סה"כ הזמנות', String(summary.total), '#CBD5E1', '#13161F'),
+              countCard('✓ תואמות', String(summary.matches), '#22C55E', '#0D2818'),
+              countCard('⚠️ פערים', String(summary.agentHigher + summary.weHigher), '#F59E0B', '#2A1800'),
+              mkCard('עלות סוכן (ללא עסקי)', realAgentTotal, '#60A5FA', '#0D1A2A'),
+              mkCard('עלות שלי (ללא עסקי)', realOurTotal, '#A78BFA', '#150D2A'),
+              mkCard('עלות מערכת (ללא עסקי)', realSystemTotal, '#818CF8', '#0D0D2A'),
+              (() => { const isGood = realDiff <= 0; return mkCard(`הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, Math.abs(realDiff), isGood ? '#22C55E' : '#EF4444', isGood ? '#0D2818' : '#2D0F0F') })(),
+              ...(effectiveCol.warSurcharge ? [mkCard('⚔️ תוספת מלחמה', totalWar, '#F59E0B', '#2A1800')] : []),
+              ...(bizResults.length > 0 ? [mkCard(`💼 הוצאות עסקיות (${bizResults.length})`, bizAgentTotal, '#06B6D4', '#0C1A2A')] : []),
+              ...(bizResults.length > 0 ? [mkCard('עלות מערכת (עסקי)', bizSystemTotal, '#818CF8', '#0D0D2A')] : []),
             ]
+            const cols = Math.min(cards.length, 5)
             return (
-              <div className={`grid grid-cols-2 md:grid-cols-3 ${effectiveCol.warSurcharge ? 'lg:grid-cols-7' : 'lg:grid-cols-6'} gap-4`}>
+              <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-${cols} gap-4`}>
                 {cards.map(s => (
                   <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
                     <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
+                    {s.sub && <p className="text-xs font-medium mt-0.5" style={{ color: s.color + '99' }}>{s.sub}</p>}
                     <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
                   </div>
                 ))}
