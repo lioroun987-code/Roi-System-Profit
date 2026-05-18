@@ -12,7 +12,7 @@ interface ReconcileResult {
   systemCost: number | null
   diff: number
   sheetReason?: string | null
-  status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator'
+  status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator' | 'personal_diff'
 }
 
 interface ColMapping {
