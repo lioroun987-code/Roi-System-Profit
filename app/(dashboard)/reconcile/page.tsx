@@ -91,6 +91,21 @@ export default function ReconcilePage() {
   const [loadingExpand, setLoadingExpand]       = useState<string | null>(null)
   const autoRunRef = useRef(false)
 
+  function saveReclassification(orderNumber: string, reason: string) {
+    const updated = { ...reclassifications, [orderNumber]: reason }
+    setReclassifications(updated)
+    localStorage.setItem('reconcile_reclassify', JSON.stringify(updated))
+    setReclassifyModal(null)
+    setReclassifyReason('')
+  }
+
+  function removeReclassification(orderNumber: string) {
+    const updated = { ...reclassifications }
+    delete updated[orderNumber]
+    setReclassifications(updated)
+    localStorage.setItem('reconcile_reclassify', JSON.stringify(updated))
+  }
+
   async function toggleOrderExpand(orderNumber: string) {
     if (expandedOrder === orderNumber) { setExpandedOrder(null); return }
     setExpandedOrder(orderNumber)
