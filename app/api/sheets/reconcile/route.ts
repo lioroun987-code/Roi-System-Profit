@@ -330,8 +330,13 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      const ourCost    = dbCostByOrder.get(orderNum) ?? null
-      const systemCost = ourCost
+      const dbCost     = dbCostByOrder.get(orderNum) ?? null
+      const sheetEntry = ourByOrder.get(orderNum)
+      // Use sheet cost if column configured, else fall back to DB
+      const ourCost    = (COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null)
+        ? sheetEntry.sheetCost
+        : dbCost
+      const systemCost = dbCost   // always show DB cost separately
       const diff       = ourCost != null ? Math.abs(agentCost - ourCost) : 0
 
       let status: string
