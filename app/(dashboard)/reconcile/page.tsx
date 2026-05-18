@@ -965,12 +965,10 @@ export default function ReconcilePage() {
             <div className="flex gap-2 flex-wrap">
               {[
                 { key: 'all',      label: 'הכל' },
-                { key: 'issues',   label: '⚠️ פערים מול סוכן' },
-                { key: 'personal', label: `🔍 פערים אישיים${(results ?? []).filter(r => r.status === 'personal_diff').length > 0 ? ` (${(results ?? []).filter(r => r.status === 'personal_diff').length})` : ''}` },
+                { key: 'issues',   label: `⚠️ פערים${(results ?? []).filter(r => ['agent_higher','we_higher','personal_diff'].includes(r.status) && !exclusions[r.orderNumber]).length > 0 ? ` (${(results ?? []).filter(r => ['agent_higher','we_higher','personal_diff'].includes(r.status) && !exclusions[r.orderNumber]).length})` : ''}` },
                 { key: 'match',    label: '✓ תואמים' },
-                { key: 'missing',  label: '⏳ חסרה עלות' },
                 { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
-                { key: 'totals',   label: '📊 סה״כ עלויות מערכת' },
+                { key: 'totals',   label: '📊 סה״כ' },
               ].map(f => (
                 <button
                   key={f.key}
