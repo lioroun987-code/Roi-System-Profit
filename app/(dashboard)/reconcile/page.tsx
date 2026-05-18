@@ -7,11 +7,20 @@ interface ReconcileResult {
   orderNumber: string
   orderDate?: string
   agentCost: number
+  warIls?: number
   ourCost: number | null
   systemCost: number | null
   diff: number
   sheetReason?: string | null
   status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator'
+}
+
+interface ColMapping {
+  order: string
+  price: string
+  discount: string
+  homeDelivery: string
+  warSurcharge: string
 }
 
 interface Summary {
