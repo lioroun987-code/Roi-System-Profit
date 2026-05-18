@@ -203,6 +203,7 @@ export default function ReconcilePage() {
           agentSheetName: agentSheetName || undefined,
           ourSheetId: extractSheetId(ourSheetId),
           exchangeRate,
+          colMapping,
         }),
       })
 
