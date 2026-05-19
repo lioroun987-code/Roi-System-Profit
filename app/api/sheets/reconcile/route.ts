@@ -451,7 +451,8 @@ export async function POST(request: NextRequest) {
       agentHigher:  results.filter(r => r.status === 'agent_higher').length,
       weHigher:     results.filter(r => r.status === 'we_higher').length,
       missingCost:  results.filter(r => r.status === 'missing_our_cost').length,
-      bizCount:     results.filter(r => r.status === 'content_creator').length,
+      bizCount:       results.filter(r => r.status === 'content_creator').length,
+      cancelledCount: results.filter(r => r.status === 'cancelled').length,
       // Order counts per source (excluding biz)
       agentCount:   nonBizResults.length,
       systemCount:  nonBizResults.filter(r => r.systemCost != null).length,
