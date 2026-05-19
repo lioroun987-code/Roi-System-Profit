@@ -106,6 +106,8 @@ model ReconcileReport {
 
   businessUpdatedAt DateTime?
   runAt             DateTime  @default(now())
+  reportHtml        String?   @db.Text
+  shareToken        String?   @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
