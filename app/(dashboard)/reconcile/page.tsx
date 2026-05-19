@@ -34,6 +34,14 @@ interface Summary {
   weHigher: number
   missingCost: number
   totalDiff: number
+  bizCount: number
+  agentCount: number
+  systemCount: number
+  ourCount: number
+  agentTotal: number
+  systemTotal: number
+  ourTotal: number
+  warTotal: number
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
