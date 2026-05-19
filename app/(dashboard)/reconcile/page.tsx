@@ -551,7 +551,9 @@ export default function ReconcilePage() {
 
   const filtered = (results ?? [])
     .filter(r => {
-      if (filter === 'business') return r.status === 'content_creator' || !!exclusions[r.orderNumber]
+      if (filter === 'business')  return r.status === 'content_creator' || !!exclusions[r.orderNumber]
+      if (filter === 'cancelled') return r.status === 'cancelled'
+      if (r.status === 'cancelled') return false  // hide cancelled from all other tabs
       // All other filters: exclude business expenses from main table
       if (r.status === 'content_creator' || exclusions[r.orderNumber]) return false
       const isReclassified = !!reclassifications[r.orderNumber]
