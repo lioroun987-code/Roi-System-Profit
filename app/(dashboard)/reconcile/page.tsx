@@ -1044,7 +1044,8 @@ export default function ReconcilePage() {
                 { key: 'personal', label: `🔍 פערים אישיים${(results ?? []).filter(r => r.status === 'personal_diff').length > 0 ? ` (${(results ?? []).filter(r => r.status === 'personal_diff').length})` : ''}` },
                 { key: 'match',    label: '✓ תואמים' },
                 { key: 'missing',  label: '⏳ חסרה עלות' },
-                { key: 'business', label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
+                { key: 'business',   label: `💼 הוצאות עסקיות${bizExpenses.length > 0 ? ` (${bizExpenses.length})` : ''}` },
+                { key: 'cancelled',  label: `❌ בוטלו${(results ?? []).filter(r => r.status === 'cancelled').length > 0 ? ` (${(results ?? []).filter(r => r.status === 'cancelled').length})` : ''}` },
                 { key: 'totals',   label: '📊 סה״כ עלויות מערכת' },
               ].map(f => (
                 <button
