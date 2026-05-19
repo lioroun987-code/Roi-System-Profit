@@ -42,6 +42,7 @@ interface Summary {
   systemTotal: number
   ourTotal: number
   warTotal: number
+  cancelledCount: number
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
