@@ -521,11 +521,27 @@ export default function ReconcilePage() {
 </body>
 </html>`
 
+      // Open in new window
       const win = window.open('', '_blank')
       if (win) {
         win.document.write(html)
         win.document.close()
       }
+
+      // Save HTML + generate share token
+      try {
+        const saveRes = await fetch('/api/reconcile/report/share', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ businessId: activeBusiness, html }),
+        })
+        if (saveRes.ok) {
+          const { token } = await saveRes.json()
+          const shareUrl = `${window.location.origin}/api/report/${token}`
+          await navigator.clipboard.writeText(shareUrl).catch(() => {})
+          alert(`✅ הדוח נפתח בחלון חדש!\n\nקישור לשיתוף עם הסוכן הועתק ללוח:\n${shareUrl}`)
+        }
+      } catch { /* non-fatal */ }
     } finally {
       setGeneratingReport(false)
     }
