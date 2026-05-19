@@ -857,46 +857,68 @@ export default function ReconcilePage() {
       {/* Results */}
       {summary && results && (
         <>
-          {/* Summary cards */}
+          {/* 3-column summary */}
           {(() => {
-            const totalWar = effectiveCol.warSurcharge
-              ? results.filter(r => !exclusions[r.orderNumber]).reduce((s, r) => s + (r.warIls ?? 0), 0)
-              : 0
-            const mkCard = (label: string, ils: number, color: string, bg: string) => ({
-              label, color, bg,
-              val:  `₪${ils.toFixed(2)}`,
-              sub:  `$${(ils / exchangeRate).toFixed(2)}`,
-            })
-            const countCard = (label: string, val: string, color: string, bg: string) => ({
-              label, color, bg, val, sub: '',
-            })
-            const cards = [
-              countCard('סה"כ הזמנות', String(summary.total), '#CBD5E1', '#13161F'),
-              countCard('✓ תואמות', String(summary.matches), '#22C55E', '#0D2818'),
-              countCard('⚠️ פערים', String(summary.agentHigher + summary.weHigher), '#F59E0B', '#2A1800'),
-              mkCard('עלות סוכן (ללא עסקי)', realAgentTotal, '#60A5FA', '#0D1A2A'),
-              { ...mkCard('עלות שלי (ללא עסקי)', realOurTotal, '#A78BFA', '#150D2A'),
-                sub2: effectiveCol.ourCostCol ? `📄 ${ourFromSheet} גיליון · ⚙ ${ourFromDb} DB` : '' },
-              mkCard('עלות מערכת (ללא עסקי)', realSystemTotal, '#818CF8', '#0D0D2A'),
-              (() => { const isGood = realDiff <= 0; return mkCard(`הפרש ${isGood ? '✓ לטובתי' : '✗ נגדי'}`, Math.abs(realDiff), isGood ? '#22C55E' : '#EF4444', isGood ? '#0D2818' : '#2D0F0F') })(),
-              ...(effectiveCol.warSurcharge ? [mkCard('⚔️ תוספת מלחמה', totalWar, '#F59E0B', '#2A1800')] : []),
-              ...(bizResults.length > 0 ? [mkCard(`💼 הוצאות עסקיות (${bizResults.length})`, bizAgentTotal, '#06B6D4', '#0C1A2A')] : []),
-              ...(bizResults.length > 0 ? [mkCard('עלות מערכת (עסקי)', bizSystemTotal, '#818CF8', '#0D0D2A')] : []),
-            ]
-            const cols = Math.min(cards.length, 5)
+            const ils = (n: number) => `₪${n.toFixed(2)}`
+            const usd = (n: number) => `$${(n / exchangeRate).toFixed(2)}`
+            const agentDiff   = summary.agentTotal - summary.systemTotal
+            const myDiff      = summary.ourTotal   - summary.agentTotal
+
+            const col = (title: string, accentColor: string, rows: { label: string; main: string; sub?: string; highlight?: boolean }[]) => (
+              <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${accentColor}33`, background: '#0D0F14' }}>
+                <div className="px-5 py-3 text-center font-bold text-sm" style={{ background: accentColor + '22', color: accentColor, borderBottom: `1px solid ${accentColor}33` }}>
+                  {title}
+                </div>
+                <div className="divide-y" style={{ borderColor: '#1E2130' }}>
+                  {rows.map((r, i) => (
+                    <div key={i} className="px-5 py-3">
+                      <p className="text-xs mb-1" style={{ color: '#4A5174' }}>{r.label}</p>
+                      <p className={`font-bold ${r.highlight ? 'text-lg' : 'text-base'}`} style={{ color: r.highlight ? accentColor : '#CBD5E1' }}>{r.main}</p>
+                      {r.sub && <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{r.sub}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+
             return (
-              <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-${cols} gap-4`}>
-                {cards.map(s => (
-                  <div key={s.label} className="rounded-2xl p-4 text-center border" style={{ background: s.bg, borderColor: '#1E2130' }}>
-                    <p className="text-xl font-extrabold" style={{ color: s.color }}>{s.val}</p>
-                    {s.sub && <p className="text-xs font-medium mt-0.5" style={{ color: s.color + '99' }}>{s.sub}</p>}
-                    {(s as any).sub2 && <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{(s as any).sub2}</p>}
-                    <p className="text-xs mt-1" style={{ color: '#6B7280' }}>{s.label}</p>
-                  </div>
-                ))}
+              <div className="grid grid-cols-3 gap-4">
+                {col('📦 גיליון הסוכן', '#60A5FA', [
+                  { label: 'מספר הזמנות', main: String(summary.agentCount), highlight: true },
+                  { label: 'עלות כוללת', main: ils(summary.agentTotal), sub: usd(summary.agentTotal), highlight: true },
+                  ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה', main: ils(summary.warTotal), sub: usd(summary.warTotal) }] : []),
+                ])}
+                {col('⚙️ חישוב המערכת', '#818CF8', [
+                  { label: 'מספר הזמנות', main: String(summary.systemCount), highlight: true },
+                  { label: 'עלות כוללת', main: ils(summary.systemTotal), sub: usd(summary.systemTotal), highlight: true },
+                  { label: agentDiff > 0.5 ? '▲ הסוכן גבוה יותר' : agentDiff < -0.5 ? '▼ המערכת גבוהה יותר' : '✓ תואם לסוכן',
+                    main: agentDiff !== 0 ? `${agentDiff > 0 ? '+' : ''}${ils(agentDiff)}` : '₪0',
+                    sub: usd(Math.abs(agentDiff)),
+                    highlight: Math.abs(agentDiff) > 0.5 },
+                ])}
+                {col('📋 גיליון שלי', '#A78BFA', [
+                  { label: 'מספר הזמנות', main: `${summary.ourCount}${effectiveCol.ourCostCol ? '' : ' (DB)'}`, highlight: true },
+                  { label: 'עלות כוללת', main: ils(summary.ourTotal), sub: usd(summary.ourTotal), highlight: true },
+                  { label: myDiff > 0.5 ? '▲ שלי גבוה מהסוכן' : myDiff < -0.5 ? '▼ שלי נמוך מהסוכן' : '✓ תואם לסוכן',
+                    main: myDiff !== 0 ? `${myDiff > 0 ? '+' : ''}${ils(myDiff)}` : '₪0',
+                    sub: usd(Math.abs(myDiff)),
+                    highlight: Math.abs(myDiff) > 0.5 },
+                ])}
               </div>
             )
           })()}
+
+          {/* Business expenses info */}
+          {summary.bizCount > 0 && (
+            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: '#0C1A2A', border: '1px solid #1E3A5F' }}>
+              <p className="text-sm" style={{ color: '#60A5FA' }}>
+                💼 <strong>{summary.bizCount}</strong> הוצאות עסקיות — לא נכללות בסיכום למעלה
+              </p>
+              <button onClick={() => setFilter('business')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E3A5F', color: '#60A5FA' }}>
+                הצג
+              </button>
+            </div>
+          )}
 
           {/* Missing from sheet warning */}
           {effectiveCol.ourCostCol && results && (() => {
