@@ -192,14 +192,25 @@ export default function ReconcilePage() {
         setOurSheetId(report.ourSheetId)
         setExchangeRate(report.exchangeRate)
 
-        // Compute summary totals from stored results
         const savedResults: ReconcileResult[] = report.results as ReconcileResult[]
-        const totalAgentCost = savedResults.reduce((s, r) => s + (r.agentCost ?? 0), 0)
-        const totalOurCost   = savedResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
-        const totalDiff      = savedResults.filter(r => r.status !== 'match').reduce((s, r) => s + r.diff, 0)
+        const totalDiff = savedResults.filter(r => r.status !== 'match').reduce((s, r) => s + r.diff, 0)
+        const nonBiz    = savedResults.filter(r => r.status !== 'content_creator')
 
         setResults(savedResults)
-        setSummary({ ...(report.summary as any), totalDiff, totalAgentCost, totalOurCost })
+        setSummary({
+          ...(report.summary as any),
+          totalDiff,
+          totalAgentCost: nonBiz.reduce((s, r) => s + r.agentCost, 0),
+          totalOurCost:   nonBiz.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0),
+          agentCount:     (report.summary as any).agentCount ?? nonBiz.length,
+          systemCount:    (report.summary as any).systemCount ?? nonBiz.filter((r: ReconcileResult) => r.systemCost != null).length,
+          ourCount:       (report.summary as any).ourCount ?? nonBiz.filter((r: ReconcileResult) => r.ourCostSource === 'sheet').length,
+          agentTotal:     (report.summary as any).agentTotal ?? nonBiz.reduce((s: number, r: ReconcileResult) => s + r.agentCost, 0),
+          systemTotal:    (report.summary as any).systemTotal ?? nonBiz.reduce((s: number, r: ReconcileResult) => s + (r.systemCost ?? 0), 0),
+          ourTotal:       (report.summary as any).ourTotal ?? nonBiz.filter((r: ReconcileResult) => r.ourCost != null).reduce((s: number, r: ReconcileResult) => s + (r.ourCost ?? 0), 0),
+          warTotal:       (report.summary as any).warTotal ?? nonBiz.reduce((s: number, r: ReconcileResult) => s + (r.warIls ?? 0), 0),
+          bizCount:       (report.summary as any).bizCount ?? savedResults.filter((r: ReconcileResult) => r.status === 'content_creator').length,
+        })
         setDebug(report.debug ?? null)
         setLastRunAt(new Date(report.runAt))
 
