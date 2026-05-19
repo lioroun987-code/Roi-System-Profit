@@ -582,7 +582,7 @@ export default function ReconcilePage() {
 
   // Fix summary cards: exclude business expenses from gap totals
   const nonBizResults = (results ?? []).filter(r =>
-    r.status !== 'content_creator' && !exclusions[r.orderNumber]
+    r.status !== 'content_creator' && r.status !== 'cancelled' && !exclusions[r.orderNumber]
   )
   const bizResults    = (results ?? []).filter(r =>
     r.status === 'content_creator' || !!exclusions[r.orderNumber]
