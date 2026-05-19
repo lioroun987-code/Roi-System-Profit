@@ -402,13 +402,15 @@ export async function POST(request: NextRequest) {
         const hasSheetCost  = COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null
         const ourCost       = hasSheetCost ? sheetEntry!.sheetCost! : dbCost
         const ourCostSource = hasSheetCost ? 'sheet' : 'db'
+        // Cancelled: agent not present (=0) AND our cost is also 0 or empty
+        const isCancelled   = !hasSheetCost || (ourCost != null && ourCost <= 0)
         results.push({
           orderNumber: orderNum,
           agentCost:   0,
-          ourCost,
+          ourCost:     hasSheetCost ? ourCost : 0,
           systemCost:  dbCost,
           diff:        0,
-          status:      'missing_in_agent',
+          status:      isCancelled ? 'cancelled' : 'missing_in_agent',
           rowIndex:    sheetEntry?.rowIndex ?? -1,
           sheetReason: colCByOrder.get(orderNum) ?? null,
           ourCostSource,
