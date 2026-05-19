@@ -892,29 +892,59 @@ export default function ReconcilePage() {
               </div>
             )
 
+            const bizAgent  = results.filter(r => r.status === 'content_creator' || !!exclusions[r.orderNumber])
+            const bizAgentTotal  = bizAgent.reduce((s, r) => s + r.agentCost, 0)
+            const bizSystemTotal = bizAgent.reduce((s, r) => s + (r.systemCost ?? 0), 0)
+            const bizOurTotal    = bizAgent.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
+
             return (
-              <div className="grid grid-cols-3 gap-4">
-                {col('📦 גיליון הסוכן', '#60A5FA', [
-                  { label: 'מספר הזמנות', main: String(summary.agentCount), highlight: true },
-                  { label: 'עלות כוללת', main: ils(summary.agentTotal), sub: usd(summary.agentTotal), highlight: true },
-                  ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה', main: ils(summary.warTotal), sub: usd(summary.warTotal) }] : []),
-                ])}
-                {col('⚙️ חישוב המערכת', '#818CF8', [
-                  { label: 'מספר הזמנות', main: String(summary.systemCount), highlight: true },
-                  { label: 'עלות כוללת', main: ils(summary.systemTotal), sub: usd(summary.systemTotal), highlight: true },
-                  { label: agentDiff > 0.5 ? '▲ הסוכן גבוה יותר' : agentDiff < -0.5 ? '▼ המערכת גבוהה יותר' : '✓ תואם לסוכן',
-                    main: agentDiff !== 0 ? `${agentDiff > 0 ? '+' : ''}${ils(agentDiff)}` : '₪0',
-                    sub: usd(Math.abs(agentDiff)),
-                    highlight: Math.abs(agentDiff) > 0.5 },
-                ])}
-                {col('📋 גיליון שלי', '#A78BFA', [
-                  { label: 'מספר הזמנות', main: `${summary.ourCount}${effectiveCol.ourCostCol ? '' : ' (DB)'}`, highlight: true },
-                  { label: 'עלות כוללת', main: ils(summary.ourTotal), sub: usd(summary.ourTotal), highlight: true },
-                  { label: myDiff > 0.5 ? '▲ שלי גבוה מהסוכן' : myDiff < -0.5 ? '▼ שלי נמוך מהסוכן' : '✓ תואם לסוכן',
-                    main: myDiff !== 0 ? `${myDiff > 0 ? '+' : ''}${ils(myDiff)}` : '₪0',
-                    sub: usd(Math.abs(myDiff)),
-                    highlight: Math.abs(myDiff) > 0.5 },
-                ])}
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-4">
+                  {col('📦 גיליון הסוכן', '#60A5FA', [
+                    { label: 'מספר הזמנות', main: String(summary.agentCount), highlight: true },
+                    { label: 'עלות כוללת', main: ils(summary.agentTotal), sub: usd(summary.agentTotal), highlight: true },
+                    ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה', main: ils(summary.warTotal), sub: usd(summary.warTotal) }] : []),
+                  ])}
+                  {col('⚙️ חישוב המערכת', '#818CF8', [
+                    { label: 'מספר הזמנות', main: String(summary.systemCount), highlight: true },
+                    { label: 'עלות כוללת', main: ils(summary.systemTotal), sub: usd(summary.systemTotal), highlight: true },
+                    { label: agentDiff > 0.5 ? '▲ הסוכן גבוה יותר' : agentDiff < -0.5 ? '▼ המערכת גבוהה יותר' : '✓ תואם לסוכן',
+                      main: agentDiff !== 0 ? `${agentDiff > 0 ? '+' : ''}${ils(agentDiff)}` : '₪0',
+                      sub: usd(Math.abs(agentDiff)),
+                      highlight: Math.abs(agentDiff) > 0.5 },
+                  ])}
+                  {col('📋 גיליון שלי', '#A78BFA', [
+                    { label: 'מספר הזמנות', main: `${summary.ourCount}${effectiveCol.ourCostCol ? '' : ' (DB)'}`, highlight: true },
+                    { label: 'עלות כוללת', main: ils(summary.ourTotal), sub: usd(summary.ourTotal), highlight: true },
+                    { label: myDiff > 0.5 ? '▲ שלי גבוה מהסוכן' : myDiff < -0.5 ? '▼ שלי נמוך מהסוכן' : '✓ תואם לסוכן',
+                      main: myDiff !== 0 ? `${myDiff > 0 ? '+' : ''}${ils(myDiff)}` : '₪0',
+                      sub: usd(Math.abs(myDiff)),
+                      highlight: Math.abs(myDiff) > 0.5 },
+                  ])}
+                </div>
+
+                {/* Business expenses row */}
+                {bizAgent.length > 0 && (
+                  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #0C1A2A', background: '#0D0F14' }}>
+                    <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: '#06B6D422', borderBottom: '1px solid #0C1A2A' }}>
+                      <span className="text-sm font-bold" style={{ color: '#06B6D4' }}>💼 הוצאות עסקיות — {bizAgent.length} הזמנות (לא נכללות בסיכום)</span>
+                      <button onClick={() => setFilter('business')} className="text-xs px-3 py-1 rounded-lg" style={{ background: '#0C2A2A', color: '#06B6D4' }}>הצג</button>
+                    </div>
+                    <div className="grid grid-cols-3 divide-x" style={{ borderColor: '#1E2130' }}>
+                      {[
+                        { label: 'סוכן', val: bizAgentTotal, color: '#60A5FA' },
+                        { label: 'מערכת', val: bizSystemTotal, color: '#818CF8' },
+                        { label: 'שלי', val: bizOurTotal, color: '#A78BFA' },
+                      ].map(s => (
+                        <div key={s.label} className="px-5 py-3 text-center">
+                          <p className="text-xs mb-1" style={{ color: '#4A5174' }}>עלות {s.label}</p>
+                          <p className="text-base font-bold" style={{ color: s.color }}>{ils(s.val)}</p>
+                          <p className="text-xs" style={{ color: '#374151' }}>{usd(s.val)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })()}
