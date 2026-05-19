@@ -5,15 +5,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { token } = await params
 
   const report = await prisma.reconcileReport.findUnique({
-    where: { shareToken: token },
-    select: { reportHtml: true, agentSheetName: true, runAt: true },
+    where: { id: token },
+    select: { debug: true },
   })
 
-  if (!report?.reportHtml) {
+  const html = (report?.debug as any)?.reportHtml
+
+  if (!html) {
     return new Response('Report not found', { status: 404, headers: { 'Content-Type': 'text/plain' } })
   }
 
-  return new Response(report.reportHtml, {
+  return new Response(html, {
     status: 200,
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
