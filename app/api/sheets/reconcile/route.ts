@@ -388,16 +388,21 @@ export async function POST(request: NextRequest) {
     // Orders in DB (for this month) but missing from agent sheet
     for (const orderNum of dbOrderNumbers) {
       if (!agentByOrder.has(orderNum)) {
-        const ourCost = dbCostByOrder.get(orderNum) ?? null
+        const dbCost        = dbCostByOrder.get(orderNum) ?? null
+        const sheetEntry    = ourByOrder.get(orderNum)
+        const hasSheetCost  = COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null
+        const ourCost       = hasSheetCost ? sheetEntry!.sheetCost! : dbCost
+        const ourCostSource = hasSheetCost ? 'sheet' : 'db'
         results.push({
           orderNumber: orderNum,
           agentCost:   0,
           ourCost,
-          systemCost:  ourCost,
+          systemCost:  dbCost,
           diff:        0,
           status:      'missing_in_agent',
-          rowIndex:    ourByOrder.get(orderNum)?.rowIndex ?? -1,
+          rowIndex:    sheetEntry?.rowIndex ?? -1,
           sheetReason: colCByOrder.get(orderNum) ?? null,
+          ourCostSource,
         })
       }
     }
