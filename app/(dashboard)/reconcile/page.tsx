@@ -300,14 +300,17 @@ export default function ReconcilePage() {
 
   async function generateAgentReport() {
     if (!results || !activeBusiness) return
-    // Include: agent_higher orders + reclassified personal_diff orders
+    const MIN_DIFF_USD = 2  // פערים קטנים מ-$2 לא נכללים בדוח
+    // Include: agent_higher orders + reclassified personal_diff orders, diff >= $2
     const overcharged = results.filter(r =>
-      !exclusions[r.orderNumber] && (
+      !exclusions[r.orderNumber] &&
+      r.diff / exchangeRate >= MIN_DIFF_USD &&
+      (
         r.status === 'agent_higher' ||
         (r.status === 'personal_diff' && !!reclassifications[r.orderNumber])
       )
     )
-    if (overcharged.length === 0) { alert('אין הזמנות עם חיוב עודף'); return }
+    if (overcharged.length === 0) { alert('אין הזמנות עם חיוב עודף מעל $2'); return }
 
     setGeneratingReport(true)
     try {
