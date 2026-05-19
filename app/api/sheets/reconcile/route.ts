@@ -430,12 +430,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const nonBizResults = results.filter(r => r.status !== 'content_creator')
     const summary = {
-      total: results.length,
-      matches: results.filter(r => r.status === 'match').length,
-      agentHigher: results.filter(r => r.status === 'agent_higher').length,
-      weHigher: results.filter(r => r.status === 'we_higher').length,
-      missingCost: results.filter(r => r.status === 'missing_our_cost').length,
+      total:        results.length,
+      matches:      results.filter(r => r.status === 'match').length,
+      agentHigher:  results.filter(r => r.status === 'agent_higher').length,
+      weHigher:     results.filter(r => r.status === 'we_higher').length,
+      missingCost:  results.filter(r => r.status === 'missing_our_cost').length,
+      bizCount:     results.filter(r => r.status === 'content_creator').length,
+      // Order counts per source (excluding biz)
+      agentCount:   nonBizResults.length,
+      systemCount:  nonBizResults.filter(r => r.systemCost != null).length,
+      ourCount:     nonBizResults.filter(r => r.ourCostSource === 'sheet').length,
+      // Cost totals (excluding biz)
+      agentTotal:   nonBizResults.reduce((s, r) => s + r.agentCost, 0),
+      systemTotal:  nonBizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0),
+      ourTotal:     nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0),
+      warTotal:     nonBizResults.reduce((s, r) => s + (r.warIls ?? 0), 0),
     }
 
     const agentKeys = Array.from(agentByOrder.keys())
