@@ -12,7 +12,7 @@ interface ReconcileResult {
   systemCost: number | null
   diff: number
   sheetReason?: string | null
-  status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator' | 'personal_diff'
+  status: 'match' | 'agent_higher' | 'we_higher' | 'missing_our_cost' | 'missing_in_agent' | 'content_creator' | 'personal_diff' | 'cancelled'
   agentRows?: Array<{ price: number; discount: number; hd: number; war: number; subtotal: number }>
   ourCostSource?: 'sheet' | 'db'
 }
