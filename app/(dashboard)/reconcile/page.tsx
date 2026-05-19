@@ -953,6 +953,18 @@ export default function ReconcilePage() {
             )
           })()}
 
+          {/* Cancelled orders info */}
+          {(summary.cancelledCount ?? 0) > 0 && (
+            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: '#111318', border: '1px solid #1E2130' }}>
+              <p className="text-sm" style={{ color: '#6B7280' }}>
+                ❌ <strong>{summary.cancelledCount}</strong> הזמנות מבוטלות — לא נכללות בחישוב
+              </p>
+              <button onClick={() => setFilter('cancelled')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E2130', color: '#6B7280' }}>
+                הצג
+              </button>
+            </div>
+          )}
+
           {/* Business expenses info */}
           {summary.bizCount > 0 && (
             <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: '#0C1A2A', border: '1px solid #1E3A5F' }}>
