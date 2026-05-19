@@ -444,7 +444,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const nonBizResults = results.filter(r => r.status !== 'content_creator')
+    const nonBizResults = results.filter(r => r.status !== 'content_creator' && r.status !== 'cancelled')
     const summary = {
       total:        results.length,
       matches:      results.filter(r => r.status === 'match').length,
