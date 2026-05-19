@@ -334,12 +334,21 @@ export async function POST(request: NextRequest) {
       const warIls     = agentData.warIls
       const orderDate  = agentData.date
 
-      // If agent wrote $0 → they didn't charge for this order — show as match, no comparison
+      // If agent wrote $0 → check if our sheet also shows $0/empty → cancelled order
       if (agentCost <= 0) {
+        const sheetEntry   = ourByOrder.get(orderNum)
+        const hasSheetCost = COL_OUR_COST >= 0 && sheetEntry?.sheetCost != null
+        const ourCost      = hasSheetCost ? sheetEntry!.sheetCost! : null
+        // Cancelled: agent=0 AND (our sheet=0 OR our sheet empty)
+        const isCancelled  = !hasSheetCost || (ourCost != null && ourCost <= 0)
         results.push({
-          orderNumber: orderNum, agentCost: 0, warIls, ourCost: 0, systemCost: 0,
-          diff: 0, status: 'match', rowIndex: ourByOrder.get(orderNum)?.rowIndex ?? -1,
+          orderNumber: orderNum, agentCost: 0, warIls, ourCost: ourCost ?? 0,
+          systemCost: dbCostByOrder.get(orderNum) ?? 0,
+          diff: 0,
+          status: isCancelled ? 'cancelled' : 'match',
+          rowIndex: sheetEntry?.rowIndex ?? -1,
           orderDate, sheetReason: colCByOrder.get(orderNum) ?? null,
+          ourCostSource: hasSheetCost ? 'sheet' : 'db',
         })
         continue
       }
