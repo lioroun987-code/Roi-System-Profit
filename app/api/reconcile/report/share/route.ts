@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   const business = await prisma.business.findFirst({ where: { id: businessId, userId } })
   if (!business) return Response.json({ error: 'Not found' }, { status: 404 })
 
-  // Find most recent report and store HTML in debug field
+  // Find most recent report to copy metadata
   const report = await prisma.reconcileReport.findFirst({
     where: { businessId },
     orderBy: { runAt: 'desc' },
@@ -21,11 +21,20 @@ export async function POST(request: NextRequest) {
 
   if (!report) return Response.json({ error: 'No report found' }, { status: 404 })
 
-  await prisma.reconcileReport.update({
-    where: { id: report.id },
-    data: { debug: { ...(report.debug as any ?? {}), reportHtml: html } },
+  // Create a DEDICATED share copy — uses a special agentSheetName prefix so it's
+  // never deleted when the user re-runs the reconcile (deleteMany filters on tab name)
+  const shareRecord = await prisma.reconcileReport.create({
+    data: {
+      businessId,
+      agentSheetId:   report.agentSheetId,
+      agentSheetName: `__share__${Date.now()}`,  // never matches a real tab → never deleted
+      ourSheetId:     report.ourSheetId,
+      exchangeRate:   report.exchangeRate,
+      results:        [],
+      summary:        {},
+      debug:          { reportHtml: html },
+    },
   })
 
-  // Use the report's cuid as share token — already unique and hard to guess
-  return Response.json({ token: report.id })
+  return Response.json({ token: shareRecord.id })
 }
