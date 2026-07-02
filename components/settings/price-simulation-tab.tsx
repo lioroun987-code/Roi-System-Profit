@@ -33,7 +33,7 @@ interface Props {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+  background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
   borderRadius: '10px', padding: '9px 14px', fontSize: '13px',
   outline: 'none', width: '100%',
 }
@@ -107,15 +107,15 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
     <div className="space-y-6">
 
       {/* Form */}
-      <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+      <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
         <h3 className="text-white font-semibold">סימולציה ושינוי מחיר</h3>
 
         {/* Mode toggle */}
-        <div className="flex rounded-xl p-1 gap-1" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+        <div className="flex rounded-xl p-1 gap-1" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
           {([['cost','💰 שינוי עלות ספק'], ['selling','💸 שינוי מחיר מכירה']] as const).map(([val, label]) => (
             <button key={val} onClick={() => { setMode(val); setSimResult(null) }}
               className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{ background: mode === val ? '#1E2846' : 'transparent', color: mode === val ? '#4F6EF7' : '#6B7280' }}>
+              style={{ background: mode === val ? 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' : 'transparent', color: mode === val ? 'var(--color-brand-start)' : 'var(--color-text-secondary)' }}>
               {label}
             </button>
           ))}
@@ -123,7 +123,7 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
 
         {/* Product */}
         <div className="space-y-1.5">
-          <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>מוצר</label>
+          <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>מוצר</label>
           <select value={productKey} onChange={e => { setProductKey(e.target.value); setSimResult(null) }}
             style={{ ...inputStyle, direction: 'rtl' }}>
             {products.map(p => (
@@ -138,20 +138,20 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
         {/* Value */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>
+            <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>
               {mode === 'cost' ? 'עלות נוכחית' : 'מחיר נוכחי'}
             </label>
             <div className="rounded-xl px-4 py-2.5 text-sm font-semibold"
-              style={{ background: '#0D0F14', border: '1px solid #1E2130', color: '#6B7280' }}>
+              style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>
               {currencyLabel}{oldValue}
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>
+            <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>
               {mode === 'cost' ? 'עלות חדשה ($)' : 'מחיר חדש (₪)'}
             </label>
             <div className="relative">
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>{currencyLabel}</span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{currencyLabel}</span>
               <input type="number" step="0.01" value={newValue} onChange={e => { setNewValue(e.target.value); setSimResult(null) }}
                 placeholder="0.00" style={{ ...inputStyle, paddingRight: '26px' }} dir="ltr" />
             </div>
@@ -161,12 +161,12 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
         {/* Order range */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>מהזמנה # (ריק = כל ההזמנות)</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>מהזמנה # (ריק = כל ההזמנות)</label>
             <input type="text" value={fromOrder} onChange={e => { setFromOrder(e.target.value); setSimResult(null) }}
               placeholder="3500" style={inputStyle} dir="ltr" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>עד הזמנה # (ריק = הכל)</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>עד הזמנה # (ריק = הכל)</label>
             <input type="text" value={toOrder} onChange={e => { setToOrder(e.target.value); setSimResult(null) }}
               placeholder="4200" style={inputStyle} dir="ltr" />
           </div>
@@ -174,24 +174,24 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
 
         {/* Note */}
         <div className="space-y-1.5">
-          <label className="text-xs font-medium" style={{ color: '#CBD5E1' }}>סיבת השינוי (לרישום היסטוריה)</label>
+          <label className="text-xs font-medium" style={{ color: 'var(--color-text-primary)' }}>סיבת השינוי (לרישום היסטוריה)</label>
           <input type="text" value={note} onChange={e => setNote(e.target.value)}
             placeholder="עליית מחיר ספק / עליית מחיר באתר / שינוי מבצע..." style={inputStyle} />
         </div>
 
-        {simError && <p className="text-sm px-3 py-2 rounded-xl" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>{simError}</p>}
+        {simError && <p className="text-sm px-3 py-2 rounded-xl" style={{ background: 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))', color: 'var(--color-danger)' }}>{simError}</p>}
 
         <div className="flex gap-3">
           <button onClick={runSimulation} disabled={simLoading || !newValue || !productKey}
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-all"
-            style={{ background: 'linear-gradient(135deg,#4F6EF7,#7C5CFC)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--color-brand-start), var(--color-brand-end))' }}>
             <Play className="w-4 h-4" />
             {simLoading ? 'מחשב...' : 'הרץ סימולציה'}
           </button>
           {simResult && (
             <button onClick={commitChange} disabled={saving}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40 transition-all"
-              style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+              style={{ background: 'linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 70%, black))' }}>
               <Save className="w-4 h-4" />
               {saving ? 'שומר...' : 'שמור שינוי'}
             </button>
@@ -201,21 +201,21 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
 
       {/* Simulation result */}
       {simResult && (
-        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${diff >= 0 ? '#166534' : '#7F1D1D'}` }}>
-          <div className="px-5 py-4 flex items-center justify-between" style={{ background: diff >= 0 ? '#0D2818' : '#1A0A0A' }}>
+        <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${diff >= 0 ? 'color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-danger) 45%, var(--color-bg-app))'}` }}>
+          <div className="px-5 py-4 flex items-center justify-between" style={{ background: diff >= 0 ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-danger) 12%, var(--color-bg-app))' }}>
             <div className="flex items-center gap-2">
               {diff >= 0
-                ? <TrendingUp className="w-5 h-5" style={{ color: '#22C55E' }} />
-                : <TrendingDown className="w-5 h-5" style={{ color: '#EF4444' }} />}
-              <span className="font-semibold" style={{ color: diff >= 0 ? '#22C55E' : '#EF4444' }}>
+                ? <TrendingUp className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                : <TrendingDown className="w-5 h-5" style={{ color: 'var(--color-danger)' }} />}
+              <span className="font-semibold" style={{ color: diff >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
                 {diff >= 0 ? '↑ שיפור ברווח' : '↓ ירידה ברווח'}
               </span>
             </div>
-            <span className="text-2xl font-black" style={{ color: diff >= 0 ? '#22C55E' : '#EF4444' }}>
+            <span className="text-2xl font-black" style={{ color: diff >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
               {diff >= 0 ? '+' : ''}₪{diff.toFixed(2)}
             </span>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-white/5 px-0 py-4" style={{ background: '#0D0F14' }}>
+          <div className="grid grid-cols-3 divide-x divide-white/5 px-0 py-4" style={{ background: 'var(--color-bg-app)' }}>
             {[
               { label: 'הזמנות שנסרקו', val: String(simResult.totalOrders) },
               { label: 'הזמנות שהושפעו', val: String(simResult.ordersAffected) },
@@ -223,25 +223,25 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
             ].map(s => (
               <div key={s.label} className="text-center px-4">
                 <p className="text-lg font-bold text-white">{s.val}</p>
-                <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.label}</p>
               </div>
             ))}
           </div>
           {simResult.rows?.length > 0 && (
-            <div className="border-t" style={{ borderColor: '#1E2130' }}>
-              <div className="px-4 py-2 text-xs font-semibold uppercase" style={{ background: '#13161F', color: '#4A5174' }}>
+            <div className="border-t" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="px-4 py-2 text-xs font-semibold uppercase" style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-tertiary)' }}>
                 פירוט ({simResult.rows.length} הזמנות ראשונות שהושפעו)
               </div>
               <div className="max-h-48 overflow-y-auto">
                 {simResult.rows.map((r: any) => (
                   <div key={r.orderNumber} className="flex items-center justify-between px-4 py-2 border-b text-sm"
-                    style={{ borderColor: '#0D0F14' }}>
-                    <span className="font-mono" style={{ color: '#CBD5E1' }}>#{r.orderNumber}</span>
+                    style={{ borderColor: 'var(--color-bg-app)' }}>
+                    <span className="font-mono" style={{ color: 'var(--color-text-primary)' }}>#{r.orderNumber}</span>
                     <div className="flex items-center gap-4">
-                      <span style={{ color: '#6B7280' }}>₪{r.origProfit.toFixed(2)}</span>
-                      <span style={{ color: '#4A5174' }}>→</span>
-                      <span style={{ color: r.simProfit >= r.origProfit ? '#22C55E' : '#EF4444' }}>₪{r.simProfit.toFixed(2)}</span>
-                      <span className="text-xs" style={{ color: r.diff >= 0 ? '#22C55E' : '#EF4444' }}>
+                      <span style={{ color: 'var(--color-text-secondary)' }}>₪{r.origProfit.toFixed(2)}</span>
+                      <span style={{ color: 'var(--color-text-tertiary)' }}>→</span>
+                      <span style={{ color: r.simProfit >= r.origProfit ? 'var(--color-success)' : 'var(--color-danger)' }}>₪{r.simProfit.toFixed(2)}</span>
+                      <span className="text-xs" style={{ color: r.diff >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>
                         {r.diff >= 0 ? '+' : ''}₪{r.diff.toFixed(2)}
                       </span>
                     </div>
@@ -254,27 +254,27 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
       )}
 
       {/* History */}
-      <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #1E2130' }}>
+      <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
         <button className="w-full flex items-center justify-between px-5 py-4"
-          style={{ background: '#13161F' }}
+          style={{ background: 'var(--color-bg-surface)' }}
           onClick={() => setHistoryOpen(v => !v)}>
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4" style={{ color: '#4A5174' }} />
+            <Clock className="w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />
             <span className="font-semibold text-white text-sm">היסטוריית שינויי מחירים</span>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1E2130', color: '#6B7280' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>
               {priceHistory.length}
             </span>
           </div>
-          {historyOpen ? <ChevronUp className="w-4 h-4" style={{ color: '#4A5174' }} /> : <ChevronDown className="w-4 h-4" style={{ color: '#4A5174' }} />}
+          {historyOpen ? <ChevronUp className="w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} /> : <ChevronDown className="w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />}
         </button>
 
         {historyOpen && (
           priceHistory.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm" style={{ color: '#4A5174', background: '#0D0F14' }}>
+            <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--color-text-tertiary)', background: 'var(--color-bg-app)' }}>
               אין עדיין שינויי מחירים רשומים
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: '#1E2130', background: '#0D0F14' }}>
+            <div className="divide-y" style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg-app)' }}>
               {[...priceHistory].reverse().map(ch => (
                 <div key={ch.id} className="px-5 py-4">
                   <div className="flex items-start justify-between gap-4">
@@ -284,27 +284,27 @@ export function PriceSimulationTab({ businessId, products, priceHistory, exchang
                           {ch.productTitle}{ch.variantTitle !== 'Default Title' ? ` / ${ch.variantTitle}` : ''}
                         </span>
                         <span className="text-xs px-2 py-0.5 rounded-full" style={{
-                          background: ch.mode === 'cost' ? '#1E2846' : '#2A1800',
-                          color: ch.mode === 'cost' ? '#4F6EF7' : '#F59E0B',
+                          background: ch.mode === 'cost' ? 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))',
+                          color: ch.mode === 'cost' ? 'var(--color-brand-start)' : 'var(--color-warning)',
                         }}>
                           {ch.mode === 'cost' ? 'עלות ספק' : 'מחיר מכירה'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-sm">
-                        <span style={{ color: '#6B7280' }}>
+                        <span style={{ color: 'var(--color-text-secondary)' }}>
                           {ch.mode === 'cost' ? '$' : '₪'}{ch.oldValue}
                         </span>
-                        <span style={{ color: '#4A5174' }}>→</span>
-                        <span className="font-semibold" style={{ color: ch.newValue > ch.oldValue ? (ch.mode === 'cost' ? '#EF4444' : '#22C55E') : (ch.mode === 'cost' ? '#22C55E' : '#EF4444') }}>
+                        <span style={{ color: 'var(--color-text-tertiary)' }}>→</span>
+                        <span className="font-semibold" style={{ color: ch.newValue > ch.oldValue ? (ch.mode === 'cost' ? 'var(--color-danger)' : 'var(--color-success)') : (ch.mode === 'cost' ? 'var(--color-success)' : 'var(--color-danger)') }}>
                           {ch.mode === 'cost' ? '$' : '₪'}{ch.newValue}
                         </span>
                         {ch.fromOrderNumber && (
-                          <span className="text-xs" style={{ color: '#4A5174' }}>מהזמנה #{ch.fromOrderNumber}</span>
+                          <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>מהזמנה #{ch.fromOrderNumber}</span>
                         )}
                       </div>
-                      {ch.note && <p className="text-xs mt-1" style={{ color: '#4A5174' }}>{ch.note}</p>}
+                      {ch.note && <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>{ch.note}</p>}
                     </div>
-                    <span className="text-xs shrink-0" style={{ color: '#374151' }}>
+                    <span className="text-xs shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
                       {new Date(ch.date).toLocaleDateString('he-IL')}
                     </span>
                   </div>

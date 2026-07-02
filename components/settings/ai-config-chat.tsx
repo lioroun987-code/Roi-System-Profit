@@ -97,14 +97,14 @@ export function AiConfigChat({ businessId, onConfigChange }: {
     <div className="flex flex-col h-full" style={{ minHeight: '500px' }}>
 
       {/* Header */}
-      <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: '1px solid #1E2130' }}>
+      <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
         <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+          style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
           <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div>
           <h3 className="text-white font-semibold text-sm">עוזר AI להגדרות</h3>
-          <p className="text-xs" style={{ color: '#4A5174' }}>כתוב כל שינוי בעברית — AI יעדכן את המערכת אוטומטית</p>
+          <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>כתוב כל שינוי בעברית — AI יעדכן את המערכת אוטומטית</p>
         </div>
       </div>
 
@@ -112,14 +112,14 @@ export function AiConfigChat({ businessId, onConfigChange }: {
       <div className="flex-1 overflow-y-auto space-y-4 pb-4" style={{ maxHeight: '420px' }}>
         {messages.length === 0 && (
           <div className="space-y-4">
-            <p className="text-sm text-center py-4" style={{ color: '#4A5174' }}>
+            <p className="text-sm text-center py-4" style={{ color: 'var(--color-text-tertiary)' }}>
               תאר כל שינוי שאתה רוצה לעשות במערכת
             </p>
             <div className="grid grid-cols-1 gap-2">
               {SUGGESTIONS.map(s => (
                 <button key={s} onClick={() => send(s)}
                   className="text-right text-sm px-4 py-2.5 rounded-xl transition-all hover:-translate-y-0.5"
-                  style={{ background: '#13161F', border: '1px solid #1E2130', color: '#CBD5E1' }}>
+                  style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
                   {s}
                 </button>
               ))}
@@ -131,7 +131,7 @@ export function AiConfigChat({ businessId, onConfigChange }: {
           <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {m.role === 'assistant' && (
               <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1"
-                style={{ background: m.error ? '#2D0F0F' : 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                style={{ background: m.error ? 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))' : 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                 <Bot className="w-3.5 h-3.5 text-white" />
               </div>
             )}
@@ -140,9 +140,9 @@ export function AiConfigChat({ businessId, onConfigChange }: {
               <div className="px-4 py-3 rounded-2xl text-sm leading-relaxed"
                 style={{
                   background: m.role === 'user'
-                    ? 'linear-gradient(135deg,#3B82F6,#6366F1)'
-                    : m.error ? '#2D0F0F' : '#13161F',
-                  color: m.error ? '#FCA5A5' : '#F1F5F9',
+                    ? 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))'
+                    : m.error ? 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))' : 'var(--color-bg-surface)',
+                  color: m.error ? 'var(--color-danger)' : 'var(--color-text-primary)',
                   borderRadius: m.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                 }}>
                 {m.content}
@@ -152,13 +152,13 @@ export function AiConfigChat({ businessId, onConfigChange }: {
               {m.changes && (
                 <div className="flex flex-wrap gap-1.5 px-1">
                   <div className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
-                    style={{ background: '#0D2818', color: '#22C55E', border: '1px solid #166534' }}>
+                    style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                     <CheckCircle className="w-3 h-3" />
                     {m.changes.what_changed}
                   </div>
                   {m.changes.fields?.slice(0, 3).map(f => (
                     <span key={f} className="text-xs px-2 py-0.5 rounded-full"
-                      style={{ background: '#1E2130', color: '#6B7280' }}>
+                      style={{ background: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>
                       {f}
                     </span>
                   ))}
@@ -168,8 +168,8 @@ export function AiConfigChat({ businessId, onConfigChange }: {
 
             {m.role === 'user' && (
               <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-1"
-                style={{ background: '#1E2846' }}>
-                <User className="w-3.5 h-3.5" style={{ color: '#4F6EF7' }} />
+                style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' }}>
+                <User className="w-3.5 h-3.5" style={{ color: 'var(--color-brand-start)' }} />
               </div>
             )}
           </div>
@@ -178,11 +178,11 @@ export function AiConfigChat({ businessId, onConfigChange }: {
         {loading && (
           <div className="flex gap-3 justify-start">
             <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+              style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
               <Bot className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="px-4 py-3 rounded-2xl text-sm flex items-center gap-2"
-              style={{ background: '#13161F', color: '#4A5174', borderRadius: '18px 18px 18px 4px' }}>
+              style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-tertiary)', borderRadius: '18px 18px 18px 4px' }}>
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               מעדכן הגדרות...
             </div>
@@ -193,7 +193,7 @@ export function AiConfigChat({ businessId, onConfigChange }: {
       </div>
 
       {/* Input */}
-      <div className="pt-4" style={{ borderTop: '1px solid #1E2130' }}>
+      <div className="pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
         <div className="flex gap-3 items-end">
           <textarea
             ref={inputRef}
@@ -205,9 +205,9 @@ export function AiConfigChat({ businessId, onConfigChange }: {
             rows={2}
             style={{
               flex: 1,
-              background: '#0D0F14',
-              border: '1px solid #1E2130',
-              color: '#CBD5E1',
+              background: 'var(--color-bg-app)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-primary)',
               borderRadius: '12px',
               padding: '10px 14px',
               fontSize: '14px',
@@ -218,14 +218,14 @@ export function AiConfigChat({ businessId, onConfigChange }: {
           />
           <button onClick={() => send()} disabled={loading || !input.trim()}
             className="flex items-center justify-center w-10 h-10 rounded-xl transition-all disabled:opacity-40 hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: 'white', flexShrink: 0 }}>
+            style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))', color: 'white', flexShrink: 0 }}>
             <Send className="w-4 h-4" />
           </button>
         </div>
         {messages.length > 0 && (
           <button onClick={() => setMessages([])}
             className="mt-2 text-xs hover:underline"
-            style={{ color: '#374151' }}>
+            style={{ color: 'var(--color-text-tertiary)' }}>
             נקה שיחה
           </button>
         )}

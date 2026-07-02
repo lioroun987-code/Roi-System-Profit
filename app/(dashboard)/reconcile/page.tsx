@@ -46,14 +46,14 @@ interface Summary {
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; icon: any }> = {
-  match:            { label: 'תואם',                    color: '#22C55E', bg: '#0D2818', icon: CheckCircle },
-  agent_higher:     { label: 'סוכן חייב פחות',          color: '#F59E0B', bg: '#2A1800', icon: AlertTriangle },
-  we_higher:        { label: 'חישוב שלנו גבוה',         color: '#F97316', bg: '#2A1200', icon: AlertTriangle },
-  missing_our_cost: { label: 'חסרה עלות אצלנו',         color: '#6B7280', bg: '#1A1D2A', icon: XCircle },
-  missing_in_agent: { label: 'חסר בגיליון סוכן',        color: '#8B5CF6', bg: '#1A1040', icon: XCircle },
-  content_creator:  { label: 'יוצר תוכן / צלם',        color: '#06B6D4', bg: '#0C1A2A', icon: CheckCircle },
-  personal_diff:    { label: 'פער אישי לבדיקה',         color: '#E879F9', bg: '#1A0D2A', icon: AlertTriangle },
-  cancelled:        { label: 'בוטלה',                    color: '#6B7280', bg: '#111318', icon: XCircle },
+  match:            { label: 'תואם',                    color: 'var(--color-success)', bg: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', icon: CheckCircle },
+  agent_higher:     { label: 'סוכן חייב פחות',          color: 'var(--color-warning)', bg: 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))', icon: AlertTriangle },
+  we_higher:        { label: 'חישוב שלנו גבוה',         color: '#F97316', bg: 'color-mix(in srgb, #F97316 20%, var(--color-bg-app))', icon: AlertTriangle },
+  missing_our_cost: { label: 'חסרה עלות אצלנו',         color: 'var(--color-text-secondary)', bg: 'var(--color-bg-surface-alt)', icon: XCircle },
+  missing_in_agent: { label: 'חסר בגיליון סוכן',        color: 'var(--color-accent-violet)', bg: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))', icon: XCircle },
+  content_creator:  { label: 'יוצר תוכן / צלם',        color: '#06B6D4', bg: 'color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))', icon: CheckCircle },
+  personal_diff:    { label: 'פער אישי לבדיקה',         color: '#E879F9', bg: 'color-mix(in srgb, var(--color-accent-violet) 15%, var(--color-bg-app))', icon: AlertTriangle },
+  cancelled:        { label: 'בוטלה',                    color: 'var(--color-text-secondary)', bg: 'var(--color-bg-surface-alt)', icon: XCircle },
 }
 
 export default function ReconcilePage() {
@@ -590,7 +590,7 @@ export default function ReconcilePage() {
     })
 
   const inputStyle = {
-    background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+    background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
     borderRadius: '10px', padding: '10px 14px', fontSize: '13px',
     outline: 'none', width: '100%', direction: 'ltr' as const,
   }
@@ -628,17 +628,17 @@ export default function ReconcilePage() {
       {/* Expense type modal */}
       {reclassifyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-2xl p-6 w-96 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+          <div className="rounded-2xl p-6 w-96 space-y-4" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
             <h3 className="text-white font-bold">העבר לפערים מול סוכן</h3>
-            <p className="text-sm" style={{ color: '#6B7280' }}>הזמנה #{reclassifyModal}</p>
-            <p className="text-sm" style={{ color: '#CBD5E1' }}>כתוב סיבה מדוע הפער הזה קשור לסוכן:</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>הזמנה #{reclassifyModal}</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>כתוב סיבה מדוע הפער הזה קשור לסוכן:</p>
             <textarea
               value={reclassifyReason}
               onChange={e => setReclassifyReason(e.target.value)}
               placeholder="לדוגמה: הסוכן חייב על מוצר שלא קיבלתי..."
               rows={3}
               style={{
-                background: '#13161F', border: '1px solid #1E2130', color: '#CBD5E1',
+                background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
                 borderRadius: '10px', padding: '10px', fontSize: '13px',
                 outline: 'none', width: '100%', resize: 'none',
               }}
@@ -648,11 +648,11 @@ export default function ReconcilePage() {
                 onClick={() => reclassifyReason.trim() && saveReclassification(reclassifyModal!, reclassifyReason.trim())}
                 disabled={!reclassifyReason.trim()}
                 className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 70%, black))' }}>
                 העבר לסוכן
               </button>
               <button onClick={() => setReclassifyModal(null)}
-                className="px-4 py-2.5 rounded-xl text-sm" style={{ background: '#1E2130', color: '#CBD5E1' }}>
+                className="px-4 py-2.5 rounded-xl text-sm" style={{ background: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
                 ביטול
               </button>
             </div>
@@ -662,21 +662,21 @@ export default function ReconcilePage() {
 
       {expenseTypeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-2xl p-6 w-80 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+          <div className="rounded-2xl p-6 w-80 space-y-4" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
             <h3 className="text-white font-bold">סוג הוצאה עסקית</h3>
-            <p className="text-sm" style={{ color: '#6B7280' }}>הזמנה #{expenseTypeModal}</p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>הזמנה #{expenseTypeModal}</p>
             <div className="space-y-2">
               {EXPENSE_TYPES.map(t => (
                 <button key={t.id}
                   onClick={() => toggleExclusion(expenseTypeModal!, t.id)}
                   className="w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-80"
-                  style={{ background: '#13161F', color: '#CBD5E1', border: '1px solid #1E2130' }}>
+                  style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}>
                   {t.label}
                 </button>
               ))}
             </div>
             <button onClick={() => setExpenseTypeModal(null)}
-              className="w-full py-2 rounded-xl text-sm" style={{ color: '#4A5174' }}>
+              className="w-full py-2 rounded-xl text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
               ביטול
             </button>
           </div>
@@ -686,7 +686,7 @@ export default function ReconcilePage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-white">בדיקת פערים</h1>
-        <p className="text-sm mt-0.5" style={{ color: '#4A5174' }}>
+        <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
           השוואת עלויות בין הגיליון שלך לגיליון הסוכן
         </p>
       </div>
@@ -694,7 +694,7 @@ export default function ReconcilePage() {
       {/* Settings-changed banner */}
       {settingsChanged && (
         <div className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
-          style={{ background: '#2A1800', border: '1px solid #F59E0B44', color: '#FCD34D' }}>
+          style={{ background: 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-warning) 40%, transparent)', color: 'var(--color-warning)' }}>
           <div className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4 shrink-0" />
             הגדרות העסק השתנו מאז הבדיקה האחרונה — הדוח יכול להיות לא מעודכן
@@ -702,7 +702,7 @@ export default function ReconcilePage() {
           <button
             onClick={runReconcile}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs transition-all"
-            style={{ background: '#F59E0B', color: '#000' }}
+            style={{ background: 'var(--color-warning)', color: '#000' }}
           >
             <RefreshCw className="w-3 h-3" />
             עדכן עכשיו
@@ -712,20 +712,20 @@ export default function ReconcilePage() {
 
       {/* Last run indicator */}
       {lastRunAt && !settingsChanged && (
-        <div className="flex items-center gap-1.5 text-xs" style={{ color: '#4A5174' }}>
+        <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
           <Clock className="w-3 h-3" />
           הבדיקה האחרונה רצה ב-{lastRunAt.toLocaleDateString('he-IL')} {lastRunAt.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
         </div>
       )}
 
       {/* Input card */}
-      <div className="rounded-2xl border p-6 space-y-5" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+      <div className="rounded-2xl border p-6 space-y-5" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
         <h2 className="text-white font-semibold">הגדרת מקורות נתונים</h2>
 
         <div className="grid md:grid-cols-2 gap-5">
           {/* Our sheet */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
+            <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
               📊 הגיליון שלך
             </label>
             <input
@@ -734,7 +734,7 @@ export default function ReconcilePage() {
               placeholder="מזהה גיליון שלך (ממולא אוטומטית)"
               style={inputStyle}
             />
-            <p className="text-xs" style={{ color: '#4A5174' }}>
+            <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
               עמודה A = מספר הזמנה • עמודה G = עלות שלי (₪)
             </p>
           </div>
@@ -742,7 +742,7 @@ export default function ReconcilePage() {
 
         <div className="grid md:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
+            <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
               💱 שער המרה ($ → ₪)
             </label>
             <div className="relative">
@@ -753,9 +753,9 @@ export default function ReconcilePage() {
                 onChange={e => setExchangeRate(parseFloat(e.target.value) || 3.4)}
                 style={{ ...inputStyle, paddingLeft: '48px' }}
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium" style={{ color: '#4A5174' }}>$/₪</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium" style={{ color: 'var(--color-text-tertiary)' }}>$/₪</span>
             </div>
-            <p className="text-xs" style={{ color: '#4A5174' }}>
+            <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
               עלות הסוכן ($) × שער = עלות בשקל להשוואה
             </p>
           </div>
@@ -763,7 +763,7 @@ export default function ReconcilePage() {
 
           {/* Agent sheet */}
           <div className="space-y-2">
-            <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
+            <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
               📦 גיליון הסוכן
             </label>
             <input
@@ -777,15 +777,15 @@ export default function ReconcilePage() {
             <button
               onClick={() => setShowColConfig(v => !v)}
               className="flex items-center gap-1.5 text-xs transition-colors hover:opacity-80"
-              style={{ color: '#4F6EF7' }}
+              style={{ color: 'var(--color-brand-start)' }}
             >
               ⚙️ {showColConfig ? 'סגור' : 'שנה מיפוי עמודות'}
             </button>
             {showColConfig && (
-              <div className="rounded-xl p-4 space-y-4" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+              <div className="rounded-xl p-4 space-y-4" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
                 {/* Agent sheet columns */}
                 <div>
-                  <p className="text-xs font-semibold mb-2" style={{ color: '#60A5FA' }}>גיליון הסוכן — עמודות</p>
+                  <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-brand-start)' }}>גיליון הסוכן — עמודות</p>
                   <div className="grid grid-cols-2 gap-3">
                     {([
                       { key: 'order',        label: 'מספר הזמנה',     placeholder: 'B' },
@@ -795,7 +795,7 @@ export default function ReconcilePage() {
                       { key: 'warSurcharge', label: 'תוספת מלחמה ($)', placeholder: 'ריק = לא קיים' },
                     ] as const).map(f => (
                       <div key={f.key} className="space-y-1">
-                        <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
+                        <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{f.label}</label>
                         <input value={effectiveCol[f.key]}
                           onChange={e => updateColMapping(f.key, e.target.value.toUpperCase().slice(0, 2))}
                           placeholder={f.placeholder} maxLength={2}
@@ -807,15 +807,15 @@ export default function ReconcilePage() {
                 </div>
 
                 {/* Our sheet columns */}
-                <div style={{ borderTop: '1px solid #1E2130', paddingTop: '12px' }}>
-                  <p className="text-xs font-semibold mb-2" style={{ color: '#A78BFA' }}>גיליון שלי — עמודות</p>
+                <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                  <p className="text-xs font-semibold mb-2" style={{ color: 'var(--color-accent-violet)' }}>גיליון שלי — עמודות</p>
                   <div className="grid grid-cols-2 gap-3">
                     {([
                       { key: 'ourOrderCol', label: 'מספר הזמנה', placeholder: 'A' },
                       { key: 'ourCostCol',  label: 'עלות שלי (₪) — ריק = מה-DB', placeholder: 'ריק' },
                     ] as const).map(f => (
                       <div key={f.key} className="space-y-1">
-                        <label className="text-xs" style={{ color: '#6B7280' }}>{f.label}</label>
+                        <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{f.label}</label>
                         <input value={effectiveCol[f.key]}
                           onChange={e => updateColMapping(f.key, e.target.value.toUpperCase().slice(0, 2))}
                           placeholder={f.placeholder} maxLength={2}
@@ -824,7 +824,7 @@ export default function ReconcilePage() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs mt-2" style={{ color: '#4A5174' }}>
+                  <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
                     אם תמלא עמודת עלות — "עלות שלי" תציג בדיוק מה שכתוב בגיליון שלך
                   </p>
                 </div>
@@ -834,11 +834,11 @@ export default function ReconcilePage() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>
+          <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
             בחר טאב בגיליון הסוכן
           </label>
           {loadingTabs ? (
-            <div className="flex items-center gap-2 text-sm" style={{ color: '#4A5174' }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
               <span className="animate-spin">⏳</span> טוען טאבים...
             </div>
           ) : agentTabs.length > 0 ? (
@@ -859,13 +859,13 @@ export default function ReconcilePage() {
               style={{ ...inputStyle, direction: 'rtl' }}
             />
           )}
-          <p className="text-xs" style={{ color: '#4A5174' }}>
+          <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
             {agentTabs.length > 0 ? `${agentTabs.length} טאבים נמצאו` : 'השאר ריק לשימוש בגיליון הראשון'}
           </p>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+          <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))', color: 'var(--color-danger)' }}>
             <XCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -875,7 +875,7 @@ export default function ReconcilePage() {
           onClick={runReconcile}
           disabled={running}
           className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50"
-          style={{ background: running ? '#1E2130' : 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}
+          style={{ background: running ? 'var(--color-border)' : 'linear-gradient(135deg, var(--color-brand-start), var(--color-brand-end))' }}
         >
           <span className={running ? 'animate-spin' : ''}>🔍</span>
           {running ? 'מריץ בדיקה...' : 'הרץ בדיקת פערים'}
@@ -893,16 +893,16 @@ export default function ReconcilePage() {
             const myDiff      = summary.ourTotal   - summary.agentTotal
 
             const col = (title: string, accentColor: string, rows: { label: string; main: string; sub?: string; highlight?: boolean }[]) => (
-              <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${accentColor}33`, background: '#0D0F14' }}>
+              <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${accentColor}33`, background: 'var(--color-bg-app)' }}>
                 <div className="px-5 py-3 text-center font-bold text-sm" style={{ background: accentColor + '22', color: accentColor, borderBottom: `1px solid ${accentColor}33` }}>
                   {title}
                 </div>
-                <div className="divide-y" style={{ borderColor: '#1E2130' }}>
+                <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                   {rows.map((r, i) => (
                     <div key={i} className="px-5 py-3">
-                      <p className="text-xs mb-1" style={{ color: '#4A5174' }}>{r.label}</p>
-                      <p className={`font-bold ${r.highlight ? 'text-lg' : 'text-base'}`} style={{ color: r.highlight ? accentColor : '#CBD5E1' }}>{r.main}</p>
-                      {r.sub && <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{r.sub}</p>}
+                      <p className="text-xs mb-1" style={{ color: 'var(--color-text-tertiary)' }}>{r.label}</p>
+                      <p className={`font-bold ${r.highlight ? 'text-lg' : 'text-base'}`} style={{ color: r.highlight ? accentColor : 'var(--color-text-primary)' }}>{r.main}</p>
+                      {r.sub && <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{r.sub}</p>}
                     </div>
                   ))}
                 </div>
@@ -917,7 +917,7 @@ export default function ReconcilePage() {
             return (
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-4">
-                  {col('📦 גיליון הסוכן', '#60A5FA', [
+                  {col('📦 גיליון הסוכן', 'var(--color-brand-start)', [
                     { label: 'מספר הזמנות', main: String(summary.agentCount), highlight: true },
                     { label: 'עלות כוללת', main: ils(summary.agentTotal), sub: usd(summary.agentTotal), highlight: true },
                     ...(effectiveCol.warSurcharge ? [{ label: '⚔️ תוספת מלחמה', main: ils(summary.warTotal), sub: usd(summary.warTotal) }] : []),
@@ -930,7 +930,7 @@ export default function ReconcilePage() {
                       sub: usd(Math.abs(agentDiff)),
                       highlight: Math.abs(agentDiff) > 0.5 },
                   ])}
-                  {col('📋 גיליון שלי', '#A78BFA', [
+                  {col('📋 גיליון שלי', 'var(--color-accent-violet)', [
                     { label: 'מספר הזמנות', main: `${summary.ourCount}${effectiveCol.ourCostCol ? '' : ' (DB)'}`, highlight: true },
                     { label: 'עלות כוללת', main: ils(summary.ourTotal), sub: usd(summary.ourTotal), highlight: true },
                     { label: myDiff > 0.5 ? '▲ שלי גבוה מהסוכן' : myDiff < -0.5 ? '▼ שלי נמוך מהסוכן' : '✓ תואם לסוכן',
@@ -942,21 +942,21 @@ export default function ReconcilePage() {
 
                 {/* Business expenses row */}
                 {bizAgent.length > 0 && (
-                  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #0C1A2A', background: '#0D0F14' }}>
-                    <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: '#06B6D422', borderBottom: '1px solid #0C1A2A' }}>
+                  <div className="rounded-xl overflow-hidden" style={{ border: '1px solid color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))', background: 'var(--color-bg-app)' }}>
+                    <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: '#06B6D422', borderBottom: '1px solid color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))' }}>
                       <span className="text-sm font-bold" style={{ color: '#06B6D4' }}>💼 הוצאות עסקיות — {bizAgent.length} הזמנות (לא נכללות בסיכום)</span>
-                      <button onClick={() => setFilter('business')} className="text-xs px-3 py-1 rounded-lg" style={{ background: '#0C2A2A', color: '#06B6D4' }}>הצג</button>
+                      <button onClick={() => setFilter('business')} className="text-xs px-3 py-1 rounded-lg" style={{ background: 'color-mix(in srgb, #06B6D4 20%, var(--color-bg-app))', color: '#06B6D4' }}>הצג</button>
                     </div>
-                    <div className="grid grid-cols-3 divide-x" style={{ borderColor: '#1E2130' }}>
+                    <div className="grid grid-cols-3 divide-x" style={{ borderColor: 'var(--color-border)' }}>
                       {[
-                        { label: 'סוכן', val: bizAgentTotal, color: '#60A5FA' },
+                        { label: 'סוכן', val: bizAgentTotal, color: 'var(--color-brand-start)' },
                         { label: 'מערכת', val: bizSystemTotal, color: '#818CF8' },
-                        { label: 'שלי', val: bizOurTotal, color: '#A78BFA' },
+                        { label: 'שלי', val: bizOurTotal, color: 'var(--color-accent-violet)' },
                       ].map(s => (
                         <div key={s.label} className="px-5 py-3 text-center">
-                          <p className="text-xs mb-1" style={{ color: '#4A5174' }}>עלות {s.label}</p>
+                          <p className="text-xs mb-1" style={{ color: 'var(--color-text-tertiary)' }}>עלות {s.label}</p>
                           <p className="text-base font-bold" style={{ color: s.color }}>{ils(s.val)}</p>
-                          <p className="text-xs" style={{ color: '#374151' }}>{usd(s.val)}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{usd(s.val)}</p>
                         </div>
                       ))}
                     </div>
@@ -968,11 +968,11 @@ export default function ReconcilePage() {
 
           {/* Cancelled orders info */}
           {(summary.cancelledCount ?? 0) > 0 && (
-            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: '#111318', border: '1px solid #1E2130' }}>
-              <p className="text-sm" style={{ color: '#6B7280' }}>
+            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: 'var(--color-bg-surface-alt)', border: '1px solid var(--color-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 ❌ <strong>{summary.cancelledCount}</strong> הזמנות מבוטלות — לא נכללות בחישוב
               </p>
-              <button onClick={() => setFilter('cancelled')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E2130', color: '#6B7280' }}>
+              <button onClick={() => setFilter('cancelled')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'var(--color-border)', color: 'var(--color-text-secondary)' }}>
                 הצג
               </button>
             </div>
@@ -980,11 +980,11 @@ export default function ReconcilePage() {
 
           {/* Business expenses info */}
           {summary.bizCount > 0 && (
-            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: '#0C1A2A', border: '1px solid #1E3A5F' }}>
-              <p className="text-sm" style={{ color: '#60A5FA' }}>
+            <div className="rounded-xl px-5 py-3 flex items-center justify-between" style={{ background: 'color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-brand-start) 35%, var(--color-bg-app))' }}>
+              <p className="text-sm" style={{ color: 'var(--color-brand-start)' }}>
                 💼 <strong>{summary.bizCount}</strong> הוצאות עסקיות — לא נכללות בסיכום למעלה
               </p>
-              <button onClick={() => setFilter('business')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E3A5F', color: '#60A5FA' }}>
+              <button onClick={() => setFilter('business')} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 35%, var(--color-bg-app))', color: 'var(--color-brand-start)' }}>
                 הצג
               </button>
             </div>
@@ -1000,15 +1000,15 @@ export default function ReconcilePage() {
             if (missingFromSheet.length === 0) return null
             const missingTotal = missingFromSheet.reduce((s, r) => s + (r.systemCost ?? 0), 0)
             return (
-              <div className="rounded-xl border p-4" style={{ background: '#1A1200', borderColor: '#78350F' }}>
+              <div className="rounded-xl border p-4" style={{ background: 'color-mix(in srgb, var(--color-warning) 15%, var(--color-bg-app))', borderColor: 'color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))' }}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-sm mb-1" style={{ color: '#F59E0B' }}>
+                    <p className="font-semibold text-sm mb-1" style={{ color: 'var(--color-warning)' }}>
                       ⚠ {missingFromSheet.length} הזמנות לא נמצאו בגיליון שלך
                     </p>
-                    <p className="text-xs" style={{ color: '#92400E' }}>
+                    <p className="text-xs" style={{ color: 'color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))' }}>
                       עבורן המערכת השתמשה בעלות ה-DB במקום בגיליון שלך.
-                      העלות שלהן לפי DB: <strong style={{ color: '#F59E0B' }}>₪{missingTotal.toFixed(2)}</strong>
+                      העלות שלהן לפי DB: <strong style={{ color: 'var(--color-warning)' }}>₪{missingTotal.toFixed(2)}</strong>
                     </p>
                   </div>
                 </div>
@@ -1016,7 +1016,7 @@ export default function ReconcilePage() {
                   {missingFromSheet.map(r => (
                     <span key={r.orderNumber}
                       className="text-xs px-2 py-1 rounded-lg font-mono"
-                      style={{ background: '#2A1800', color: '#FCD34D', border: '1px solid #78350F' }}>
+                      style={{ background: 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))', color: 'var(--color-warning)', border: '1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))' }}>
                       #{r.orderNumber}
                     </span>
                   ))}
@@ -1027,33 +1027,33 @@ export default function ReconcilePage() {
 
           {/* Debug panel */}
           {debug && summary && summary.matches === 0 && (
-            <div className="rounded-xl border p-4 text-xs" style={{ background: '#1A1400', borderColor: '#3A2800' }}>
+            <div className="rounded-xl border p-4 text-xs" style={{ background: 'color-mix(in srgb, var(--color-warning) 15%, var(--color-bg-app))', borderColor: 'color-mix(in srgb, var(--color-warning) 30%, var(--color-bg-app))' }}>
               <p className="text-yellow-400 font-semibold text-sm mb-3">⚠️ אין התאמות — טווחי מספרי הזמנה</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>סוכן ({debug.agentTotal} הזמנות)</p>
-                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.agentFirst5?.join(', ')}</p>
-                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.agentLast5?.join(', ')}</p>
+                  <p className="mb-1 font-medium" style={{ color: 'var(--color-text-secondary)' }}>סוכן ({debug.agentTotal} הזמנות)</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>ראשונים: {debug.agentFirst5?.join(', ')}</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>אחרונים: {debug.agentLast5?.join(', ')}</p>
                 </div>
                 <div>
-                  <p className="mb-1 font-medium" style={{ color: '#8B8FA8' }}>שלך ({debug.ourTotal} הזמנות)</p>
-                  <p style={{ color: '#6B7280' }}>ראשונים: {debug.ourFirst5?.join(', ')}</p>
-                  <p style={{ color: '#6B7280' }}>אחרונים: {debug.ourLast5?.join(', ')}</p>
+                  <p className="mb-1 font-medium" style={{ color: 'var(--color-text-secondary)' }}>שלך ({debug.ourTotal} הזמנות)</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>ראשונים: {debug.ourFirst5?.join(', ')}</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>אחרונים: {debug.ourLast5?.join(', ')}</p>
                 </div>
               </div>
-              <p className="mt-2" style={{ color: '#8B8FA8' }}>
+              <p className="mt-2" style={{ color: 'var(--color-text-secondary)' }}>
                 תאריכים: <span className="text-yellow-400">{debug.dateRangeParsed}</span>
               </p>
               {debug.detectedCols && (
-                <p className="mt-1" style={{ color: '#8B8FA8' }}>
+                <p className="mt-1" style={{ color: 'var(--color-text-secondary)' }}>
                   עמודות שזוהו: <span className="text-yellow-400">{debug.detectedCols}</span>
                 </p>
               )}
               {debug.directMatchTest && (
                 <div className="mt-2">
-                  <p style={{ color: '#8B8FA8' }}>בדיקת התאמה ישירה:</p>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>בדיקת התאמה ישירה:</p>
                   {debug.directMatchTest.map((t: any) => (
-                    <p key={t.key} style={{ color: t.inOur ? '#22C55E' : '#EF4444' }}>
+                    <p key={t.key} style={{ color: t.inOur ? 'var(--color-success)' : 'var(--color-danger)' }}>
                       #{t.key}: {t.inOur ? '✓ נמצא בגיליון שלך' : '✗ לא נמצא בגיליון שלך'}
                     </p>
                   ))}
@@ -1081,14 +1081,14 @@ export default function ReconcilePage() {
                   className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
                   style={{
                     background: filter === f.key
-                      ? f.key === 'business' ? '#1A1040' : '#1E2846'
-                      : '#13161F',
+                      ? f.key === 'business' ? 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))'
+                      : 'var(--color-bg-surface)',
                     color: filter === f.key
-                      ? f.key === 'business' ? '#A78BFA' : '#4F6EF7'
-                      : '#6B7280',
+                      ? f.key === 'business' ? 'var(--color-accent-violet)' : 'var(--color-brand-start)'
+                      : 'var(--color-text-secondary)',
                     border: `1px solid ${filter === f.key
-                      ? f.key === 'business' ? '#A78BFA' : '#4F6EF7'
-                      : '#1E2130'}`,
+                      ? f.key === 'business' ? 'var(--color-accent-violet)' : 'var(--color-brand-start)'
+                      : 'var(--color-border)'}`,
                   }}
                 >
                   {f.label}
@@ -1098,7 +1098,7 @@ export default function ReconcilePage() {
 
             <div className="flex items-center gap-3">
               <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#4A5174' }} />
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />
                 <input
                   placeholder="חפש מספר הזמנה..."
                   value={search}
@@ -1109,7 +1109,7 @@ export default function ReconcilePage() {
               <button
                 onClick={exportCsv}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border"
-                style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+                style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
               >
                 <Download className="w-4 h-4" />
                 ייצא CSV
@@ -1118,7 +1118,7 @@ export default function ReconcilePage() {
                 onClick={generateAgentReport}
                 disabled={generatingReport}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg,#DC2626,#B91C1C)', color: '#fff' }}
+                style={{ background: 'linear-gradient(135deg, var(--color-danger), color-mix(in srgb, var(--color-danger) 70%, black))', color: '#fff' }}
               >
                 <FileText className="w-4 h-4" />
                 {generatingReport ? 'מכין...' : 'דוח לסוכן'}
@@ -1136,28 +1136,28 @@ export default function ReconcilePage() {
             const totalIssues  = allNonBiz.filter(r => r.status === 'agent_higher' || r.status === 'we_higher').reduce((s, r) => s + (r.systemCost ?? 0), 0)
             const totalWar     = allNonBiz.reduce((s, r) => s + (r.warIls ?? 0), 0)
             return (
-              <div className="rounded-2xl border overflow-hidden space-y-0" style={{ background: '#13161F', borderColor: '#1E2130' }}>
-                <div className="px-5 py-4" style={{ background: '#0D0F14', borderBottom: '1px solid #1E2130' }}>
+              <div className="rounded-2xl border overflow-hidden space-y-0" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
+                <div className="px-5 py-4" style={{ background: 'var(--color-bg-app)', borderBottom: '1px solid var(--color-border)' }}>
                   <p className="text-sm font-bold text-white">סה״כ עלויות לפי חישוב המערכת — {agentSheetName || 'כל התקופה'}</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>מבוסס על {allNonBiz.length} הזמנות (ללא הוצאות עסקיות)</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>מבוסס על {allNonBiz.length} הזמנות (ללא הוצאות עסקיות)</p>
                 </div>
-                <div className="divide-y" style={{ borderColor: '#1E2130' }}>
+                <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
                   {[
                     { label: 'סה״כ עלות מערכת (כל ההזמנות)',       val: totalSystem,  color: '#818CF8', desc: 'סכום myCostIls מה-DB' },
-                    { label: 'סה״כ עלות שלי (גיליון)',              val: totalOur,     color: '#A78BFA', desc: 'סכום עמודת עלות שלי' },
-                    { label: 'סה״כ עלות סוכן (גיליון סוכן)',        val: totalAgent,   color: '#60A5FA', desc: 'סכום K+M+N מגיליון הסוכן' },
-                    { label: 'עלות מערכת — הזמנות תואמות',          val: totalMatches, color: '#22C55E', desc: 'רק הזמנות ללא פער' },
-                    { label: 'עלות מערכת — הזמנות עם פער',          val: totalIssues,  color: '#F59E0B', desc: 'הזמנות שיש בהן מחלוקת' },
-                    ...(effectiveCol.warSurcharge ? [{ label: 'סה״כ תוספת מלחמה', val: totalWar, color: '#F59E0B', desc: 'ממגיליון הסוכן' }] : []),
+                    { label: 'סה״כ עלות שלי (גיליון)',              val: totalOur,     color: 'var(--color-accent-violet)', desc: 'סכום עמודת עלות שלי' },
+                    { label: 'סה״כ עלות סוכן (גיליון סוכן)',        val: totalAgent,   color: 'var(--color-brand-start)', desc: 'סכום K+M+N מגיליון הסוכן' },
+                    { label: 'עלות מערכת — הזמנות תואמות',          val: totalMatches, color: 'var(--color-success)', desc: 'רק הזמנות ללא פער' },
+                    { label: 'עלות מערכת — הזמנות עם פער',          val: totalIssues,  color: 'var(--color-warning)', desc: 'הזמנות שיש בהן מחלוקת' },
+                    ...(effectiveCol.warSurcharge ? [{ label: 'סה״כ תוספת מלחמה', val: totalWar, color: 'var(--color-warning)', desc: 'ממגיליון הסוכן' }] : []),
                   ].map(s => (
                     <div key={s.label} className="flex items-center justify-between px-5 py-4">
                       <div>
                         <p className="text-sm font-medium text-white">{s.label}</p>
-                        <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.desc}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.desc}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold" style={{ color: s.color }}>₪{s.val.toFixed(2)}</p>
-                        <p className="text-xs" style={{ color: '#4A5174' }}>${(s.val / exchangeRate).toFixed(2)}</p>
+                        <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>${(s.val / exchangeRate).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -1167,17 +1167,17 @@ export default function ReconcilePage() {
           })()}
 
           {/* Table */}
-          {filter !== 'totals' && <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+          {filter !== 'totals' && <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
             {/* Table header */}
-            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            <div className={`grid gap-3 px-5 py-3 text-xs font-semibold uppercase ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'}`} style={{ background: 'var(--color-bg-app)', color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border)' }}>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('order'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 מספר הזמנה {sortBy === 'order' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
               <span>תאריך</span>
               <span>עלות סוכן (₪)</span>
-              {effectiveCol.warSurcharge && <span style={{ color: '#F59E0B' }}>תוספת מלחמה (₪)</span>}
+              {effectiveCol.warSurcharge && <span style={{ color: 'var(--color-warning)' }}>תוספת מלחמה (₪)</span>}
               <span>עלות שלי (₪)</span>
-              <span style={{ color: '#4F6EF7' }}>עלות מערכת (₪)</span>
+              <span style={{ color: 'var(--color-brand-start)' }}>עלות מערכת (₪)</span>
               <button className="flex items-center gap-1 hover:text-white transition-colors" onClick={() => { setSortBy('diff'); setSortDir(d => d === 'asc' ? 'desc' : 'asc') }}>
                 פער {sortBy === 'diff' && (sortDir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
               </button>
@@ -1187,7 +1187,7 @@ export default function ReconcilePage() {
             {/* Rows */}
             <div className="divide-y divide-white/5">
               {filtered.length === 0 ? (
-                <div className="py-12 text-center text-sm" style={{ color: '#4A5174' }}>
+                <div className="py-12 text-center text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                   אין תוצאות עבור הסינון הנוכחי
                 </div>
               ) : (
@@ -1200,63 +1200,63 @@ export default function ReconcilePage() {
                   const rate      = analysis?.exchange_rate_used ?? 3.7
 
                   return (
-                    <div key={r.orderNumber} className="border-b" style={{ borderColor: '#1A1D2A' }}>
+                    <div key={r.orderNumber} className="border-b" style={{ borderColor: 'var(--color-bg-surface-alt)' }}>
                       {/* Main row */}
                       <div
                         className={`grid ${effectiveCol.warSurcharge ? 'grid-cols-8' : 'grid-cols-7'} gap-3 px-5 py-4 items-center cursor-pointer transition-colors hover:bg-white/5`}
-                        style={{ background: isOpen ? '#0D0F14' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
+                        style={{ background: isOpen ? 'var(--color-bg-app)' : r.status !== 'match' ? `${meta?.bg}88` : 'transparent' }}
                         onClick={() => toggleOrderExpand(r.orderNumber)}
                       >
                         <div className="flex items-center gap-1.5">
-                          <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" style={{ color: '#4A5174', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0 transition-transform" style={{ color: 'var(--color-text-tertiary)', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
                           <span className="font-mono font-semibold text-sm text-white">#{r.orderNumber}</span>
                         </div>
 
-                        <span className="text-xs" style={{ color: '#6B7280' }}>
+                        <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                           {r.orderDate ? r.orderDate.split(' ')[0] : '—'}
                         </span>
 
                         <div>
-                          <p className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.agentCost.toFixed(2)}</p>
-                          <p className="text-xs" style={{ color: '#4A5174' }}>${(r.agentCost / exchangeRate).toFixed(2)}</p>
+                          <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>₪{r.agentCost.toFixed(2)}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>${(r.agentCost / exchangeRate).toFixed(2)}</p>
                         </div>
 
                         {effectiveCol.warSurcharge && (
                           <div>
                             {(r.warIls ?? 0) > 0 ? (
                               <>
-                                <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>₪{r.warIls!.toFixed(2)}</p>
-                                <p className="text-xs" style={{ color: '#78350F' }}>${(r.warIls! / exchangeRate).toFixed(2)}</p>
+                                <p className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>₪{r.warIls!.toFixed(2)}</p>
+                                <p className="text-xs" style={{ color: 'color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))' }}>${(r.warIls! / exchangeRate).toFixed(2)}</p>
                               </>
-                            ) : <span style={{ color: '#374151' }}>—</span>}
+                            ) : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
                           </div>
                         )}
 
                         <div>
                           {r.ourCost != null ? (
                             <>
-                              <p className="text-sm" style={{ color: '#CBD5E1' }}>₪{r.ourCost.toFixed(2)}</p>
-                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.ourCost / exchangeRate).toFixed(2)}</p>
+                              <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>₪{r.ourCost.toFixed(2)}</p>
+                              <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>${(r.ourCost / exchangeRate).toFixed(2)}</p>
                               {effectiveCol.ourCostCol && (
                                 <span className="text-xs px-1 rounded" style={{
-                                  background: r.ourCostSource === 'sheet' ? '#0D2818' : '#1A1D2A',
-                                  color:      r.ourCostSource === 'sheet' ? '#22C55E' : '#6B7280',
+                                  background: r.ourCostSource === 'sheet' ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' : 'var(--color-bg-surface-alt)',
+                                  color:      r.ourCostSource === 'sheet' ? 'var(--color-success)' : 'var(--color-text-secondary)',
                                 }}>
                                   {r.ourCostSource === 'sheet' ? '📄 גיליון' : '⚙ DB'}
                                 </span>
                               )}
                             </>
-                          ) : <span className="text-sm" style={{ color: '#4A5174' }}>—</span>}
+                          ) : <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
                         </div>
 
                         <div>
                           {r.systemCost != null ? (
                             <>
                               <p className="text-sm font-semibold" style={{ color: '#818CF8' }}>₪{r.systemCost.toFixed(2)}</p>
-                              <p className="text-xs" style={{ color: '#4A5174' }}>${(r.systemCost / exchangeRate).toFixed(2)}</p>
+                              <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>${(r.systemCost / exchangeRate).toFixed(2)}</p>
                             </>
                           ) : (
-                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#13161F', color: '#374151' }}>לא נותח</span>
+                            <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-tertiary)' }}>לא נותח</span>
                           )}
                         </div>
 
@@ -1265,7 +1265,7 @@ export default function ReconcilePage() {
                           const isOver  = signed > 0.5   // agent overcharged us
                           const isUnder = signed < -0.5  // we overcharged agent
                           return (
-                            <span className="text-sm font-bold" style={{ color: Math.abs(signed) <= 0.5 ? '#22C55E' : isOver ? '#EF4444' : '#22C55E' }}>
+                            <span className="text-sm font-bold" style={{ color: Math.abs(signed) <= 0.5 ? 'var(--color-success)' : isOver ? 'var(--color-danger)' : 'var(--color-success)' }}>
                               {isOver  ? `▲ +₪${signed.toFixed(2)}` :
                                isUnder ? `▼ ₪${signed.toFixed(2)}` :
                                r.diff > 0 ? `₪${r.diff.toFixed(2)}` : '—'}
@@ -1276,18 +1276,18 @@ export default function ReconcilePage() {
                         <div className="flex items-center gap-1.5 flex-wrap" onClick={e => e.stopPropagation()}>
                           {exclusions[r.orderNumber] ? (
                             <div className="flex items-center gap-1.5">
-                              <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #6D28D9' }}>
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1" style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))', color: 'var(--color-accent-violet)', border: '1px solid color-mix(in srgb, var(--color-accent-violet) 55%, var(--color-bg-app))' }}>
                                 <Briefcase className="w-3 h-3" />{getExclusionLabel(r.orderNumber)} ✓
                               </div>
-                              <button onClick={() => toggleExclusion(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                              <button onClick={() => toggleExclusion(r.orderNumber)} className="text-xs hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>הסר</button>
                             </div>
                           ) : reclassifications[r.orderNumber] ? (
                             <div className="flex items-center gap-1.5">
-                              <div className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                              <div className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                 ↗ מועבר לסוכן
                               </div>
-                              <span className="text-xs" style={{ color: '#6B7280' }}>{reclassifications[r.orderNumber]}</span>
-                              <button onClick={() => removeReclassification(r.orderNumber)} className="text-xs hover:underline" style={{ color: '#374151' }}>הסר</button>
+                              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{reclassifications[r.orderNumber]}</span>
+                              <button onClick={() => removeReclassification(r.orderNumber)} className="text-xs hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>הסר</button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1.5 flex-wrap">
@@ -1297,13 +1297,13 @@ export default function ReconcilePage() {
                               {r.status === 'personal_diff' && (
                                 <button onClick={() => { setReclassifyModal(r.orderNumber); setReclassifyReason('') }}
                                   className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
-                                  style={{ background: '#1A2A1A', color: '#4ADE80', border: '1px solid #166534' }}>
+                                  style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   ↗ העבר לסוכן
                                 </button>
                               )}
                               <button onClick={() => setExpenseTypeModal(r.orderNumber)} disabled={togglingExclusion === r.orderNumber}
                                 className="px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 transition-all hover:opacity-80"
-                                style={{ background: '#1A1040', color: '#A78BFA', border: '1px solid #4C1D95' }}>
+                                style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))', color: 'var(--color-accent-violet)', border: '1px solid color-mix(in srgb, var(--color-accent-violet) 45%, var(--color-bg-app))' }}>
                                 <Briefcase className="w-3 h-3" />הוצאה עסקית
                               </button>
                             </div>
@@ -1313,30 +1313,30 @@ export default function ReconcilePage() {
 
                       {/* Expanded breakdown */}
                       {isOpen && (
-                        <div className="px-5 pb-4 space-y-4" style={{ background: '#0D0F14', borderTop: '1px solid #1E2130' }}>
+                        <div className="px-5 pb-4 space-y-4" style={{ background: 'var(--color-bg-app)', borderTop: '1px solid var(--color-border)' }}>
 
                           {loadingExpand === r.orderNumber ? (
-                            <div className="py-2 flex items-center gap-2 text-sm" style={{ color: '#4A5174' }}>
+                            <div className="py-2 flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                               <RefreshCw className="w-4 h-4 animate-spin" />טוען פירוט מערכת...
                             </div>
                           ) : analysis ? (
                             <div className="space-y-3">
-                              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#4A5174' }}>פירוט עלויות המערכת</p>
+                              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-tertiary)' }}>פירוט עלויות המערכת</p>
                               {/* Line items */}
-                              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #1E2130' }}>
+                              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
                                 {analysis.line_items_parsed?.map((item: any, i: number) => (
-                                  <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: '#1E2130' }}>
+                                  <div key={i} className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
                                     <div>
                                       <p className="text-sm text-white">{item.name} × {item.quantity}</p>
-                                      <p className="text-xs" style={{ color: '#4A5174' }}>
+                                      <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                                         {item.isGift ? 'מתנה' : `מחיר ללקוח: ₪${item.unitPriceIls?.toFixed(2)}`}
                                       </p>
                                     </div>
                                     <div className="text-right">
-                                      <p className="text-sm font-medium" style={{ color: item.totalCostUsd === 0 ? '#374151' : '#EF4444' }}>
+                                      <p className="text-sm font-medium" style={{ color: item.totalCostUsd === 0 ? 'var(--color-text-tertiary)' : 'var(--color-danger)' }}>
                                         ${item.totalCostUsd?.toFixed(2)}
                                       </p>
-                                      <p className="text-xs" style={{ color: '#4A5174' }}>
+                                      <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                                         ₪{(item.totalCostUsd * rate).toFixed(2)}
                                       </p>
                                     </div>
@@ -1344,41 +1344,41 @@ export default function ReconcilePage() {
                                 ))}
                                 {/* Shipping */}
                                 {(analysis.my_cost_breakdown?.shipping_cost ?? 0) > 0 && (
-                                  <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: '#1E2130' }}>
-                                    <p className="text-sm" style={{ color: '#8B8FA8' }}>משלוח לבית</p>
-                                    <p className="text-sm" style={{ color: '#EF4444' }}>${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}</p>
+                                  <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>משלוח לבית</p>
+                                    <p className="text-sm" style={{ color: 'var(--color-danger)' }}>${analysis.my_cost_breakdown.shipping_cost?.toFixed(2)}</p>
                                   </div>
                                 )}
                                 {/* Total */}
-                                <div className="flex items-center justify-between px-4 py-3" style={{ background: '#13161F' }}>
+                                <div className="flex items-center justify-between px-4 py-3" style={{ background: 'var(--color-bg-surface)' }}>
                                   <p className="text-sm font-bold text-white">סה"כ עלות</p>
                                   <div className="text-right">
-                                    <p className="text-sm font-bold" style={{ color: '#EF4444' }}>${analysis.my_cost_breakdown?.total_usd?.toFixed(2)}</p>
-                                    <p className="text-sm font-bold" style={{ color: '#EF4444' }}>₪{analysis.my_cost_ils?.toFixed(2)}</p>
+                                    <p className="text-sm font-bold" style={{ color: 'var(--color-danger)' }}>${analysis.my_cost_breakdown?.total_usd?.toFixed(2)}</p>
+                                    <p className="text-sm font-bold" style={{ color: 'var(--color-danger)' }}>₪{analysis.my_cost_ils?.toFixed(2)}</p>
                                   </div>
                                 </div>
                               </div>
                               {/* Summary row */}
                               <div className="grid grid-cols-3 gap-3 text-sm">
                                 {[
-                                  { label: 'עלות סוכן',  ils: r.agentCost,          color: '#CBD5E1' },
-                                  { label: 'עלות שלי',   ils: r.ourCost ?? 0,       color: '#A78BFA' },
+                                  { label: 'עלות סוכן',  ils: r.agentCost,          color: 'var(--color-text-primary)' },
+                                  { label: 'עלות שלי',   ils: r.ourCost ?? 0,       color: 'var(--color-accent-violet)' },
                                   { label: 'עלות מערכת', ils: r.systemCost ?? 0,    color: '#818CF8' },
-                                  { label: 'פער',         ils: r.diff,               color: r.diff > 0.5 ? '#EF4444' : '#22C55E' },
+                                  { label: 'פער',         ils: r.diff,               color: r.diff > 0.5 ? 'var(--color-danger)' : 'var(--color-success)' },
                                   ...(effectiveCol.warSurcharge && (r.warIls ?? 0) > 0
-                                    ? [{ label: 'מלחמה', ils: r.warIls ?? 0, color: '#F59E0B' }]
+                                    ? [{ label: 'מלחמה', ils: r.warIls ?? 0, color: 'var(--color-warning)' }]
                                     : []),
                                 ].map(s => (
-                                  <div key={s.label} className="rounded-xl px-3 py-2 text-center" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
-                                    <p className="text-xs mb-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                                  <div key={s.label} className="rounded-xl px-3 py-2 text-center" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
+                                    <p className="text-xs mb-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.label}</p>
                                     <p className="font-bold" style={{ color: s.color }}>₪{s.ils.toFixed(2)}</p>
-                                    <p className="text-xs" style={{ color: '#374151' }}>${(s.ils / exchangeRate).toFixed(2)}</p>
+                                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>${(s.ils / exchangeRate).toFixed(2)}</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           ) : (
-                            <p className="py-4 text-sm" style={{ color: '#4A5174' }}>
+                            <p className="py-4 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                               {orderData ? 'אין נתוני ניתוח להזמנה זו' : 'הזמנה לא נמצאה במערכת'}
                             </p>
                           )}
@@ -1391,10 +1391,10 @@ export default function ReconcilePage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 text-xs flex justify-between items-center" style={{ background: '#0D0F14', borderTop: '1px solid #1E2130', color: '#4A5174' }}>
+            <div className="px-5 py-3 text-xs flex justify-between items-center" style={{ background: 'var(--color-bg-app)', borderTop: '1px solid var(--color-border)', color: 'var(--color-text-tertiary)' }}>
               <span>מציג {filtered.length} מתוך {results.length} הזמנות</span>
               <span>
-                סה"כ פער בהזמנות המוצגות: <strong style={{ color: '#F59E0B' }}>
+                סה"כ פער בהזמנות המוצגות: <strong style={{ color: 'var(--color-warning)' }}>
                   ₪{filtered.filter(r => r.diff > 0).reduce((s, r) => s + r.diff, 0).toFixed(2)}
                 </strong>
               </span>
@@ -1413,21 +1413,21 @@ export default function ReconcilePage() {
         const totalBizAmount = allBizExpenses.reduce((s, r) => s + (r.ourCost ?? r.agentCost ?? 0), 0)
 
         return (
-          <div className="rounded-2xl border overflow-hidden" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+          <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4" style={{ background: '#0D0F14', borderBottom: '1px solid #1E2130' }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ background: 'var(--color-bg-app)', borderBottom: '1px solid var(--color-border)' }}>
               <div className="flex items-center gap-2.5">
-                <Briefcase className="w-5 h-5" style={{ color: '#A78BFA' }} />
+                <Briefcase className="w-5 h-5" style={{ color: 'var(--color-accent-violet)' }} />
                 <div>
                   <h3 className="text-white font-semibold text-sm">הוצאות עסקיות</h3>
-                  <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
                     לא נכנסות לחישוב הפערים — מוצגות בנפרד בדוח לסוכן
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold" style={{ color: '#A78BFA' }}>₪{totalBizAmount.toFixed(2)}</p>
-                <p className="text-xs" style={{ color: '#4A5174' }}>{allBizExpenses.length} הזמנות</p>
+                <p className="text-lg font-bold" style={{ color: 'var(--color-accent-violet)' }}>₪{totalBizAmount.toFixed(2)}</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{allBizExpenses.length} הזמנות</p>
               </div>
             </div>
 
@@ -1435,22 +1435,22 @@ export default function ReconcilePage() {
             {contentCreators.length > 0 && (
               <div>
                 <div className="px-5 py-2 text-xs font-semibold uppercase flex items-center gap-2"
-                  style={{ background: '#0C1A2A', color: '#06B6D4', borderBottom: '1px solid #1E2130' }}>
+                  style={{ background: 'color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))', color: '#06B6D4', borderBottom: '1px solid var(--color-border)' }}>
                   📸 יוצרי תוכן / צלמים ({contentCreators.length})
                 </div>
                 {contentCreators.map(r => (
                   <div key={r.orderNumber} className="flex items-center justify-between px-5 py-3 border-b text-sm"
-                    style={{ borderColor: '#1A1D2A' }}>
+                    style={{ borderColor: 'var(--color-bg-surface-alt)' }}>
                     <div className="flex items-center gap-3">
                       <span className="font-mono font-semibold text-white">#{r.orderNumber}</span>
-                      <span className="text-xs" style={{ color: '#6B7280' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
+                      <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
                       {r.sheetReason && (
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#0C1A2A', color: '#06B6D4' }}>
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, #06B6D4 15%, var(--color-bg-app))', color: '#06B6D4' }}>
                           {r.sheetReason}
                         </span>
                       )}
                     </div>
-                    <span className="text-sm" style={{ color: '#CBD5E1' }}>
+                    <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
                       ₪{(r.ourCost ?? r.agentCost ?? 0).toFixed(2)}
                     </span>
                   </div>
@@ -1461,29 +1461,29 @@ export default function ReconcilePage() {
             {manuallyMarked.length > 0 && (
               <div>
                 <div className="px-5 py-2 text-xs font-semibold uppercase flex items-center gap-2"
-                  style={{ background: '#1A1040', color: '#A78BFA', borderBottom: '1px solid #1E2130' }}>
+                  style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))', color: 'var(--color-accent-violet)', borderBottom: '1px solid var(--color-border)' }}>
                   💼 שימוש עסקי ידני ({manuallyMarked.length})
                 </div>
                 {manuallyMarked.map(r => {
                   const meta = STATUS_LABELS[r.status]
                   return (
                     <div key={r.orderNumber} className="flex items-center justify-between px-5 py-3 border-b text-sm"
-                      style={{ borderColor: '#1A1D2A' }}>
+                      style={{ borderColor: 'var(--color-bg-surface-alt)' }}>
                       <div className="flex items-center gap-3">
                         <span className="font-mono font-semibold text-white">#{r.orderNumber}</span>
-                        <span className="text-xs" style={{ color: '#6B7280' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
+                        <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{r.orderDate?.split(' ')[0] ?? '—'}</span>
                         <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: meta?.bg, color: meta?.color }}>
                           {meta?.label}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm" style={{ color: '#CBD5E1' }}>
+                        <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
                           ₪{(r.ourCost ?? r.agentCost ?? 0).toFixed(2)}
                         </span>
                         <button onClick={() => toggleExclusion(r.orderNumber)}
                           disabled={togglingExclusion === r.orderNumber}
                           className="text-xs px-2 py-1 rounded-lg transition-all hover:opacity-70"
-                          style={{ background: '#1A1D2A', color: '#6B7280', border: '1px solid #1E2130' }}>
+                          style={{ background: 'var(--color-bg-surface-alt)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' }}>
                           הסר
                         </button>
                       </div>
@@ -1498,20 +1498,20 @@ export default function ReconcilePage() {
 
       {/* Empty state */}
       {!results && !running && (
-        <div className="rounded-2xl border p-14 text-center" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+        <div className="rounded-2xl border p-14 text-center" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
           <div className="text-4xl mb-4">🔍</div>
           <h3 className="text-white font-semibold mb-2">מוכן לבדיקה</h3>
-          <p className="text-sm" style={{ color: '#4A5174' }}>
+          <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
             הכנס את מזהה גיליון הסוכן ולחץ הרץ — הדוח יופיע כאן
           </p>
         </div>
       )}
 
       {running && (
-        <div className="rounded-2xl border p-14 text-center" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+        <div className="rounded-2xl border p-14 text-center" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
           <div className="animate-spin text-4xl mb-4">⚙️</div>
           <h3 className="text-white font-semibold mb-2">מריץ בדיקה...</h3>
-          <p className="text-sm" style={{ color: '#4A5174' }}>קורא שני גיליונות ומשווה לפי מספר הזמנה</p>
+          <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>קורא שני גיליונות ומשווה לפי מספר הזמנה</p>
         </div>
       )}
     </div>

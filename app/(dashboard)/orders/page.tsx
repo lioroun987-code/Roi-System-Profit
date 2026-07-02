@@ -176,9 +176,9 @@ export default function OrdersPage() {
   const avgMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0
 
   const inputStyle = {
-    background: '#13161F',
-    border: '1px solid #1E2130',
-    color: '#CBD5E1',
+    background: 'var(--color-bg-surface)',
+    border: '1px solid var(--color-border)',
+    color: 'var(--color-text-primary)',
     borderRadius: '10px',
     padding: '8px 12px',
     fontSize: '13px',
@@ -191,25 +191,25 @@ export default function OrdersPage() {
       {/* Sync All Modal */}
       {syncAllOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
             {syncAllStatus === 'running' ? (
               <>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"
-                  style={{ background: '#1E2846' }}>
-                  <History className="w-7 h-7" style={{ color: '#4F6EF7' }} />
+                  style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' }}>
+                  <History className="w-7 h-7" style={{ color: 'var(--color-brand-start)' }} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-1">מעבד היסטוריית הזמנות</h3>
-                <p className="text-sm mb-6" style={{ color: '#6B7280' }}>זה עשוי לקחת מספר דקות...</p>
+                <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>זה עשוי לקחת מספר דקות...</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {[
-                    { label: 'עובדו',       val: syncAllProgress.processed, color: '#22C55E' },
-                    { label: 'קיימות',      val: syncAllProgress.skipped,   color: '#6B7280' },
-                    { label: 'עם AI',       val: syncAllProgress.usedAI,    color: '#4F6EF7' },
-                    { label: 'שגיאות',     val: syncAllProgress.errors,    color: '#EF4444' },
+                    { label: 'עובדו',       val: syncAllProgress.processed, color: 'var(--color-success)' },
+                    { label: 'קיימות',      val: syncAllProgress.skipped,   color: 'var(--color-text-secondary)' },
+                    { label: 'עם AI',       val: syncAllProgress.usedAI,    color: 'var(--color-brand-start)' },
+                    { label: 'שגיאות',     val: syncAllProgress.errors,    color: 'var(--color-danger)' },
                   ].map(s => (
-                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                       <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -217,16 +217,16 @@ export default function OrdersPage() {
             ) : (
               <>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ background: '#0D2818' }}>
-                  <History className="w-7 h-7" style={{ color: '#22C55E' }} />
+                  style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' }}>
+                  <History className="w-7 h-7" style={{ color: 'var(--color-success)' }} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-1">הסנכרון הושלם!</h3>
-                <p className="text-sm mb-6" style={{ color: '#6B7280' }}>
+                <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
                   עובדו {syncAllProgress.processed} הזמנות · {syncAllProgress.usedAI} עם AI · {syncAllProgress.skipped} כבר קיימות
                 </p>
                 <button onClick={() => { setSyncAllOpen(false); setSyncAllStatus('idle') }}
                   className="px-6 py-2.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg,#22C55E,#16A34A)' }}>
+                  style={{ background: 'linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 70%, black))' }}>
                   סגור
                 </button>
               </>
@@ -238,32 +238,32 @@ export default function OrdersPage() {
       {/* Reanalyze All Modal */}
       {reanalyzeAllOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+          <div className="rounded-2xl p-8 w-full max-w-md text-center" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
             {reanalyzeAllStatus === 'running' ? (
               <>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"
-                  style={{ background: '#1E1846' }}>
-                  <Zap className="w-7 h-7" style={{ color: '#8B5CF6' }} />
+                  style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))' }}>
+                  <Zap className="w-7 h-7" style={{ color: 'var(--color-accent-violet)' }} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-1">מחשב מחדש את כל ההזמנות</h3>
-                <p className="text-sm mb-4" style={{ color: '#6B7280' }}>זה עשוי לקחת מספר שניות...</p>
+                <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>זה עשוי לקחת מספר שניות...</p>
                 {/* Progress bar */}
-                <div className="w-full rounded-full h-2 mb-6" style={{ background: '#1E2130' }}>
-                  <div className="h-2 rounded-full transition-all" style={{ width: `${reanalyzeAllStats.percentDone}%`, background: 'linear-gradient(90deg,#6366F1,#8B5CF6)' }} />
+                <div className="w-full rounded-full h-2 mb-6" style={{ background: 'var(--color-border)' }}>
+                  <div className="h-2 rounded-full transition-all" style={{ width: `${reanalyzeAllStats.percentDone}%`, background: 'linear-gradient(90deg, var(--color-accent-indigo), var(--color-accent-violet))' }} />
                 </div>
-                <p className="text-xs mb-4" style={{ color: '#4A5174' }}>
+                <p className="text-xs mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
                   {reanalyzeAllStats.percentDone}% · {reanalyzeAllStats.processed} מתוך {reanalyzeAllStats.total} הזמנות
                 </p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {[
-                    { label: 'עודכנו',   val: reanalyzeAllStats.changed,   color: '#8B5CF6' },
-                    { label: 'עובדו',    val: reanalyzeAllStats.processed,  color: '#22C55E' },
-                    { label: 'שגיאות',  val: reanalyzeAllStats.failed,     color: '#EF4444' },
-                    { label: 'דולגו',   val: reanalyzeAllStats.skipped,    color: '#6B7280' },
+                    { label: 'עודכנו',   val: reanalyzeAllStats.changed,   color: 'var(--color-accent-violet)' },
+                    { label: 'עובדו',    val: reanalyzeAllStats.processed,  color: 'var(--color-success)' },
+                    { label: 'שגיאות',  val: reanalyzeAllStats.failed,     color: 'var(--color-danger)' },
+                    { label: 'דולגו',   val: reanalyzeAllStats.skipped,    color: 'var(--color-text-secondary)' },
                   ].map(s => (
-                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                       <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -271,22 +271,22 @@ export default function OrdersPage() {
             ) : (
               <>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-                  style={{ background: '#1E1846' }}>
-                  <Zap className="w-7 h-7" style={{ color: '#8B5CF6' }} />
+                  style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))' }}>
+                  <Zap className="w-7 h-7" style={{ color: 'var(--color-accent-violet)' }} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-1">העדכון הושלם!</h3>
 
                 {/* Summary line */}
-                <div className="rounded-xl px-4 py-3 mb-4 text-right" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                <div className="rounded-xl px-4 py-3 mb-4 text-right" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                   <p className="text-sm font-semibold text-white">
                     {reanalyzeAllStats.processed + reanalyzeAllStats.skipped} הזמנות ב-DB
                     {reanalyzeAllStats.skipped > 0 && (
-                      <span className="text-xs font-normal mr-1" style={{ color: '#6B7280' }}>
+                      <span className="text-xs font-normal mr-1" style={{ color: 'var(--color-text-secondary)' }}>
                         ({reanalyzeAllStats.skipped} ללא raw data)
                       </span>
                     )}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: reanalyzeAllStats.failed > 0 ? '#EF4444' : '#22C55E' }}>
+                  <p className="text-xs mt-0.5" style={{ color: reanalyzeAllStats.failed > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
                     {reanalyzeAllStats.failed === 0
                       ? '✓ לא פוספסה אף הזמנה'
                       : `⚠ ${reanalyzeAllStats.failed} הזמנות נכשלו`}
@@ -295,27 +295,27 @@ export default function OrdersPage() {
 
                 <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                   {[
-                    { label: 'ערך השתנה',          val: reanalyzeAllStats.changed,                                    color: '#8B5CF6' },
-                    { label: 'ערך זהה',             val: reanalyzeAllStats.processed - reanalyzeAllStats.changed,     color: '#22C55E' },
-                    { label: 'שגיאות',              val: reanalyzeAllStats.failed,                                     color: '#EF4444' },
-                    { label: 'ללא raw data',        val: reanalyzeAllStats.skipped,                                    color: '#6B7280' },
+                    { label: 'ערך השתנה',          val: reanalyzeAllStats.changed,                                    color: 'var(--color-accent-violet)' },
+                    { label: 'ערך זהה',             val: reanalyzeAllStats.processed - reanalyzeAllStats.changed,     color: 'var(--color-success)' },
+                    { label: 'שגיאות',              val: reanalyzeAllStats.failed,                                     color: 'var(--color-danger)' },
+                    { label: 'ללא raw data',        val: reanalyzeAllStats.skipped,                                    color: 'var(--color-text-secondary)' },
                   ].map(s => (
-                    <div key={s.label} className="rounded-xl p-3" style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
+                    <div key={s.label} className="rounded-xl p-3" style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
                       <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{s.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{s.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {reanalyzeAllStats.processed + reanalyzeAllStats.skipped < 6000 && (
-                  <p className="text-xs mb-4 px-3 py-2 rounded-lg text-right" style={{ background: '#1A1200', color: '#F59E0B', border: '1px solid #78350F' }}>
+                  <p className="text-xs mb-4 px-3 py-2 rounded-lg text-right" style={{ background: 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))', color: 'var(--color-warning)', border: '1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))' }}>
                     ⚠ נראה שחסרות הזמנות — לחץ "עבד היסטוריה" כדי לייבא את כולן מ-Shopify
                   </p>
                 )}
 
                 <button onClick={() => { setReanalyzeAllOpen(false); setReanalyzeAllStatus('idle') }}
                   className="px-6 py-2.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                  style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                   סגור
                 </button>
               </>
@@ -328,14 +328,14 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">הזמנות</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#4A5174' }}>{total} הזמנות סה"כ</p>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{total} הזמנות סה"כ</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleReanalyzeAll}
             disabled={reanalyzeAllStatus === 'running'}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-60"
-            style={{ background: reanalyzeAllStatus === 'running' ? '#1E2130' : 'linear-gradient(135deg,#6366F1,#8B5CF6)', color: '#fff' }}
+            style={{ background: reanalyzeAllStatus === 'running' ? 'var(--color-border)' : 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))', color: '#fff' }}
             title="מחשב מחדש את כל ההזמנות לפי הקונפיג הנוכחי"
           >
             <Zap className={`w-4 h-4 ${reanalyzeAllStatus === 'running' ? 'animate-pulse' : ''}`} />
@@ -346,7 +346,7 @@ export default function OrdersPage() {
           <button
             onClick={handleSyncAll}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
-            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+            style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
           >
             <History className="w-4 h-4" />
             עבד היסטוריה
@@ -355,7 +355,7 @@ export default function OrdersPage() {
             onClick={handleSync}
             disabled={syncing}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
-            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+            style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             {syncing ? 'מסנכרן...' : 'סנכרן Shopify'}
@@ -364,7 +364,7 @@ export default function OrdersPage() {
             onClick={handleExport}
             disabled={exporting}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border"
-            style={{ background: '#13161F', borderColor: '#1E2130', color: '#CBD5E1' }}
+            style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
           >
             <Download className="w-4 h-4" />
             {exporting ? 'מייצא...' : 'ייצא לגיליון'}
@@ -376,15 +376,15 @@ export default function OrdersPage() {
       {orders.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label: 'הכנסות', val: formatCurrency(totalRevenue), icon: ShoppingCart, color: '#4F6EF7' },
-            { label: 'רווח נקי', val: formatCurrency(totalProfit), icon: totalProfit >= 0 ? TrendingUp : TrendingDown, color: totalProfit >= 0 ? '#22C55E' : '#EF4444' },
-            { label: 'מרווח ממוצע', val: `${avgMargin.toFixed(1)}%`, icon: TrendingUp, color: '#A855F7' },
-            { label: 'הזמנות מפסידות', val: String(losingOrders), icon: TrendingDown, color: '#EF4444' },
+            { label: 'הכנסות', val: formatCurrency(totalRevenue), icon: ShoppingCart, color: 'var(--color-brand-start)' },
+            { label: 'רווח נקי', val: formatCurrency(totalProfit), icon: totalProfit >= 0 ? TrendingUp : TrendingDown, color: totalProfit >= 0 ? 'var(--color-success)' : 'var(--color-danger)' },
+            { label: 'מרווח ממוצע', val: `${avgMargin.toFixed(1)}%`, icon: TrendingUp, color: 'var(--color-accent-violet)' },
+            { label: 'הזמנות מפסידות', val: String(losingOrders), icon: TrendingDown, color: 'var(--color-danger)' },
           ].map(stat => (
-            <div key={stat.label} className="rounded-2xl p-4 border" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+            <div key={stat.label} className="rounded-2xl p-4 border" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
               <div className="flex items-center gap-2 mb-2">
                 <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
-                <p className="text-xs" style={{ color: '#6B7280' }}>{stat.label}</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{stat.label}</p>
               </div>
               <p className="text-lg font-bold" style={{ color: stat.color }}>{stat.val}</p>
             </div>
@@ -395,7 +395,7 @@ export default function OrdersPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#4A5174' }} />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-text-tertiary)' }} />
           <input
             placeholder="חפש לפי מספר, שם לקוח או מוצר..."
             value={search}
@@ -404,9 +404,9 @@ export default function OrdersPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 shrink-0" style={{ color: '#4A5174' }} />
+          <Filter className="w-4 h-4 shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
           <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ ...inputStyle, width: '140px' }} dir="ltr" />
-          <span style={{ color: '#4A5174' }}>—</span>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>
           <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ ...inputStyle, width: '140px' }} dir="ltr" />
         </div>
       </div>
@@ -415,15 +415,15 @@ export default function OrdersPage() {
       {loading ? (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: '#13161F' }} />
+            <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: 'var(--color-bg-surface)' }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl p-14 text-center border" style={{ background: '#13161F', borderColor: '#1E2130' }}>
+        <div className="rounded-2xl p-14 text-center border" style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)' }}>
           <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-10 text-white" />
           <p className="text-white font-medium mb-1">אין הזמנות</p>
-          <p className="text-sm mb-4" style={{ color: '#4A5174' }}>סנכרן הזמנות מ-Shopify כדי להתחיל</p>
-          <button onClick={handleSync} disabled={syncing} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: '#4F6EF7' }}>
+          <p className="text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>סנכרן הזמנות מ-Shopify כדי להתחיל</p>
+          <button onClick={handleSync} disabled={syncing} className="px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: 'var(--color-brand-start)' }}>
             {syncing ? 'מסנכרן...' : 'סנכרן עכשיו'}
           </button>
         </div>
@@ -440,16 +440,16 @@ export default function OrdersPage() {
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
             className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
-            style={{ background: '#13161F', borderColor: '#1E2130', color: page === 1 ? '#4A5174' : '#CBD5E1' }}
+            style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: page === 1 ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)' }}
           >
             הקודם
           </button>
-          <span className="text-sm" style={{ color: '#6B7280' }}>עמוד {page} מתוך {Math.ceil(total / 50)}</span>
+          <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>עמוד {page} מתוך {Math.ceil(total / 50)}</span>
           <button
             onClick={() => setPage(p => p + 1)}
             disabled={page * 50 >= total}
             className="px-4 py-2 rounded-xl text-sm font-medium border transition-colors"
-            style={{ background: '#13161F', borderColor: '#1E2130', color: page * 50 >= total ? '#4A5174' : '#CBD5E1' }}
+            style={{ background: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: page * 50 >= total ? 'var(--color-text-tertiary)' : 'var(--color-text-primary)' }}
           >
             הבא
           </button>

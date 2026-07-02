@@ -42,51 +42,54 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
   }
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col h-full border-l" style={{ background: '#0C0E14', borderColor: '#1E2130' }}>
+    <aside className="w-60 shrink-0 flex flex-col h-full border-l bg-[var(--color-bg-sidebar)] border-[var(--color-border)]">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b" style={{ borderColor: '#1E2130' }}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}>
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-[var(--color-border)]">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center brand-gradient">
           <TrendingUp className="w-4 h-4 text-white" />
         </div>
         <span className="text-white font-bold text-base tracking-tight">רווחיות</span>
-        <Bell className="w-4 h-4 mr-auto cursor-pointer" style={{ color: '#4A5174' }} />
+        <Bell className="w-4 h-4 mr-auto cursor-pointer text-[var(--color-text-tertiary)]" />
       </div>
 
       {/* Business selector */}
       {businesses.length > 0 && (
-        <div className="px-3 py-3 border-b" style={{ borderColor: '#1E2130' }}>
+        <div className="px-3 py-3 border-b border-[var(--color-border)]">
           <button
             onClick={() => setBusinessOpen(!businessOpen)}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors text-right"
-            style={{ background: businessOpen ? '#1E2130' : 'transparent' }}
-            onMouseEnter={e => (e.currentTarget.style.background = '#1A1D2E')}
-            onMouseLeave={e => (e.currentTarget.style.background = businessOpen ? '#1E2130' : 'transparent')}
+            className={cn(
+              'w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-colors text-right hover:bg-[var(--color-bg-surface-alt)]',
+              businessOpen ? 'bg-[var(--color-border)]' : 'bg-transparent'
+            )}
           >
-            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ background: '#2A3050' }}>
-              <Store className="w-3.5 h-3.5" style={{ color: '#4F6EF7' }} />
+            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 tint-brand">
+              <Store className="w-3.5 h-3.5 text-[var(--color-brand-start)]" />
             </div>
-            <span className="text-sm font-medium truncate flex-1" style={{ color: '#CBD5E1' }}>
+            <span className="text-sm font-medium truncate flex-1 text-[var(--color-text-primary)]">
               {currentBusiness?.name ?? 'בחר עסק'}
             </span>
-            <ChevronDown className={cn('w-3.5 h-3.5 shrink-0 transition-transform', businessOpen && 'rotate-180')} style={{ color: '#4A5174' }} />
+            <ChevronDown className={cn('w-3.5 h-3.5 shrink-0 transition-transform text-[var(--color-text-tertiary)]', businessOpen && 'rotate-180')} />
           </button>
 
           {businessOpen && (
-            <div className="mt-1.5 rounded-lg overflow-hidden border" style={{ borderColor: '#1E2130', background: '#0F1119' }}>
+            <div className="mt-1.5 rounded-lg overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-app)]">
               {businesses.map(b => (
                 <div key={b.id} className="flex items-center group">
                   <button
                     onClick={() => { onBusinessChange(b.id); setBusinessOpen(false) }}
-                    className="flex-1 text-right px-4 py-2.5 text-sm transition-colors"
-                    style={{ color: b.id === activeBusiness ? '#4F6EF7' : '#8B8FA8', background: b.id === activeBusiness ? '#1A2040' : 'transparent' }}
+                    className={cn(
+                      'flex-1 text-right px-4 py-2.5 text-sm transition-colors',
+                      b.id === activeBusiness
+                        ? 'text-[var(--color-brand-start)] tint-brand'
+                        : 'text-[var(--color-text-secondary)] bg-transparent'
+                    )}
                   >
                     {b.name}
                   </button>
                   <button
                     onClick={() => deleteBusiness(b.id, b.name)}
                     disabled={deletingId === b.id}
-                    className="px-2 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ color: '#EF4444' }}
+                    className="px-2 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--color-danger)]"
                     title="מחק עסק"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -96,8 +99,7 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
               <Link
                 href="/settings/business/new"
                 onClick={() => setBusinessOpen(false)}
-                className="block w-full text-right px-4 py-2.5 text-sm border-t"
-                style={{ color: '#4F6EF7', borderColor: '#1E2130' }}
+                className="block w-full text-right px-4 py-2.5 text-sm border-t text-[var(--color-brand-start)] border-[var(--color-border)]"
               >
                 + הוסף עסק
               </Link>
@@ -115,37 +117,34 @@ export function Sidebar({ businesses, activeBusiness, onBusinessChange }: Sideba
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
-              style={{
-                color: isActive ? '#FFFFFF' : '#6B7280',
-                background: isActive ? '#1E2846' : 'transparent',
-              }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#13161F' }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+                isActive
+                  ? 'text-white tint-brand'
+                  : 'text-[var(--color-text-secondary)] bg-transparent hover:bg-[var(--color-bg-surface)]'
+              )}
             >
-              <Icon className="w-4 h-4 shrink-0" style={{ color: isActive ? '#4F6EF7' : '#4A5174' }} />
+              <Icon className={cn('w-4 h-4 shrink-0', isActive ? 'text-[var(--color-brand-start)]' : 'text-[var(--color-text-tertiary)]')} />
               {item.label}
-              {isActive && <div className="mr-auto w-1.5 h-1.5 rounded-full" style={{ background: '#4F6EF7' }} />}
+              {isActive && <div className="mr-auto w-1.5 h-1.5 rounded-full bg-[var(--color-brand-start)]" />}
             </Link>
           )
         })}
       </nav>
 
       {/* User */}
-      <div className="p-3 border-t" style={{ borderColor: '#1E2130' }}>
+      <div className="p-3 border-t border-[var(--color-border)]">
         <div className="flex items-center gap-3 px-2 py-2">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-            style={{ background: 'linear-gradient(135deg, #4F6EF7, #7C5CFC)' }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 brand-gradient">
             {session?.user?.name?.[0] ?? session?.user?.email?.[0]?.toUpperCase() ?? '?'}
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-white text-xs font-medium truncate">{session?.user?.name ?? 'משתמש'}</p>
-            <p className="text-xs truncate" style={{ color: '#4A5174' }}>{session?.user?.email}</p>
+            <p className="text-xs truncate text-[var(--color-text-tertiary)]">{session?.user?.email}</p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/signin' })}
-            className="transition-colors p-1 rounded"
-            style={{ color: '#4A5174' }}
+            className="transition-colors p-1 rounded text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]"
             title="יציאה"
           >
             <LogOut className="w-4 h-4" />

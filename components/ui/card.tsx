@@ -1,11 +1,21 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  tone?: 'default' | 'danger' | 'success'
+}
+
+const toneClasses: Record<NonNullable<CardProps['tone']>, string> = {
+  default: 'bg-[var(--color-bg-surface)] border-[var(--color-border)]',
+  danger: 'tint-danger border-[var(--color-danger)]/30',
+  success: 'tint-success border-[var(--color-success)]/30',
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, tone = 'default', ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm', className)}
+      className={cn('rounded-xl border', toneClasses[tone], className)}
       {...props}
     />
   )
@@ -21,14 +31,18 @@ CardHeader.displayName = 'CardHeader'
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('font-semibold leading-none tracking-tight text-white', className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn('font-semibold leading-none tracking-tight text-white', className)}
+      {...props}
+    />
   )
 )
 CardTitle.displayName = 'CardTitle'
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-gray-400', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-[var(--color-text-secondary)]', className)} {...props} />
   )
 )
 CardDescription.displayName = 'CardDescription'

@@ -1,14 +1,72 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
+  --background: #0D0F14;
   --foreground: #f9fafb;
+
+  /* Design tokens — canonical dark-navy app palette */
+  --color-bg-app: #0D0F14;
+  --color-bg-sidebar: #0C0E14;
+  --color-bg-surface: #13161F;
+  --color-bg-surface-alt: #1A1D2A;
+
+  --color-border: #1E2130;
+  --color-border-subtle: #2A2D3E;
+
+  --color-text-primary: #CBD5E1;
+  --color-text-secondary: #8B8FA8;
+  --color-text-tertiary: #4A5174;
+
+  --color-brand-start: #4F6EF7;
+  --color-brand-end: #7C5CFC;
+
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-accent-violet: #8B5CF6;
+  --color-accent-indigo: #6366F1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-rubik);
+
+  --color-bg-app: var(--color-bg-app);
+  --color-bg-sidebar: var(--color-bg-sidebar);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-surface-alt: var(--color-bg-surface-alt);
+
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+
+  --color-brand-start: var(--color-brand-start);
+  --color-brand-end: var(--color-brand-end);
+
+  --color-success: var(--color-success);
+  --color-danger: var(--color-danger);
+  --color-warning: var(--color-warning);
+  --color-accent-violet: var(--color-accent-violet);
+  --color-accent-indigo: var(--color-accent-indigo);
+}
+
+/* Semantic soft-tinted backgrounds for status badges/cards — one systematic
+   way to get a "dark tint" of a semantic color instead of hand-picked hex per file */
+.tint-success { background: color-mix(in srgb, var(--color-success) 15%, var(--color-bg-surface)); }
+.tint-danger  { background: color-mix(in srgb, var(--color-danger) 15%, var(--color-bg-surface)); }
+.tint-warning { background: color-mix(in srgb, var(--color-warning) 15%, var(--color-bg-surface)); }
+.tint-brand   { background: color-mix(in srgb, var(--color-brand-start) 15%, var(--color-bg-surface)); }
+
+.brand-gradient {
+  background: linear-gradient(135deg, var(--color-brand-start), var(--color-brand-end));
+}
+
+.ai-gradient {
+  background: linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet));
 }
 
 body {
@@ -64,6 +122,11 @@ input[type="date"] {
   to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
@@ -77,6 +140,7 @@ input[type="date"] {
 .animate-marquee { animation: marquee 30s linear infinite; }
 .animate-fadeInUp { animation: fadeInUp 0.7s ease forwards; }
 .animate-slideInLeft { animation: slideInLeft 0.7s ease forwards; }
+.animate-slideInRight { animation: slideInRight 0.7s ease forwards; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 

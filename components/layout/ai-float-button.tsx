@@ -113,7 +113,7 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
         onClick={() => setOpen(v => !v)}
         className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl shadow-2xl font-bold text-white transition-all hover:-translate-y-1 hover:shadow-purple-500/25"
         style={{
-          background: open ? '#374151' : 'linear-gradient(135deg,#6366F1,#8B5CF6)',
+          background: open ? 'var(--color-text-tertiary)' : 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))',
           boxShadow: open ? 'none' : '0 8px 32px rgba(99,102,241,0.4)',
         }}
       >
@@ -131,31 +131,31 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
           style={{
             width: '380px',
             height: '560px',
-            background: '#0D0F14',
-            border: '1px solid #1E2130',
+            background: 'var(--color-bg-app)',
+            border: '1px solid var(--color-border)',
             boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
           }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 shrink-0"
-            style={{ background: 'linear-gradient(135deg,#1E1A3A,#1A1F3A)', borderBottom: '1px solid #1E2130' }}>
+            style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-accent-indigo) 20%, var(--color-bg-app)), color-mix(in srgb, var(--color-accent-indigo) 12%, var(--color-bg-app)))', borderBottom: '1px solid var(--color-border)' }}>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">עוזר AI</p>
-                <p className="text-xs" style={{ color: '#4A5174' }}>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                   {businessId ? 'מחובר לעסק' : 'לא נבחר עסק'}
                 </p>
               </div>
             </div>
             <div className="text-left">
-              <p className="text-xs font-medium" style={{ color: totalCostIls > 0 ? '#F59E0B' : '#374151' }}>
+              <p className="text-xs font-medium" style={{ color: totalCostIls > 0 ? 'var(--color-warning)' : 'var(--color-text-tertiary)' }}>
                 {totalCostIls > 0 ? `~₪${totalCostIls.toFixed(3)} הפעלה זו` : '~₪0.05 לשאלה'}
               </p>
-              <p className="text-xs" style={{ color: '#374151' }}>Claude Sonnet</p>
+              <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Claude Sonnet</p>
             </div>
           </div>
 
@@ -163,27 +163,27 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
           <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {messages.length === 0 && (
               <div className="space-y-3 pt-2">
-                <p className="text-xs text-center" style={{ color: '#4A5174' }}>
+                <p className="text-xs text-center" style={{ color: 'var(--color-text-tertiary)' }}>
                   תאר שינוי שאתה רוצה לעשות במערכת
                 </p>
                 {SUGGESTIONS.map(s => (
                   <button key={s} onClick={() => send(s)}
                     className="w-full text-right text-xs px-3 py-2 rounded-xl transition-all hover:opacity-80"
-                    style={{ background: '#13161F', border: '1px solid #1E2130', color: '#CBD5E1' }}>
+                    style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
                     {s}
                   </button>
                 ))}
                 {/* Cost info */}
-                <div className="rounded-xl px-3 py-2.5 text-xs" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
-                  <p className="font-medium mb-1.5" style={{ color: '#CBD5E1' }}>💰 עלות שימוש</p>
-                  <div className="space-y-1" style={{ color: '#4A5174' }}>
+                <div className="rounded-xl px-3 py-2.5 text-xs" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
+                  <p className="font-medium mb-1.5" style={{ color: 'var(--color-text-primary)' }}>💰 עלות שימוש</p>
+                  <div className="space-y-1" style={{ color: 'var(--color-text-tertiary)' }}>
                     <div className="flex justify-between">
                       <span>לשאלה ממוצעת</span>
-                      <span style={{ color: '#22C55E' }}>~$0.002 ≈ ₪0.007</span>
+                      <span style={{ color: 'var(--color-success)' }}>~$0.002 ≈ ₪0.007</span>
                     </div>
                     <div className="flex justify-between">
                       <span>1,000 שאלות בחודש</span>
-                      <span style={{ color: '#22C55E' }}>~$2 ≈ ₪7</span>
+                      <span style={{ color: 'var(--color-success)' }}>~$2 ≈ ₪7</span>
                     </div>
                     <div className="flex justify-between">
                       <span>מודל</span>
@@ -198,7 +198,7 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
               <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {m.role === 'assistant' && (
                   <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                    style={{ background: m.error ? '#2D0F0F' : 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                    style={{ background: m.error ? 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))' : 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                     <Bot className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -206,9 +206,9 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                   <div className="px-3 py-2.5 rounded-2xl text-sm leading-relaxed"
                     style={{
                       background: m.role === 'user'
-                        ? 'linear-gradient(135deg,#3B82F6,#6366F1)'
-                        : m.error ? '#2D0F0F' : '#13161F',
-                      color: m.error ? '#FCA5A5' : '#F1F5F9',
+                        ? 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))'
+                        : m.error ? 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))' : 'var(--color-bg-surface)',
+                      color: m.error ? 'var(--color-danger)' : 'var(--color-text-primary)',
                       borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                       fontSize: '13px',
                     }}>
@@ -218,9 +218,9 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                     <div className="flex items-center gap-1.5 flex-wrap px-1">
                       <div className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
                         style={{
-                          background: m.saved ? '#0D2818' : '#2A1800',
-                          color:      m.saved ? '#22C55E' : '#F59E0B',
-                          border: `1px solid ${m.saved ? '#166534' : '#92400E'}`,
+                          background: m.saved ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))',
+                          color:      m.saved ? 'var(--color-success)' : 'var(--color-warning)',
+                          border: `1px solid ${m.saved ? 'color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-warning) 45%, var(--color-bg-app))'}`,
                         }}>
                         <CheckCircle className="w-2.5 h-2.5" />
                         {m.saved ? `נשמר: ${m.changes.what_changed}` : `לא נשמר: ${m.changes.what_changed}`}
@@ -229,14 +229,14 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                   )}
                   {!m.changes && !m.error && m.role === 'assistant' && (
                     <div className="px-1">
-                      <span className="text-xs" style={{ color: '#374151' }}>לא זוהה שינוי להחיל</span>
+                      <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>לא זוהה שינוי להחיל</span>
                     </div>
                   )}
                 </div>
                 {m.role === 'user' && (
                   <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                    style={{ background: '#1E2846' }}>
-                    <User className="w-3 h-3" style={{ color: '#4F6EF7' }} />
+                    style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' }}>
+                    <User className="w-3 h-3" style={{ color: 'var(--color-brand-start)' }} />
                   </div>
                 )}
               </div>
@@ -245,11 +245,11 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
             {loading && (
               <div className="flex gap-2 justify-start">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
-                  style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                  style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                   <Bot className="w-3 h-3 text-white" />
                 </div>
                 <div className="px-3 py-2 rounded-2xl text-xs flex items-center gap-1.5"
-                  style={{ background: '#13161F', color: '#4A5174', borderRadius: '16px 16px 16px 4px' }}>
+                  style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-tertiary)', borderRadius: '16px 16px 16px 4px' }}>
                   <RefreshCw className="w-3 h-3 animate-spin" />
                   מעדכן הגדרות...
                 </div>
@@ -259,7 +259,7 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
           </div>
 
           {/* Input */}
-          <div className="px-3 pb-3 pt-2 shrink-0" style={{ borderTop: '1px solid #1E2130' }}>
+          <div className="px-3 pb-3 pt-2 shrink-0" style={{ borderTop: '1px solid var(--color-border)' }}>
             <div className="flex gap-2 items-end">
               <textarea
                 ref={inputRef}
@@ -271,9 +271,9 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
                 rows={2}
                 style={{
                   flex: 1,
-                  background: '#13161F',
-                  border: '1px solid #1E2130',
-                  color: '#CBD5E1',
+                  background: 'var(--color-bg-surface)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text-primary)',
                   borderRadius: '10px',
                   padding: '8px 12px',
                   fontSize: '13px',
@@ -284,13 +284,13 @@ export function AiFloatButton({ businessId }: { businessId: string | null }) {
               />
               <button onClick={() => send()} disabled={loading || !input.trim() || !businessId}
                 className="w-9 h-9 flex items-center justify-center rounded-xl transition-all disabled:opacity-40 hover:-translate-y-0.5 shrink-0"
-                style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                 <Send className="w-4 h-4 text-white" />
               </button>
             </div>
             {messages.length > 0 && (
               <button onClick={() => { setMessages([]); setTotalCostIls(0) }}
-                className="mt-1.5 text-xs hover:underline" style={{ color: '#374151' }}>
+                className="mt-1.5 text-xs hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>
                 נקה שיחה
               </button>
             )}

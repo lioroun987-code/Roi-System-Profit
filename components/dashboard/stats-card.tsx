@@ -1,60 +1,72 @@
 import { cn, formatCurrency } from '@/lib/utils'
-import { LucideIcon } from 'lucide-react'
+import { LucideIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 
 interface StatsCardProps {
-  title: string
+  label: string
   value: number | null
-  currency?: 'ILS' | 'USD' | 'none'
-  subtitle?: string
   icon: LucideIcon
   trend?: number
+  sub?: string
+  /** Accent color for the icon badge — any valid CSS color (hex or var()). Defaults to brand. */
+  color?: string
+  format?: 'ils' | 'usd' | 'number' | 'x'
   className?: string
-  highlight?: 'profit' | 'loss' | 'neutral'
 }
 
 export function StatsCard({
-  title,
+  label,
   value,
-  currency = 'ILS',
-  subtitle,
   icon: Icon,
   trend,
+  sub,
+  color = 'var(--color-brand-start)',
+  format = 'ils',
   className,
-  highlight,
 }: StatsCardProps) {
   const displayValue =
     value == null
       ? '—'
-      : currency === 'none'
-      ? value.toFixed(2)
-      : formatCurrency(value, currency)
+      : format === 'ils'
+      ? formatCurrency(value)
+      : format === 'usd'
+      ? formatCurrency(value, 'USD')
+      : format === 'x'
+      ? `${value.toFixed(1)}x`
+      : value.toLocaleString()
 
-  const valueColor =
-    highlight === 'profit'
-      ? 'text-emerald-400'
-      : highlight === 'loss'
-      ? 'text-red-400'
-      : 'text-white'
+  const isPositive = (trend ?? 0) >= 0
 
   return (
-    <div className={cn('rounded-xl border border-white/10 bg-white/5 p-6', className)}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-gray-400 text-sm mb-1">{title}</p>
-          <p className={cn('text-2xl font-bold', valueColor)}>{displayValue}</p>
-          {subtitle && <p className="text-gray-500 text-xs mt-1">{subtitle}</p>}
-        </div>
-        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-blue-400" />
+    <div
+      className={cn(
+        'rounded-2xl p-5 border bg-[var(--color-bg-surface)] border-[var(--color-border)]',
+        className
+      )}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <p className="text-sm font-medium text-[var(--color-text-secondary)]">{label}</p>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: `color-mix(in srgb, ${color} 18%, transparent)` }}
+        >
+          <Icon className="w-4.5 h-4.5" style={{ color }} />
         </div>
       </div>
-
-      {trend != null && (
-        <div className="mt-3 flex items-center gap-1">
-          <span className={cn('text-xs font-medium', trend >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-            {trend >= 0 ? '+' : ''}{trend.toFixed(1)}%
-          </span>
-          <span className="text-gray-500 text-xs">לעומת אתמול</span>
+      <p className="text-2xl font-bold text-white mb-1">{displayValue}</p>
+      {(sub || trend != null) && (
+        <div className="flex items-center gap-1.5 mt-2">
+          {trend != null && (
+            <div
+              className={cn(
+                'flex items-center gap-0.5 text-xs font-medium',
+                isPositive ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
+              )}
+            >
+              {isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              {Math.abs(trend).toFixed(1)}%
+            </div>
+          )}
+          {sub && <span className="text-xs text-[var(--color-text-tertiary)]">{sub}</span>}
         </div>
       )}
     </div>

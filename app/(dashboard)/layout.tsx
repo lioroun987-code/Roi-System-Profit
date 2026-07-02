@@ -55,8 +55,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0D0F14' }}>
-        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full" style={{ borderColor: '#4F6EF7', borderTopColor: 'transparent' }} />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-app)]">
+        <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full" style={{ borderColor: 'var(--color-brand-start)', borderTopColor: 'transparent' }} />
       </div>
     )
   }
@@ -64,9 +64,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!session) return null
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#0D0F14' }}>
+    <div className="flex h-screen overflow-hidden bg-[var(--color-bg-app)]">
       <Sidebar businesses={businesses} activeBusiness={activeBusiness} onBusinessChange={handleBusinessChange} />
-      <main className="flex-1 overflow-y-auto" style={{ background: '#0D0F14' }}>
+      <main className="flex-1 overflow-y-auto bg-[var(--color-bg-app)]">
         {children}
       </main>
       <AiFloatButton businessId={activeBusiness} />

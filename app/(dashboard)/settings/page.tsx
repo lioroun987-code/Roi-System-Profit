@@ -30,7 +30,7 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
   const [saving, setSaving] = useState(false)
 
   const inputStyle: React.CSSProperties = {
-    background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+    background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
     borderRadius: '8px', padding: '7px 12px', fontSize: '13px', outline: 'none', width: '110px',
   }
 
@@ -50,9 +50,9 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
       {/* Products table */}
       <div>
         <h3 className="text-white font-semibold mb-3">מוצרים (מסונכרן מ-Shopify)</h3>
-        <div className="rounded-xl overflow-hidden border border-white/10">
+        <div className="rounded-xl overflow-hidden border border-[var(--color-border)]">
           <div className="grid grid-cols-12 px-4 py-2 text-xs font-semibold uppercase"
-            style={{ background: '#0D0F14', color: '#4A5174', borderBottom: '1px solid #1E2130' }}>
+            style={{ background: 'var(--color-bg-app)', color: 'var(--color-text-tertiary)', borderBottom: '1px solid var(--color-border)' }}>
             <span className="col-span-5">מוצר</span>
             <span className="col-span-3 text-right">מחיר מכירה</span>
             <span className="col-span-2 text-right">עלות שלי ($)</span>
@@ -63,21 +63,21 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
             const costIls     = costUsd * exchangeRate
             const sellIls     = product.sellingPriceIls ?? 0
             const margin      = sellIls > 0 ? ((sellIls - costIls) / sellIls) * 100 : 0
-            const marginColor = margin >= 30 ? '#22C55E' : margin >= 15 ? '#F59E0B' : '#EF4444'
+            const marginColor = margin >= 30 ? 'var(--color-success)' : margin >= 15 ? 'var(--color-warning)' : 'var(--color-danger)'
             return (
-              <div key={key} className="grid grid-cols-12 items-center px-4 py-3 border-b border-white/5">
+              <div key={key} className="grid grid-cols-12 items-center px-4 py-3 border-b border-[var(--color-border)]/50">
                 <div className="col-span-5">
                   <p className="text-sm text-white leading-tight">{product.productTitle}</p>
                   {product.variantTitle !== 'Default Title' && (
-                    <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>{product.variantTitle}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>{product.variantTitle}</p>
                   )}
                 </div>
                 <div className="col-span-3 text-right">
-                  <span className="text-sm" style={{ color: '#CBD5E1' }}>₪{sellIls}</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>₪{sellIls}</span>
                 </div>
                 <div className="col-span-2 flex justify-end">
                   <div className="relative">
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>$</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>$</span>
                     <input type="number" step="0.01" min="0" value={costUsd || ''}
                       onChange={e => setCosts(prev => ({ ...prev, [key]: parseFloat(e.target.value) || 0 }))}
                       style={{ ...inputStyle, paddingRight: '22px', textAlign: 'right' }} dir="ltr" />
@@ -88,7 +88,7 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
                     <span className="text-sm font-semibold" style={{ color: marginColor }}>
                       {margin.toFixed(0)}%
                     </span>
-                  ) : <span style={{ color: '#374151' }}>—</span>}
+                  ) : <span style={{ color: 'var(--color-text-tertiary)' }}>—</span>}
                 </div>
               </div>
             )
@@ -109,9 +109,9 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
             ['pickupFeeAmountIls', 'עמלת איסוף (₪)', '₪'],
           ] as const).map(([field, label, currency]) => (
             <div key={field} className="space-y-1">
-              <label className="text-xs" style={{ color: '#6B7280' }}>{label}</label>
+              <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{label}</label>
               <div className="relative">
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>{currency}</span>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{currency}</span>
                 <input type="number" step="0.01" value={(shipping as any)[field]}
                   onChange={e => setShipping(prev => ({ ...prev, [field]: parseFloat(e.target.value) || 0 }))}
                   style={{ ...inputStyle, width: '100%', paddingRight: '32px' }} dir="ltr" />
@@ -123,7 +123,7 @@ function ShopifyProductCosts({ pc, customCosts, onSave }: {
 
       <button onClick={handleSave} disabled={saving}
         className="px-6 py-2.5 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-all hover:-translate-y-0.5"
-        style={{ background: 'linear-gradient(135deg,#3B82F6,#6366F1)' }}>
+        style={{ background: 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))' }}>
         {saving ? 'שומר...' : 'שמור עלויות מוצרים'}
       </button>
     </div>
@@ -193,7 +193,7 @@ export default function SettingsPage() {
   if (!activeBusiness) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-400 mb-4">בחר עסק מהתפריט הצדדי כדי לערוך את ההגדרות</p>
+        <p className="text-[var(--color-text-secondary)] mb-4">בחר עסק מהתפריט הצדדי כדי לערוך את ההגדרות</p>
         <Button onClick={() => window.location.href = '/settings/business/new'}>
           צור עסק חדש
         </Button>
@@ -205,15 +205,15 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-white">הגדרות עסק</h1>
 
-      <div className="flex gap-1 border-b border-white/10">
+      <div className="flex gap-1 border-b border-[var(--color-border)]">
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               tab === t.id
-                ? 'border-blue-500 text-blue-400'
-                : 'border-transparent text-gray-400 hover:text-white'
+                ? 'border-[var(--color-brand-start)] text-[var(--color-brand-start)]'
+                : 'border-transparent text-[var(--color-text-secondary)] hover:text-white'
             }`}
           >
             {t.label}
@@ -221,9 +221,9 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+      <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border)] rounded-xl p-6">
         {savedTab && (
-          <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-2 text-emerald-400 text-sm">
+          <div className="mb-4 tint-success border border-[var(--color-success)]/30 rounded-lg px-4 py-2 text-[var(--color-success)] text-sm">
             ✓ השינויים נשמרו בהצלחה
           </div>
         )}
@@ -287,15 +287,15 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#1A0D2E' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))' }}>
                       <span style={{ fontSize: 16 }}>⚙️</span>
                     </div>
                     <div>
                       <h3 className="text-white font-bold">חוקי עלות</h3>
-                      <p className="text-xs" style={{ color: '#4A5174' }}>חוקים שה-AI הגדיר לחישוב עלות מדויק</p>
+                      <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>חוקים שה-AI הגדיר לחישוב עלות מדויק</p>
                     </div>
                     {rules.length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#1A0D2E', color: '#A78BFA' }}>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))', color: 'var(--color-accent-violet)' }}>
                         {rules.filter(r => r.active).length} פעילים
                       </span>
                     )}
@@ -303,11 +303,11 @@ export default function SettingsPage() {
                 </div>
 
                 {rules.length === 0 ? (
-                  <div className="rounded-xl p-8 text-center" style={{ background: '#0D0F14', border: '2px dashed #1E2130' }}>
+                  <div className="rounded-xl p-8 text-center" style={{ background: 'var(--color-bg-app)', border: '2px dashed var(--color-border)' }}>
                     <p className="text-2xl mb-2">⚙️</p>
                     <p className="text-white font-medium mb-1">אין חוקים מוגדרים עדיין</p>
-                    <p className="text-sm" style={{ color: '#4A5174' }}>לחץ על "עדכן עם AI" ✨ ותאר כל חוק עסקי</p>
-                    <p className="text-xs mt-3 px-4 py-2 rounded-lg inline-block" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
+                    <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>לחץ על "עדכן עם AI" ✨ ותאר כל חוק עסקי</p>
+                    <p className="text-xs mt-3 px-4 py-2 rounded-lg inline-block" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))', color: 'var(--color-brand-start)' }}>
                       לדוגמה: "כשקונים 2+ דילים מאותו סוג, הסוכן מוריד $3.60 לכל דיל נוסף"
                     </p>
                   </div>
@@ -317,14 +317,14 @@ export default function SettingsPage() {
                       const { cond, eff } = ruleDescription(rule)
                       return (
                         <div key={rule.id} className="rounded-xl overflow-hidden"
-                          style={{ border: `1px solid ${rule.active ? '#2D1F4A' : '#1E2130'}`, opacity: rule.active ? 1 : 0.6 }}>
+                          style={{ border: `1px solid ${rule.active ? 'color-mix(in srgb, var(--color-accent-violet) 35%, var(--color-bg-app))' : 'var(--color-border)'}`, opacity: rule.active ? 1 : 0.6 }}>
                           {/* Header */}
                           <div className="flex items-center justify-between px-4 py-3"
-                            style={{ background: rule.active ? '#110D1E' : '#0D0F14', borderBottom: `1px solid ${rule.active ? '#2D1F4A' : '#1E2130'}` }}>
+                            style={{ background: rule.active ? 'color-mix(in srgb, var(--color-accent-violet) 12%, var(--color-bg-app))' : 'var(--color-bg-app)', borderBottom: `1px solid ${rule.active ? 'color-mix(in srgb, var(--color-accent-violet) 35%, var(--color-bg-app))' : 'var(--color-border)'}` }}>
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-white">{rule.name}</span>
                               <span className="text-xs px-2 py-0.5 rounded-full"
-                                style={{ background: rule.active ? '#1A0D2E' : '#1A1D2A', color: rule.active ? '#A78BFA' : '#6B7280' }}>
+                                style={{ background: rule.active ? 'color-mix(in srgb, var(--color-accent-violet) 20%, var(--color-bg-app))' : 'var(--color-bg-surface-alt)', color: rule.active ? 'var(--color-accent-violet)' : 'var(--color-text-secondary)' }}>
                                 {rule.active ? '● פעיל' : '○ מושבת'}
                               </span>
                             </div>
@@ -332,32 +332,32 @@ export default function SettingsPage() {
                               <button onClick={async () => {
                                 const updated = rules.map((r: any, i: number) => i === idx ? { ...r, active: !r.active } : r)
                                 await save({ discountRules: { ...dr, costRules: updated } }, 'rules')
-                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#1E2130', color: '#CBD5E1' }}>
+                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
                                 {rule.active ? 'השבת' : 'הפעל'}
                               </button>
                               <button onClick={async () => {
                                 if (!confirm('למחוק את החוק הזה?')) return
                                 const updated = rules.filter((_: any, i: number) => i !== idx)
                                 await save({ discountRules: { ...dr, costRules: updated } }, 'rules')
-                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                              }} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))', color: 'var(--color-danger)' }}>
                                 מחק
                               </button>
                             </div>
                           </div>
                           {/* Body */}
-                          <div className="px-4 py-3 space-y-2" style={{ background: '#0D0F14' }}>
+                          <div className="px-4 py-3 space-y-2" style={{ background: 'var(--color-bg-app)' }}>
                             <div className="flex items-start gap-2">
-                              <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>תנאי:</span>
+                              <span className="text-xs mt-0.5 shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>תנאי:</span>
                               <span className="text-sm text-white">{cond}</span>
                             </div>
                             <div className="flex items-start gap-2">
-                              <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>אז:</span>
-                              <span className="text-sm font-medium" style={{ color: '#A78BFA' }}>{eff}</span>
+                              <span className="text-xs mt-0.5 shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>אז:</span>
+                              <span className="text-sm font-medium" style={{ color: 'var(--color-accent-violet)' }}>{eff}</span>
                             </div>
                             {rule.note && (
                               <div className="flex items-start gap-2">
-                                <span className="text-xs mt-0.5 shrink-0" style={{ color: '#4A5174' }}>הערה:</span>
-                                <span className="text-xs" style={{ color: '#6B7280' }}>{rule.note}</span>
+                                <span className="text-xs mt-0.5 shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>הערה:</span>
+                                <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>{rule.note}</span>
                               </div>
                             )}
                           </div>
@@ -369,33 +369,33 @@ export default function SettingsPage() {
               </div>
 
               {/* ── AI Notes ── */}
-              <div style={{ borderTop: '1px solid #1E2130', paddingTop: '2rem' }}>
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '2rem' }}>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#0D1A2A' }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' }}>
                     <span style={{ fontSize: 16 }}>📋</span>
                   </div>
                   <div>
                     <h3 className="text-white font-bold">הנחיות מיוחדות ל-AI</h3>
-                    <p className="text-xs" style={{ color: '#4A5174' }}>הוראות חופשיות שה-AI משתמש בהן לכל ניתוח הזמנה</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>הוראות חופשיות שה-AI משתמש בהן לכל ניתוח הזמנה</p>
                   </div>
                 </div>
 
                 {notes ? (
                   <div className="rounded-xl p-4 whitespace-pre-wrap text-sm leading-relaxed"
-                    style={{ background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1' }}>
+                    style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>
                     {notes}
                   </div>
                 ) : (
-                  <div className="rounded-xl p-6 text-center" style={{ background: '#0D0F14', border: '2px dashed #1E2130' }}>
+                  <div className="rounded-xl p-6 text-center" style={{ background: 'var(--color-bg-app)', border: '2px dashed var(--color-border)' }}>
                     <p className="text-white font-medium mb-1">אין הנחיות מיוחדות</p>
-                    <p className="text-sm" style={{ color: '#4A5174' }}>ניתן להוסיף הנחיות דרך "עדכן עם AI" ✨</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>ניתן להוסיף הנחיות דרך "עדכן עם AI" ✨</p>
                   </div>
                 )}
 
                 {notes && (
                   <button onClick={() => save({ aiNotes: '' }, 'rules')}
                     className="mt-3 text-xs px-3 py-1.5 rounded-lg"
-                    style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                    style={{ background: 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))', color: 'var(--color-danger)' }}>
                     נקה הנחיות
                   </button>
                 )}
@@ -414,28 +414,28 @@ export default function SettingsPage() {
             <div className="space-y-6 max-w-sm">
               <div>
                 <h3 className="text-white font-bold mb-1">עמלת סליקה ממוצעת</h3>
-                <p className="text-sm" style={{ color: '#6B7280' }}>
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                   אחוז קבוע שיחוסר מכל הזמנה — ממוצע של כל אמצעי התשלום שלך
                 </p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>עמלה %</label>
+                <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>עמלה %</label>
                 <div className="relative max-w-xs">
                   <input
                     type="number" step="0.1" min="0" max="20"
                     defaultValue={averageFeePercent}
                     id="avg-fee"
                     style={{
-                      background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+                      background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
                       borderRadius: '10px', padding: '10px 36px 10px 14px',
                       fontSize: '16px', fontWeight: '600', outline: 'none', width: '100%',
                     }}
                     dir="ltr"
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: '#4A5174' }}>%</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: 'var(--color-text-tertiary)' }}>%</span>
                 </div>
-                <p className="text-xs" style={{ color: '#4A5174' }}>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                   לדוגמה: אם Bit = 3%, אשראי = 1.5% ואתה מקבל 50/50 → ממוצע ~2.25%
                 </p>
               </div>
@@ -446,22 +446,22 @@ export default function SettingsPage() {
                     type="checkbox"
                     defaultChecked={vatEnabled}
                     id="vat-enabled"
-                    className="w-4 h-4 rounded accent-blue-500"
+                    className="w-4 h-4 rounded accent-[var(--color-brand-start)]"
                   />
-                  <span className="text-sm" style={{ color: '#CBD5E1' }}>העסק גובה מע"מ</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>העסק גובה מע"מ</span>
                 </label>
                 {vatEnabled && (
                   <div className="relative max-w-xs mr-7">
                     <input
                       type="number" defaultValue={vatPercent} id="vat-percent"
                       style={{
-                        background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+                        background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
                         borderRadius: '10px', padding: '8px 36px 8px 14px',
                         fontSize: '14px', outline: 'none', width: '100%',
                       }}
                       dir="ltr"
                     />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>%</span>
                   </div>
                 )}
               </div>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                   }, 'payment')
                 }}
                 className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
-                style={{ background: 'linear-gradient(135deg,#3B82F6,#6366F1)' }}
+                style={{ background: 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))' }}
               >
                 שמור
               </button>

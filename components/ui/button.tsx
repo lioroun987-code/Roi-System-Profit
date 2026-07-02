@@ -5,21 +5,24 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-start)] disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-        destructive: 'bg-red-600 text-white hover:bg-red-700',
-        outline: 'border border-white/20 bg-transparent text-white hover:bg-white/10',
-        ghost: 'text-white hover:bg-white/10',
-        link: 'text-blue-400 underline-offset-4 hover:underline',
-        success: 'bg-emerald-600 text-white hover:bg-emerald-700',
+        default: 'brand-gradient text-white hover:opacity-90 active:opacity-80',
+        destructive: 'bg-[var(--color-danger)] text-white hover:opacity-90',
+        outline:
+          'border border-[var(--color-border)] bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface-alt)]',
+        ghost: 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-surface-alt)]',
+        link: 'text-[var(--color-brand-start)] underline-offset-4 hover:underline',
+        success: 'bg-[var(--color-success)] text-white hover:opacity-90',
+        secondary:
+          'bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:bg-[var(--color-bg-surface-alt)]',
       },
       size: {
         default: 'h-10 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-12 rounded-lg px-8',
+        sm: 'h-8 rounded-lg px-3 text-xs',
+        lg: 'h-12 rounded-xl px-8',
         icon: 'h-10 w-10',
       },
     },

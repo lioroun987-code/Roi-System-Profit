@@ -32,15 +32,15 @@ function StepBar({ current }: { current: number }) {
           <div key={s.id} className="flex items-center gap-1.5">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
               style={{
-                background:   active ? '#3B82F6' : done ? '#052E16' : '#0D0F14',
-                color:        active ? '#fff'    : done ? '#22C55E' : '#374151',
-                border: `1px solid ${active ? '#3B82F6' : done ? '#166534' : '#1E2130'}`,
+                background:   active ? 'var(--color-brand-start)' : done ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' : 'var(--color-bg-app)',
+                color:        active ? '#fff'    : done ? 'var(--color-success)' : 'var(--color-text-tertiary)',
+                border: `1px solid ${active ? 'var(--color-brand-start)' : done ? 'color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' : 'var(--color-border)'}`,
               }}>
               {done ? <CheckCircle className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
               <span className="hidden sm:block">{s.label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className="w-4 h-px" style={{ background: done ? '#166534' : '#1E2130' }} />
+              <div className="w-4 h-px" style={{ background: done ? 'color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' : 'var(--color-border)' }} />
             )}
           </div>
         )
@@ -57,11 +57,11 @@ function MarginBadge({ costUsd, sellingPriceIls, exchangeRate }: {
   const costIls  = costUsd * exchangeRate
   const profit   = sellingPriceIls - costIls
   const margin   = (profit / sellingPriceIls) * 100
-  const color    = margin >= 30 ? '#22C55E' : margin >= 15 ? '#F59E0B' : '#EF4444'
-  const bg       = margin >= 30 ? '#0D2818'  : margin >= 15 ? '#2A1800' : '#2D0F0F'
+  const color    = margin >= 30 ? 'var(--color-success)' : margin >= 15 ? 'var(--color-warning)' : 'var(--color-danger)'
+  const bg       = margin >= 30 ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))'  : margin >= 15 ? 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))' : 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))'
   return (
     <div className="flex items-center gap-2 mt-2.5 text-xs">
-      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#1E2130' }}>
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-border)' }}>
         <div className="h-full rounded-full transition-all duration-300"
           style={{ width: `${Math.min(Math.max(margin, 0), 100)}%`, background: color }} />
       </div>
@@ -69,7 +69,7 @@ function MarginBadge({ costUsd, sellingPriceIls, exchangeRate }: {
         <TrendingUp className="w-3 h-3" />
         {margin.toFixed(0)}%
       </div>
-      <span style={{ color: '#4A5174' }}>₪{profit.toFixed(0)} רווח גולמי</span>
+      <span style={{ color: 'var(--color-text-tertiary)' }}>₪{profit.toFixed(0)} רווח גולמי</span>
     </div>
   )
 }
@@ -326,7 +326,7 @@ export default function OnboardingPage() {
 
   /* ── Shared styles ── */
   const inputStyle: React.CSSProperties = {
-    background: '#0D0F14', border: '1px solid #1E2130', color: '#CBD5E1',
+    background: 'var(--color-bg-app)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)',
     borderRadius: '10px', padding: '10px 14px', fontSize: '14px',
     outline: 'none', width: '100%',
   }
@@ -336,13 +336,13 @@ export default function OnboardingPage() {
 
   /* ─────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 py-8" style={{ background: '#030712' }}>
+    <div className="min-h-screen flex flex-col items-center px-4 py-8" style={{ background: 'var(--color-bg-app)' }}>
       <div className="w-full max-w-2xl">
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-8">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg,#3b82f6,#6366f1)' }}>
+            style={{ background: 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))' }}>
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path d="M16 7h6v6M22 7l-8.5 8.5-5-5L2 17" />
             </svg>
@@ -352,30 +352,30 @@ export default function OnboardingPage() {
 
         <StepBar current={step} />
 
-        <div className="rounded-2xl border" style={{ background: '#0D0F14', borderColor: '#1E2130' }}>
+        <div className="rounded-2xl border" style={{ background: 'var(--color-bg-app)', borderColor: 'var(--color-border)' }}>
 
           {/* ── Step 0: Welcome ── */}
           {step === 0 && (
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">ברוך הבא 👋</h2>
-                <p style={{ color: '#6B7280' }}>בוא נגדיר את העסק שלך תוך כמה דקות.</p>
+                <p style={{ color: 'var(--color-text-secondary)' }}>בוא נגדיר את העסק שלך תוך כמה דקות.</p>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>שם העסק / החנות</label>
+                <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>שם העסק / החנות</label>
                 <input style={inputStyle} value={businessName}
                   onChange={e => setBusinessName(e.target.value)} placeholder="חנות הקפסולות שלי" autoFocus />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>שער חליפין דולר–שקל</label>
+                <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>שער חליפין דולר–שקל</label>
                 <div className="relative max-w-xs">
                   <input style={{ ...inputStyle, paddingLeft: '48px' }} type="number" step="0.01"
                     value={exchangeRate} onChange={e => setExchangeRate(parseFloat(e.target.value) || 3.7)} dir="ltr" />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>₪/$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>₪/$</span>
                 </div>
-                <p className="text-xs" style={{ color: '#4A5174' }}>כל חישובי הרווח יתבצעו לפי שער זה</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>כל חישובי הרווח יתבצעו לפי שער זה</p>
               </div>
             </div>
           )}
@@ -385,16 +385,16 @@ export default function OnboardingPage() {
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">חיבור Shopify</h2>
-                <p style={{ color: '#6B7280' }}>חבר את החנות — נמשוך מוצרים, נגדיר כללים אוטומטית ונעבד את כל ההיסטוריה.</p>
+                <p style={{ color: 'var(--color-text-secondary)' }}>חבר את החנות — נמשוך מוצרים, נגדיר כללים אוטומטית ונעבד את כל ההיסטוריה.</p>
               </div>
 
               {shopifyConnected ? (
                 <div className="flex items-center gap-3 p-4 rounded-xl"
-                  style={{ background: '#0D2818', border: '1px solid #166534' }}>
-                  <CheckCircle className="w-6 h-6 shrink-0" style={{ color: '#22C55E' }} />
+                  style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
+                  <CheckCircle className="w-6 h-6 shrink-0" style={{ color: 'var(--color-success)' }} />
                   <div className="flex-1">
-                    <p className="font-semibold" style={{ color: '#22C55E' }}>Shopify מחובר בהצלחה!</p>
-                    <p className="text-sm mt-0.5" style={{ color: '#6B7280' }}>
+                    <p className="font-semibold" style={{ color: 'var(--color-success)' }}>Shopify מחובר בהצלחה!</p>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
                       מוצרים ברקע — ממשיכים להגדרת עלויות
                     </p>
                   </div>
@@ -402,14 +402,14 @@ export default function OnboardingPage() {
               ) : (
                 <>
                   {/* What happens explanation */}
-                  <div className="rounded-xl p-4 space-y-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                  <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                     <p className="text-sm font-medium text-white">מה קורה לאחר החיבור:</p>
                     {[
                       { icon: '📦', text: 'מושכים את כל המוצרים שלך אוטומטית' },
                       { icon: '🤖', text: 'AI מנתח את דפוסי ההנחה ואמצעי התשלום שלך' },
                       { icon: '📊', text: 'מעבדים את כל היסטוריית ההזמנות שלך' },
                     ].map(item => (
-                      <div key={item.text} className="flex items-center gap-3 text-sm" style={{ color: '#6B7280' }}>
+                      <div key={item.text} className="flex items-center gap-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                         <span>{item.icon}</span>
                         <span>{item.text}</span>
                       </div>
@@ -417,7 +417,7 @@ export default function OnboardingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>דומיין החנות</label>
+                    <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>דומיין החנות</label>
                     <input
                       style={inputStyle} dir="ltr"
                       value={shopifyDomain}
@@ -425,7 +425,7 @@ export default function OnboardingPage() {
                       onKeyDown={e => e.key === 'Enter' && connectShopify()}
                       placeholder="your-store.myshopify.com"
                     />
-                    <p className="text-xs" style={{ color: '#4A5174' }}>
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                       הכתובת שמופיעה ב-URL של אדמין שופיפיי שלך
                     </p>
                   </div>
@@ -434,21 +434,21 @@ export default function OnboardingPage() {
                     onClick={connectShopify}
                     disabled={!shopifyDomain.trim() || !businessId}
                     className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
-                    style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
+                    style={{ background: 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))' }}>
                     <Store className="w-5 h-5" />
                     התחבר עם Shopify
                   </button>
 
-                  <p className="text-xs text-center" style={{ color: '#374151' }}>
+                  <p className="text-xs text-center" style={{ color: 'var(--color-text-tertiary)' }}>
                     תועבר לדף אישור Shopify ותחזור אוטומטית
                   </p>
                 </>
               )}
 
-              <div className="pt-4" style={{ borderTop: '1px solid #1E2130' }}>
-                <p className="text-sm text-center" style={{ color: '#4A5174' }}>
+              <div className="pt-4" style={{ borderTop: '1px solid var(--color-border)' }}>
+                <p className="text-sm text-center" style={{ color: 'var(--color-text-tertiary)' }}>
                   אין לך Shopify עדיין?{' '}
-                  <button onClick={() => setStep(2)} className="hover:underline" style={{ color: '#3B82F6' }}>
+                  <button onClick={() => setStep(2)} className="hover:underline" style={{ color: 'var(--color-brand-start)' }}>
                     דלג לשלב הבא
                   </button>
                 </p>
@@ -464,16 +464,16 @@ export default function OnboardingPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">עלויות המוצרים שלך</h2>
-                  <p style={{ color: '#6B7280' }}>
+                  <p style={{ color: 'var(--color-text-secondary)' }}>
                     כמה עולה לך כל מוצר? נשתמש בזה לחישוב הרווח הנקי על כל הזמנה.
                   </p>
                 </div>
                 {totalVariants > 0 && (
                   <div className="text-xs px-3 py-1.5 rounded-full font-medium shrink-0"
                     style={{
-                      background: filledCount === totalVariants ? '#0D2818' : '#13161F',
-                      color:      filledCount === totalVariants ? '#22C55E' : '#6B7280',
-                      border: `1px solid ${filledCount === totalVariants ? '#166534' : '#1E2130'}`,
+                      background: filledCount === totalVariants ? 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' : 'var(--color-bg-surface)',
+                      color:      filledCount === totalVariants ? 'var(--color-success)' : 'var(--color-text-secondary)',
+                      border: `1px solid ${filledCount === totalVariants ? 'color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' : 'var(--color-border)'}`,
                     }}>
                     {filledCount}/{totalVariants} מוצרים
                   </div>
@@ -481,7 +481,7 @@ export default function OnboardingPage() {
               </div>
 
               {/* AI / Manual toggle */}
-              <div className="flex rounded-xl p-1 gap-1" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                 {[
                   { id: false, label: '✏️ מלא ידנית' },
                   { id: true,  label: '🤖 תאר ל-AI' },
@@ -489,8 +489,8 @@ export default function OnboardingPage() {
                   <button key={String(opt.id)} onClick={() => { setAiMode(opt.id); setAiResult(null) }}
                     className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
                     style={{
-                      background: aiMode === opt.id ? '#1E2846' : 'transparent',
-                      color:      aiMode === opt.id ? '#4F6EF7' : '#6B7280',
+                      background: aiMode === opt.id ? 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' : 'transparent',
+                      color:      aiMode === opt.id ? 'var(--color-brand-start)' : 'var(--color-text-secondary)',
                     }}>
                     {opt.label}
                   </button>
@@ -500,9 +500,9 @@ export default function OnboardingPage() {
               {/* ── AI Mode ── */}
               {aiMode && (
                 <div className="space-y-4">
-                  <div className="rounded-xl p-3" style={{ background: '#0D1A2A', border: '1px solid #1E3A5F' }}>
-                    <p className="text-sm font-medium mb-1" style={{ color: '#60A5FA' }}>💡 תאר בחופשיות — לדוגמה:</p>
-                    <p className="text-xs leading-relaxed" style={{ color: '#4A5174' }}>
+                  <div className="rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-brand-start) 35%, var(--color-bg-app))' }}>
+                    <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-brand-start)' }}>💡 תאר בחופשיות — לדוגמה:</p>
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-tertiary)' }}>
                       "דיל עולה לי 8.5$, קול דיל 9.5$, בקבוק בלבד 6$, קפסולה 0.85 סנט.
                       הנחה: 2 דילים = 10%, 3 דילים = 15%. קופון 50₪ מצטבר.
                       משלוח עולה לי 3$ ואני גובה 25₪. איסוף עצמי מתחת 200₪ = עמלה 10₪."
@@ -518,14 +518,14 @@ export default function OnboardingPage() {
                   />
 
                   {aiError && (
-                    <p className="text-sm px-3 py-2 rounded-xl" style={{ background: '#2D0F0F', color: '#FCA5A5' }}>
+                    <p className="text-sm px-3 py-2 rounded-xl" style={{ background: 'color-mix(in srgb, var(--color-danger) 20%, var(--color-bg-app))', color: 'var(--color-danger)' }}>
                       {aiError}
                     </p>
                   )}
 
                   <button onClick={parseWithAI} disabled={aiParsing || !aiDescription.trim()}
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-white disabled:opacity-40 transition-all hover:-translate-y-0.5"
-                    style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)' }}>
+                    style={{ background: 'linear-gradient(135deg, var(--color-accent-indigo), var(--color-accent-violet))' }}>
                     {aiParsing
                       ? <><Loader2 className="w-4 h-4 animate-spin" />מנתח...</>
                       : <>🤖 נתח ומלא אוטומטית</>}
@@ -533,22 +533,22 @@ export default function OnboardingPage() {
 
                   {/* AI Result Summary */}
                   {aiResult && (
-                    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #166534' }}>
-                      <div className="px-4 py-3 flex items-center gap-2" style={{ background: '#0D2818' }}>
-                        <span style={{ color: '#22C55E' }}>✓</span>
-                        <p className="text-sm font-semibold" style={{ color: '#22C55E' }}>AI מילא את הפרטים — בדוק ואשר</p>
+                    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
+                      <div className="px-4 py-3 flex items-center gap-2" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))' }}>
+                        <span style={{ color: 'var(--color-success)' }}>✓</span>
+                        <p className="text-sm font-semibold" style={{ color: 'var(--color-success)' }}>AI מילא את הפרטים — בדוק ואשר</p>
                       </div>
 
-                      <div className="p-4 space-y-4" style={{ background: '#0A1A0A' }}>
+                      <div className="p-4 space-y-4" style={{ background: 'color-mix(in srgb, var(--color-success) 12%, var(--color-bg-app))' }}>
                         {/* Summary text */}
-                        <p className="text-sm leading-relaxed" style={{ color: '#86EFAC' }}>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--color-success)' }}>
                           {aiResult.summary}
                         </p>
 
                         {/* Product costs */}
                         {aiResult.productCosts && Object.keys(aiResult.productCosts).length > 0 && (
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>עלויות שזוהו</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>עלויות שזוהו</p>
                             <div className="space-y-1.5">
                               {Object.entries(aiResult.productCosts as Record<string, any>).map(([key, val]) => {
                                 const product = products.find(p =>
@@ -560,11 +560,11 @@ export default function OnboardingPage() {
                                   : key
                                 return (
                                   <div key={key} className="flex items-center justify-between text-sm">
-                                    <span style={{ color: '#CBD5E1' }}>{name}</span>
+                                    <span style={{ color: 'var(--color-text-primary)' }}>{name}</span>
                                     <div className="flex items-center gap-3">
-                                      <span className="font-bold" style={{ color: '#22C55E' }}>${val.costUsd}</span>
+                                      <span className="font-bold" style={{ color: 'var(--color-success)' }}>${val.costUsd}</span>
                                       {val.reasoning && (
-                                        <span className="text-xs" style={{ color: '#4A5174' }}>{val.reasoning}</span>
+                                        <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{val.reasoning}</span>
                                       )}
                                     </div>
                                   </div>
@@ -577,30 +577,30 @@ export default function OnboardingPage() {
                         {/* Discount rules */}
                         {aiResult.discountRules && (
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>כללי הנחה</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>כללי הנחה</p>
                             <div className="flex flex-wrap gap-2">
                               {aiResult.discountRules.qty2Percent > 0 && (
-                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   {aiResult.discountRules.qty2Percent}% על 2+
                                 </span>
                               )}
                               {aiResult.discountRules.qty3Percent > 0 && (
-                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   {aiResult.discountRules.qty3Percent}% על 3+
                                 </span>
                               )}
                               {aiResult.discountRules.coupon50Ils && (
-                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   קופון ₪50
                                 </span>
                               )}
                               {aiResult.discountRules.section10Percent && (
-                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   סקשן 10%
                                 </span>
                               )}
                               {aiResult.discountRules.section15Percent && (
-                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: '#1A2A1A', color: '#86EFAC', border: '1px solid #166534' }}>
+                                <span className="text-xs px-2 py-1 rounded-full" style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', color: 'var(--color-success)', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
                                   סקשן 15%
                                 </span>
                               )}
@@ -611,19 +611,19 @@ export default function OnboardingPage() {
                         {/* Shipping */}
                         {aiResult.shippingSettings && (
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#4A5174' }}>משלוח</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-tertiary)' }}>משלוח</p>
                             <div className="grid grid-cols-2 gap-2 text-xs">
                               {aiResult.shippingSettings.homeDeliveryCostUsd > 0 && (
-                                <span style={{ color: '#86EFAC' }}>עלות לבית: ${aiResult.shippingSettings.homeDeliveryCostUsd}</span>
+                                <span style={{ color: 'var(--color-success)' }}>עלות לבית: ${aiResult.shippingSettings.homeDeliveryCostUsd}</span>
                               )}
                               {aiResult.shippingSettings.homeDeliveryChargeIls > 0 && (
-                                <span style={{ color: '#86EFAC' }}>חיוב לקוח: ₪{aiResult.shippingSettings.homeDeliveryChargeIls}</span>
+                                <span style={{ color: 'var(--color-success)' }}>חיוב לקוח: ₪{aiResult.shippingSettings.homeDeliveryChargeIls}</span>
                               )}
                               {aiResult.shippingSettings.pickupFeeThresholdIls > 0 && (
-                                <span style={{ color: '#86EFAC' }}>סף איסוף: ₪{aiResult.shippingSettings.pickupFeeThresholdIls}</span>
+                                <span style={{ color: 'var(--color-success)' }}>סף איסוף: ₪{aiResult.shippingSettings.pickupFeeThresholdIls}</span>
                               )}
                               {aiResult.shippingSettings.pickupFeeAmountIls > 0 && (
-                                <span style={{ color: '#86EFAC' }}>עמלת איסוף: ₪{aiResult.shippingSettings.pickupFeeAmountIls}</span>
+                                <span style={{ color: 'var(--color-success)' }}>עמלת איסוף: ₪{aiResult.shippingSettings.pickupFeeAmountIls}</span>
                               )}
                             </div>
                           </div>
@@ -631,14 +631,14 @@ export default function OnboardingPage() {
 
                         {/* Warnings */}
                         {aiResult.warnings?.length > 0 && (
-                          <div className="rounded-lg px-3 py-2" style={{ background: '#2A1800' }}>
+                          <div className="rounded-lg px-3 py-2" style={{ background: 'color-mix(in srgb, var(--color-warning) 20%, var(--color-bg-app))' }}>
                             {aiResult.warnings.map((w: string, i: number) => (
-                              <p key={i} className="text-xs" style={{ color: '#F59E0B' }}>⚠️ {w}</p>
+                              <p key={i} className="text-xs" style={{ color: 'var(--color-warning)' }}>⚠️ {w}</p>
                             ))}
                           </div>
                         )}
 
-                        <p className="text-xs" style={{ color: '#4A5174' }}>
+                        <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                           הערכים מולאו בטופס למטה — תוכל לעדכן ידנית לפני שמירה
                         </p>
                       </div>
@@ -650,39 +650,39 @@ export default function OnboardingPage() {
               {/* Products list */}
               {loadingProducts ? (
                 <div className="flex items-center justify-center py-16 gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: '#3B82F6' }} />
-                  <span style={{ color: '#6B7280' }}>טוען מוצרים מ-Shopify...</span>
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-brand-start)' }} />
+                  <span style={{ color: 'var(--color-text-secondary)' }}>טוען מוצרים מ-Shopify...</span>
                 </div>
 
               ) : products.length > 0 ? (
                 <div className="space-y-3 max-h-[460px] overflow-y-auto" style={{ paddingLeft: '2px', paddingRight: '2px' }}>
                   {products.map(product => (
                     <div key={product.id} className="rounded-2xl overflow-hidden"
-                      style={{ border: '1px solid #1E2130' }}>
+                      style={{ border: '1px solid var(--color-border)' }}>
 
                       {/* Product header */}
                       <div className="flex items-center gap-3 px-4 py-3"
-                        style={{ background: '#13161F', borderBottom: '1px solid #1E2130' }}>
+                        style={{ background: 'var(--color-bg-surface)', borderBottom: '1px solid var(--color-border)' }}>
                         {product.image ? (
                           <img src={product.image} alt={product.title}
                             className="w-12 h-12 rounded-xl object-cover"
-                            style={{ border: '1px solid #1E2130' }} />
+                            style={{ border: '1px solid var(--color-border)' }} />
                         ) : (
                           <div className="w-12 h-12 rounded-xl flex items-center justify-center"
-                            style={{ background: '#0D0F14', border: '1px solid #1E2130' }}>
-                            <Package className="w-5 h-5" style={{ color: '#374151' }} />
+                            style={{ background: 'var(--color-bg-app)', border: '1px solid var(--color-border)' }}>
+                            <Package className="w-5 h-5" style={{ color: 'var(--color-text-tertiary)' }} />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-white text-sm leading-tight">{product.title}</h4>
-                          <p className="text-xs mt-0.5" style={{ color: '#4A5174' }}>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-tertiary)' }}>
                             {product.variants.length} וריאנט{product.variants.length !== 1 ? 'ים' : ''}
                           </p>
                         </div>
                       </div>
 
                       {/* Variant rows */}
-                      <div style={{ background: '#0D0F14' }}>
+                      <div style={{ background: 'var(--color-bg-app)' }}>
                         {product.variants.map((variant, vi) => {
                           const key      = `${product.id}_${variant.id}`
                           const cost     = productCosts[key] || 0
@@ -690,7 +690,7 @@ export default function OnboardingPage() {
                           const isLast   = vi === product.variants.length - 1
                           return (
                             <div key={variant.id} className="px-4 py-4"
-                              style={{ borderBottom: isLast ? 'none' : '1px solid #13161F' }}>
+                              style={{ borderBottom: isLast ? 'none' : '1px solid var(--color-bg-surface)' }}>
 
                               {/* Top row: name + price + input */}
                               <div className="flex items-center gap-4">
@@ -699,12 +699,12 @@ export default function OnboardingPage() {
                                     {variant.title === 'Default Title' ? product.title : variant.title}
                                   </p>
                                   <div className="flex items-center gap-3 mt-1">
-                                    <span className="text-xs" style={{ color: '#6B7280' }}>
+                                    <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                                       מחיר מכירה:&nbsp;
                                       <strong className="text-white">₪{sellIls}</strong>
                                     </span>
                                     {variant.sku && (
-                                      <span className="text-xs" style={{ color: '#374151' }}>
+                                      <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                                         SKU: {variant.sku}
                                       </span>
                                     )}
@@ -715,7 +715,7 @@ export default function OnboardingPage() {
                                 <div className="shrink-0 flex items-center gap-2">
                                   <div className="relative">
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold"
-                                      style={{ color: '#4A5174' }}>$</span>
+                                      style={{ color: 'var(--color-text-tertiary)' }}>$</span>
                                     <input
                                       type="number" step="0.01" min="0" placeholder="0.00"
                                       value={cost || ''}
@@ -731,12 +731,12 @@ export default function OnboardingPage() {
                                         textAlign: 'left',
                                         fontSize: '15px',
                                         fontWeight: '600',
-                                        color: cost > 0 ? '#F9FAFB' : '#374151',
+                                        color: cost > 0 ? 'white' : 'var(--color-text-tertiary)',
                                       }}
                                       dir="ltr"
                                     />
                                   </div>
-                                  <span className="text-xs" style={{ color: '#374151' }}>USD</span>
+                                  <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>USD</span>
                                 </div>
                               </div>
 
@@ -753,60 +753,60 @@ export default function OnboardingPage() {
                 </div>
 
               ) : (
-                <div className="text-center py-16 rounded-2xl" style={{ border: '1px dashed #1E2130' }}>
+                <div className="text-center py-16 rounded-2xl" style={{ border: '1px dashed var(--color-border)' }}>
                   <Store className="w-12 h-12 mx-auto mb-4 text-white opacity-10" />
                   <p className="text-white font-medium mb-2">לא נמצאו מוצרים</p>
-                  <p className="text-sm" style={{ color: '#4A5174' }}>
+                  <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                     חבר Shopify בשלב הקודם כדי למשוך מוצרים אוטומטית
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#374151' }}>
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
                     ניתן לדלג ולהגדיר עלויות מאוחר יותר בהגדרות
                   </p>
                 </div>
               )}
 
               {/* Delivery settings */}
-              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                 <div className="flex items-center gap-2 mb-1">
-                  <Truck className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                  <Truck className="w-4 h-4" style={{ color: 'var(--color-brand-start)' }} />
                   <h4 className="font-semibold text-white text-sm">הגדרות משלוח</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>עלות משלוח לבית (לעסק)</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>עלות משלוח לבית (לעסק)</label>
                     <div className="relative">
                       <input type="number" step="0.01" value={homeDeliveryCostUsd}
                         onChange={e => setHomeDeliveryCostUsd(parseFloat(e.target.value) || 0)}
                         style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>$</span>
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>חיוב משלוח ללקוח</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>חיוב משלוח ללקוח</label>
                     <div className="relative">
                       <input type="number" value={homeDeliveryChargeIls}
                         onChange={e => setHomeDeliveryChargeIls(parseFloat(e.target.value) || 0)}
                         style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>₪</span>
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>סף לעמלת איסוף עצמי</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>סף לעמלת איסוף עצמי</label>
                     <div className="relative">
                       <input type="number" value={pickupFeeThresholdIls}
                         onChange={e => setPickupFeeThresholdIls(parseFloat(e.target.value) || 0)}
                         style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>₪</span>
                     </div>
-                    <p className="text-xs" style={{ color: '#374151' }}>הזמנות מתחת לסף = חיוב עמלה</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>הזמנות מתחת לסף = חיוב עמלה</p>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>עמלת איסוף עצמי</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>עמלת איסוף עצמי</label>
                     <div className="relative">
                       <input type="number" value={pickupFeeAmountIls}
                         onChange={e => setPickupFeeAmountIls(parseFloat(e.target.value) || 0)}
                         style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#4A5174' }}>₪</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>₪</span>
                     </div>
                   </div>
                 </div>
@@ -819,34 +819,34 @@ export default function OnboardingPage() {
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">חיבור פרסום</h2>
-                <p style={{ color: '#6B7280' }}>חבר פלטפורמות פרסום לחישוב ROAS אמיתי על בסיס רווח נקי.</p>
+                <p style={{ color: 'var(--color-text-secondary)' }}>חבר פלטפורמות פרסום לחישוב ROAS אמיתי על בסיס רווח נקי.</p>
               </div>
 
-              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#1E3A5F' }}>
-                    <span className="font-bold text-sm" style={{ color: '#3B82F6' }}>f</span>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 35%, var(--color-bg-app))' }}>
+                    <span className="font-bold text-sm" style={{ color: 'var(--color-brand-start)' }}>f</span>
                   </div>
                   <div>
                     <h4 className="text-white font-medium">Facebook / Meta Ads</h4>
-                    <p className="text-xs" style={{ color: '#4A5174' }}>משוך הוצאות יומיות אוטומטית</p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>משוך הוצאות יומיות אוטומטית</p>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>Ad Account ID</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Ad Account ID</label>
                     <input style={inputStyle} dir="ltr" value={fbAdAccountId}
                       onChange={e => setFbAdAccountId(e.target.value)} placeholder="123456789" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs" style={{ color: '#6B7280' }}>Access Token</label>
+                    <label className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Access Token</label>
                     <input style={inputStyle} dir="ltr" type="password" value={fbAccessToken}
                       onChange={e => setFbAccessToken(e.target.value)} placeholder="EAAx..." />
                   </div>
                 </div>
               </div>
 
-              <p className="text-sm text-center" style={{ color: '#4A5174' }}>
+              <p className="text-sm text-center" style={{ color: 'var(--color-text-tertiary)' }}>
                 ניתן לדלג ולחבר מאוחר יותר מדף האינטגרציות
               </p>
             </div>
@@ -857,28 +857,28 @@ export default function OnboardingPage() {
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">הגדרות תשלום ומע"מ</h2>
-                <p style={{ color: '#6B7280' }}>עמלות אמצעי התשלום יורדו אוטומטית מהרווח בכל הזמנה.</p>
+                <p style={{ color: 'var(--color-text-secondary)' }}>עמלות אמצעי התשלום יורדו אוטומטית מהרווח בכל הזמנה.</p>
               </div>
 
-              <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+              <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                 <h4 className="text-white font-medium">מע"מ</h4>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={vatEnabled}
                     onChange={e => setVatEnabled(e.target.checked)} className="w-4 h-4 rounded accent-blue-500" />
-                  <span className="text-sm" style={{ color: '#CBD5E1' }}>העסק גובה מע"מ</span>
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>העסק גובה מע"מ</span>
                 </label>
                 {vatEnabled && (
                   <div className="relative max-w-xs">
                     <input type="number" value={vatPercent}
                       onChange={e => setVatPercent(parseFloat(e.target.value) || 17)}
                       style={{ ...inputStyle, paddingLeft: '32px' }} dir="ltr" />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>%</span>
                   </div>
                 )}
               </div>
 
               {/* Fee mode toggle */}
-              <div className="flex rounded-xl p-1 gap-1" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+              <div className="flex rounded-xl p-1 gap-1" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                 {[
                   { val: false, label: '📋 לפי אמצעי תשלום' },
                   { val: true,  label: '⚡ עמלה ממוצעת קבועה' },
@@ -886,8 +886,8 @@ export default function OnboardingPage() {
                   <button key={String(opt.val)} onClick={() => setFlatFeeMode(opt.val)}
                     className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
                     style={{
-                      background: flatFeeMode === opt.val ? '#1E2846' : 'transparent',
-                      color:      flatFeeMode === opt.val ? '#4F6EF7' : '#6B7280',
+                      background: flatFeeMode === opt.val ? 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))' : 'transparent',
+                      color:      flatFeeMode === opt.val ? 'var(--color-brand-start)' : 'var(--color-text-secondary)',
                     }}>
                     {opt.label}
                   </button>
@@ -896,10 +896,10 @@ export default function OnboardingPage() {
 
               {flatFeeMode ? (
                 /* Flat average fee */
-                <div className="rounded-2xl p-5 space-y-3" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                <div className="rounded-2xl p-5 space-y-3" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                   <div>
                     <h4 className="text-white font-medium mb-1">עמלת עסקה ממוצעת</h4>
-                    <p className="text-xs" style={{ color: '#4A5174' }}>
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                       אם אינך יודע בדיוק מה כל אמצעי גובה — הכנס ממוצע אחד לכל ההזמנות
                     </p>
                   </div>
@@ -909,17 +909,17 @@ export default function OnboardingPage() {
                         value={averageFeePercent}
                         onChange={e => setAverageFeePercent(parseFloat(e.target.value) || 0)}
                         style={{ ...inputStyle, paddingLeft: '28px' }} dir="ltr" />
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>%</span>
                     </div>
-                    <span className="text-sm" style={{ color: '#6B7280' }}>מכל הזמנה</span>
+                    <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>מכל הזמנה</span>
                   </div>
-                  <div className="rounded-lg px-3 py-2 text-xs" style={{ background: '#0D1A2A', color: '#60A5FA' }}>
+                  <div className="rounded-lg px-3 py-2 text-xs" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))', color: 'var(--color-brand-start)' }}>
                     💡 טיפ: אם רוב ההזמנות הן Bit (3%) ואשראי (1.5%) — ממוצע של ~2% הוא הגיוני
                   </div>
                 </div>
               ) : (
                 /* Per payment method */
-                <div className="rounded-2xl p-5 space-y-4" style={{ background: '#13161F', border: '1px solid #1E2130' }}>
+                <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--color-bg-surface)', border: '1px solid var(--color-border)' }}>
                   <h4 className="text-white font-medium">אמצעי תשלום ועמלות</h4>
                   <div className="space-y-3">
                     {paymentMethods.map((m, i) => (
@@ -928,14 +928,14 @@ export default function OnboardingPage() {
                           <input type="checkbox" checked={m.enabled}
                             onChange={() => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, enabled: !p.enabled } : p))}
                             className="w-4 h-4 rounded accent-blue-500" />
-                          <span className="text-sm" style={{ color: m.enabled ? '#CBD5E1' : '#4A5174' }}>{m.name}</span>
+                          <span className="text-sm" style={{ color: m.enabled ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>{m.name}</span>
                         </label>
                         {m.enabled && (
                           <div className="relative">
                             <input type="number" step="0.1" min="0" value={m.feePercent}
                               onChange={e => setPaymentMethods(prev => prev.map((p, j) => j === i ? { ...p, feePercent: parseFloat(e.target.value) || 0 } : p))}
                               style={{ ...inputStyle, width: '96px', paddingLeft: '28px' }} dir="ltr" />
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#4A5174' }}>%</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>%</span>
                           </div>
                         )}
                       </div>
@@ -951,12 +951,12 @@ export default function OnboardingPage() {
             <div className="p-8 space-y-6">
               <div>
                 <h2 className="text-2xl font-bold text-white mb-2">הנחיות ל-AI</h2>
-                <p style={{ color: '#6B7280' }}>כתוב כאן כל כלל עסקי מיוחד שה-AI צריך לדעת בעת ניתוח הזמנות.</p>
+                <p style={{ color: 'var(--color-text-secondary)' }}>כתוב כאן כל כלל עסקי מיוחד שה-AI צריך לדעת בעת ניתוח הזמנות.</p>
               </div>
 
-              <div className="rounded-xl p-4" style={{ background: '#0D1A2A', border: '1px solid #1E3A5F' }}>
-                <p className="text-sm font-medium mb-2" style={{ color: '#60A5FA' }}>💡 דוגמאות:</p>
-                <ul className="space-y-1 text-sm" style={{ color: '#4A5174' }}>
+              <div className="rounded-xl p-4" style={{ background: 'color-mix(in srgb, var(--color-brand-start) 20%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-brand-start) 35%, var(--color-bg-app))' }}>
+                <p className="text-sm font-medium mb-2" style={{ color: 'var(--color-brand-start)' }}>💡 דוגמאות:</p>
+                <ul className="space-y-1 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
                   <li>• "קפסולות הפתעה עולות לי $0.85 גם אם חינם ללקוח"</li>
                   <li>• "קופון 50₪ מצטבר עם הנחת כמות"</li>
                   <li>• "מוצר X הוא בעצם Y — עלות ₪12 לא ₪8"</li>
@@ -964,7 +964,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" style={{ color: '#CBD5E1' }}>הנחיות מיוחדות</label>
+                <label className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>הנחיות מיוחדות</label>
                 <textarea
                   value={aiNotes}
                   onChange={e => setAiNotes(e.target.value)}
@@ -972,15 +972,15 @@ export default function OnboardingPage() {
                   rows={7}
                   style={{ ...inputStyle, resize: 'none', lineHeight: '1.6' }}
                 />
-                <p className="text-xs" style={{ color: '#374151' }}>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                   {aiNotes.length} תווים — ניתן לערוך בכל עת מדף ההגדרות
                 </p>
               </div>
 
               <div className="flex items-center gap-3 p-4 rounded-xl"
-                style={{ background: '#0D2818', border: '1px solid #166534' }}>
-                <CheckCircle className="w-5 h-5 shrink-0" style={{ color: '#22C55E' }} />
-                <p className="text-sm font-medium" style={{ color: '#22C55E' }}>
+                style={{ background: 'color-mix(in srgb, var(--color-success) 20%, var(--color-bg-app))', border: '1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-bg-app))' }}>
+                <CheckCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--color-success)' }} />
+                <p className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>
                   הכל מוכן! לחץ "סיים והתחל" כדי לעבור לדשבורד.
                 </p>
               </div>
@@ -989,23 +989,23 @@ export default function OnboardingPage() {
 
           {/* ── Navigation ── */}
           <div className="flex items-center justify-between px-8 py-5"
-            style={{ borderTop: '1px solid #1E2130' }}>
+            style={{ borderTop: '1px solid var(--color-border)' }}>
             <button onClick={prev} disabled={step === 0}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-30 hover:opacity-80"
-              style={{ background: '#13161F', color: '#CBD5E1', border: '1px solid #1E2130' }}>
+              style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border)' }}>
               <ChevronRight className="w-4 h-4" />
               הקודם
             </button>
 
-            <span className="text-sm" style={{ color: '#374151' }}>{step + 1} / {STEPS.length}</span>
+            <span className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>{step + 1} / {STEPS.length}</span>
 
             <button onClick={next}
               disabled={(step === 0 && !businessName.trim()) || saving}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 hover:-translate-y-0.5"
               style={{
                 background: step === STEPS.length - 1
-                  ? 'linear-gradient(135deg, #22C55E, #16A34A)'
-                  : 'linear-gradient(135deg, #3B82F6, #6366F1)',
+                  ? 'linear-gradient(135deg, var(--color-success), color-mix(in srgb, var(--color-success) 70%, black))'
+                  : 'linear-gradient(135deg, var(--color-brand-start), var(--color-accent-indigo))',
               }}>
               {saving
                 ? <><Loader2 className="w-4 h-4 animate-spin" />שומר...</>
