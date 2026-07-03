@@ -116,8 +116,7 @@ async function analyzeAndUpdateSheet(orderId: string, businessId: string, order:
         business.googleRefreshToken,
         business.googleSheetsId,
         String(order.order_number),
-        analysis.my_cost_ils,
-        analysis.net_profit_ils
+        analysis.my_cost_ils
       )
     }
   } catch (error) {
@@ -126,33 +125,46 @@ async function analyzeAndUpdateSheet(orderId: string, businessId: string, order:
   }
 }
 
+// Sheet layout: order number lives in column I, and we write the cost into
+// column G. Orders are added to the sheet by an external Make automation and
+// arrive with column G empty — we only fill that gap and never overwrite a
+// row that already has a cost.
+const SHEET_COL_ORDER = 8   // I — order number written by Make
+const SHEET_COL_COST  = 6   // G — my cost (target)
+
 async function updateSheetRow(
   refreshToken: string,
   spreadsheetId: string,
   orderNumber: string,
-  myCostIls: number,
-  netProfitIls: number
+  myCostIls: number
 ) {
   try {
     const auth = getGoogleAuthClient(refreshToken)
     const sheets = google.sheets({ version: 'v4', auth })
 
-    // Read the whole of column A to find the row with this order number
-    // (a bounded range like A2:A1000 silently misses orders past row 1000)
+    // Read A..I so column indices are absolute (A=0 … I=8), unbounded so orders
+    // past row 1000 aren't silently missed.
     const readRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'A2:A',
+      range: 'A2:I',
     })
 
     const rows = readRes.data.values ?? []
+    const wanted = orderNumber.replace('#', '').trim()
     let targetRow = -1
 
     for (let i = 0; i < rows.length; i++) {
-      const cell = rows[i]?.[0]?.toString().replace('#', '').trim()
-      if (cell === orderNumber.replace('#', '').trim()) {
-        targetRow = i + 2 // +2 because we start from row 2
-        break
+      const cell = rows[i]?.[SHEET_COL_ORDER]?.toString().replace('#', '').trim()
+      if (cell !== wanted) continue
+
+      // Row matches — but only fill it when the cost cell (G) is still empty.
+      const existingCost = rows[i]?.[SHEET_COL_COST]?.toString().trim()
+      if (existingCost) {
+        console.log(`Order ${orderNumber} already has a cost in the sheet — leaving it untouched`)
+        return
       }
+      targetRow = i + 2 // +2: data starts at row 2
+      break
     }
 
     if (targetRow === -1) {
@@ -160,20 +172,15 @@ async function updateSheetRow(
       return
     }
 
-    // Write cost and profit to columns G and H
+    // Write the cost into column G only — nothing else on the row is touched.
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `G${targetRow}:H${targetRow}`,
+      range: `G${targetRow}`,
       valueInputOption: 'RAW',
-      requestBody: {
-        values: [[
-          myCostIls.toFixed(2),
-          netProfitIls.toFixed(2),
-        ]],
-      },
+      requestBody: { values: [[myCostIls.toFixed(2)]] },
     })
 
-    console.log(`Sheet updated: row ${targetRow}, order ${orderNumber}, cost ${myCostIls}, profit ${netProfitIls}`)
+    console.log(`Sheet updated: row ${targetRow}, order ${orderNumber}, cost ${myCostIls}`)
   } catch (error) {
     console.error('Sheet update error:', error)
   }

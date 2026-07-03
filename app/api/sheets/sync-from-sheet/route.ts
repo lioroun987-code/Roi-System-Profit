@@ -8,9 +8,11 @@ import { analyzeOrder } from '@/lib/claude'
 import { calculateOrderCost } from '@/lib/calculator'
 import { BusinessConfig, ShopifyOrder } from '@/types'
 
-// Column config — A=1, G=7, H=8
-const COL_ORDER_NUMBER = 1   // A
-const COL_MY_COST      = 7   // G — עלות שלי
+// Sheet layout (1-based): order number is in column I, my cost goes in column G.
+// Rows are added by an external Make automation with column G left empty; we only
+// fill that empty cell and never overwrite a row that already has a cost.
+const COL_ORDER_NUMBER = 9   // I — order number written by Make
+const COL_MY_COST      = 7   // G — my cost (target)
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -32,11 +34,11 @@ export async function POST(request: NextRequest) {
   const auth = getGoogleAuthClient(business.googleRefreshToken)
   const sheets = google.sheets({ version: 'v4', auth })
 
-  // Read the sheet — all rows from row 2 onwards (unbounded, so orders past
-  // row 1000 aren't silently skipped)
+  // Read A..I so column indices are absolute and column I (order number) is
+  // included. Unbounded so orders past row 1000 aren't silently skipped.
   const readRes = await sheets.spreadsheets.values.get({
     spreadsheetId: business.googleSheetsId,
-    range: 'A2:H',
+    range: 'A2:I',
   })
 
   const rows = readRes.data.values ?? []
@@ -76,14 +78,11 @@ export async function POST(request: NextRequest) {
       })
 
       if (dbOrder?.aiAnalysis) {
-        // Already analyzed — use cached result
+        // Already analyzed — use cached result. Write cost into column G only.
         const analysis = dbOrder.aiAnalysis as any
         updates.push({
-          range: `G${rowNumber}:H${rowNumber}`,
-          values: [[
-            analysis.my_cost_ils?.toFixed(2) ?? '',
-            analysis.net_profit_ils?.toFixed(2) ?? '',
-          ]],
+          range: `G${rowNumber}`,
+          values: [[analysis.my_cost_ils?.toFixed(2) ?? '']],
         })
         processed++
         continue
@@ -146,13 +145,10 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // 5. Queue sheet update
+      // 5. Queue sheet update — cost into column G only
       updates.push({
-        range: `G${rowNumber}:H${rowNumber}`,
-        values: [[
-          analysis.my_cost_ils.toFixed(2),
-          analysis.net_profit_ils.toFixed(2),
-        ]],
+        range: `G${rowNumber}`,
+        values: [[analysis.my_cost_ils.toFixed(2)]],
       })
 
       processed++
