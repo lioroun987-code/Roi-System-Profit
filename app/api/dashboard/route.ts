@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
   const stats = {
     todayRevenue,
     todayProfit:  sumProfit(allTodayOrders),
-    todayCost:    allTodayOrders.reduce((s, o) => s + ((o.grossProfitIls ?? 0) - (o.netProfitIls ?? 0)), 0),
+    todayCost:    allTodayOrders.reduce((s, o) => s + (o.myCostIls ?? 0), 0),
     todayOrders:  allTodayOrders.length,
     todayAdSpend: todayAdSpendAmount,
     todayRoas:    todayAdSpendAmount > 0 ? todayRevenue / todayAdSpendAmount : 0,

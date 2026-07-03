@@ -74,7 +74,7 @@ export function AiConfigChat({ businessId, onConfigChange }: {
       if (data.updatedConfig) {
         onConfigChange?.()
       }
-    } catch (e: any) {
+    } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: 'שגיאת שרת — נסה שוב',

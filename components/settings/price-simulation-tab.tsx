@@ -38,7 +38,7 @@ const inputStyle: React.CSSProperties = {
   outline: 'none', width: '100%',
 }
 
-export function PriceSimulationTab({ businessId, products, priceHistory, exchangeRate, onSaveChange }: Props) {
+export function PriceSimulationTab({ businessId, products, priceHistory, onSaveChange }: Props) {
   const [mode, setMode]             = useState<'cost' | 'selling'>('cost')
   const [productKey, setProductKey] = useState(products[0]?.key ?? '')
   const [newValue, setNewValue]     = useState('')

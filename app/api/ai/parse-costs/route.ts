@@ -4,7 +4,15 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Anthropic from '@anthropic-ai/sdk'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// Lazy — constructing at module load throws when ANTHROPIC_API_KEY is unset,
+// breaking the route at import time instead of returning a clean error.
+let _client: Anthropic | null = null
+function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not set')
+  }
+  return (_client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }))
+}
 
 // Extract first complete JSON object from text using bracket counting
 function extractJson(text: string): any | null {
@@ -106,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     let message
     try {
-      message = await client.messages.create({
+      message = await getClient().messages.create({
         model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         system: systemPrompt,

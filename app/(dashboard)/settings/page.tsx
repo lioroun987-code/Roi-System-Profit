@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { ProductCostsForm } from '@/components/settings/product-costs-form'
 import { PriceSimulationTab } from '@/components/settings/price-simulation-tab'
 import { AiConfigChat } from '@/components/settings/ai-config-chat'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -155,7 +154,6 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [savedTab, setSavedTab] = useState<string | null>(null)
   const [businessName, setBusinessName] = useState('')
-  const [aiNotes, setAiNotes] = useState('')
 
   useEffect(() => {
     const stored = localStorage.getItem('activeBusiness')
@@ -171,7 +169,6 @@ export default function SettingsPage() {
     const data = await res.json()
     setBusiness(data)
     setBusinessName(data.name ?? '')
-    setAiNotes(data.aiNotes ?? '')
   }, [activeBusiness])
 
   useEffect(() => { fetchBusiness() }, [fetchBusiness])

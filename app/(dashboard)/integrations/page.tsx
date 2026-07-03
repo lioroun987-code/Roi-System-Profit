@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, AlertCircle, RefreshCw, ExternalLink, Store, BarChart2, Sheet, ChevronDown, Zap } from 'lucide-react'
+import { CheckCircle, AlertCircle, RefreshCw, ExternalLink, Store, Sheet, ChevronDown, Zap } from 'lucide-react'
 
 interface Business {
   id: string; name: string

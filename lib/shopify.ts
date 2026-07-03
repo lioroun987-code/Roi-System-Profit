@@ -2,8 +2,11 @@ import crypto from 'crypto'
 import { ShopifyOrder } from '@/types'
 
 export function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
-  const hash = crypto.createHmac('sha256', secret).update(body, 'utf8').digest('base64')
-  return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(signature))
+  const hash = Buffer.from(crypto.createHmac('sha256', secret).update(body, 'utf8').digest('base64'))
+  const sig  = Buffer.from(signature)
+  // timingSafeEqual throws on length mismatch — a malformed header must mean
+  // "invalid signature" (401), not an unhandled exception (500)
+  return hash.length === sig.length && crypto.timingSafeEqual(hash, sig)
 }
 
 export async function fetchShopifyOrders(

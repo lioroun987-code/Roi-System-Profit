@@ -4,7 +4,15 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Anthropic from '@anthropic-ai/sdk'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// Lazy — constructing at module load throws when ANTHROPIC_API_KEY is unset,
+// breaking the route at import time instead of returning a clean error.
+let _client: Anthropic | null = null
+function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not set')
+  }
+  return (_client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }))
+}
 
 function extractJson(text: string): any | null {
   const start = text.indexOf('{')
@@ -174,7 +182,7 @@ Return ONLY the JSON — no text before or after.`
       { role: 'user', content: message },
     ]
 
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model:      'claude-haiku-4-5-20251001',   // Haiku: faster + cheaper for simple config changes
       max_tokens: 512,
       system:     systemPrompt,
@@ -218,8 +226,6 @@ Return ONLY the JSON — no text before or after.`
               updatedPs = { ...updatedPs, paymentMethods: methods }
               applied.push(patch.path)
             } else {
-              // Try to find by name if index doesn't match
-              const name = patch.path  // fallback
               console.warn('paymentMethods index not found:', idx)
             }
           } else {

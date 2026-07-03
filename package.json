@@ -16,7 +16,6 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^5.22.0",
     "@types/pg": "^8.20.0",
-    "anthropic": "^0.0.0",
     "axios": "^1.16.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",

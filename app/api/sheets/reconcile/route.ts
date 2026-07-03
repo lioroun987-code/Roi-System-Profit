@@ -27,10 +27,6 @@ export async function GET(request: NextRequest) {
   return Response.json({ reports, businessUpdatedAt: business.updatedAt })
 }
 
-const AGENT_COL_ORDER    = 2   // B — מספר הזמנה אצל הסוכן
-const AGENT_COL_PRICE    = 11  // K — מחיר
-const AGENT_COL_DISCOUNT = 13  // M — הנחה (L=WAR ריק, M=DISCOUNT)
-const AGENT_COL_HD       = 14  // N — משלוח לבית
 const THRESHOLD          = 0.5
 
 // Keywords that indicate a content creator / photographer order — excluded from gap analysis
@@ -59,58 +55,16 @@ function parseDateRange(tabName: string): { start: Date; end: Date } | null {
     }
     return null
   }
-  // Build two dates and take the earlier as start
+  // Tab order is start → end. If the second date is earlier in the calendar
+  // (e.g. "25/12 - 05/01"), the range crosses a year boundary — the end is next year.
   const dates = allMatches.map(m => new Date(year, parseInt(m[2]) - 1, parseInt(m[1])))
-  const dateA = dates[0]
-  const dateB = dates[1]
-  const start = dateA < dateB ? dateA : dateB
-  const end   = dateA < dateB ? dateB : dateA
-  end.setHours(23, 59, 59)
-  // Handle year boundary (Dec→Jan)
+  const start = dates[0]
+  const end   = dates[1]
   if (end < start) end.setFullYear(year + 1)
+  end.setHours(23, 59, 59)
   return { start, end }
 }
 
-function parseDate(val: string): Date | null {
-  if (!val) return null
-  const s = val.trim()
-  const currentYear = new Date().getFullYear()
-
-  // "2026-01-31" or "2026-01-31 19:30"
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.split(' ')[0])
-
-  // "31/01/2026" or "31/01/26" (with optional time after)
-  const slashFull = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)
-  if (slashFull) {
-    const [, d, m, y] = slashFull
-    const year = y.length === 2 ? 2000 + parseInt(y) : parseInt(y)
-    return new Date(year, parseInt(m) - 1, parseInt(d))
-  }
-
-  // "31.01.2026" or "31.01.26" (with optional time after)
-  const dotFull = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})/)
-  if (dotFull) {
-    const [, d, m, y] = dotFull
-    const year = y.length === 2 ? 2000 + parseInt(y) : parseInt(y)
-    return new Date(year, parseInt(m) - 1, parseInt(d))
-  }
-
-  // "31.01" or "1.2" (with optional space/time after) — dot = LAST YEAR
-  const dotShort = s.match(/^(\d{1,2})\.(\d{1,2})(?:\s|$)/)
-  if (dotShort) {
-    const [, d, m] = dotShort
-    return new Date(currentYear - 1, parseInt(m) - 1, parseInt(d))
-  }
-
-  // "31/01" or "01/02" (with optional space/time after) — slash = THIS YEAR
-  const slashShort = s.match(/^(\d{1,2})\/(\d{1,2})(?:\s|$)/)
-  if (slashShort) {
-    const [, d, m] = slashShort
-    return new Date(currentYear, parseInt(m) - 1, parseInt(d))
-  }
-
-  return null
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -311,9 +265,6 @@ export async function POST(request: NextRequest) {
       if (colCVal) colCByOrder.set(cleaned, colCVal)
     }
 
-    const detectedCostCol = -1
-    const detectedDateCol = -1
-
     // ── Debug: sample what's in the configured columns ──
     const colDebug = {
       ourOrderCol:  COL_OUR_ORDER,
@@ -327,7 +278,6 @@ export async function POST(request: NextRequest) {
 
     // ── 6. Compare ──
     const results: any[] = []
-    const sheetUpdates: { range: string; value: string; color: any }[] = []
 
     for (const [orderNum, agentData] of agentByOrder) {
       const agentCost  = agentData.costIls
@@ -415,34 +365,6 @@ export async function POST(request: NextRequest) {
           sheetReason: colCByOrder.get(orderNum) ?? null,
           ourCostSource,
         })
-      }
-    }
-
-    // ── 6. Write status back to main sheet ──
-    if (sheetUpdates.length > 0) {
-      try {
-        await sheets.spreadsheets.values.batchUpdate({
-          spreadsheetId: mainSheetId,
-          requestBody: {
-            valueInputOption: 'RAW',
-            data: sheetUpdates.map(u => ({ range: u.range, values: [[u.value]] })),
-          },
-        })
-
-        await sheets.spreadsheets.batchUpdate({
-          spreadsheetId: mainSheetId,
-          requestBody: {
-            requests: sheetUpdates.map(u => ({
-              repeatCell: {
-                range: { sheetId: 0, startRowIndex: parseInt(u.range.replace(/\D/g, '')) - 1, endRowIndex: parseInt(u.range.replace(/\D/g, '')), startColumnIndex: 8, endColumnIndex: 9 },
-                cell: { userEnteredFormat: { backgroundColor: { ...u.color, alpha: 1 }, textFormat: { foregroundColor: { red: 1, green: 1, blue: 1, alpha: 1 }, bold: true } } },
-                fields: 'userEnteredFormat(backgroundColor,textFormat)',
-              },
-            })),
-          },
-        })
-      } catch (e) {
-        console.error('Sheet write error (non-fatal):', e)
       }
     }
 

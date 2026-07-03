@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CheckCircle, AlertTriangle, XCircle, Download, Search, ChevronDown, ChevronUp, RefreshCw, Clock, FileText, Briefcase } from 'lucide-react'
 
 interface ReconcileResult {
@@ -594,22 +594,6 @@ export default function ReconcilePage() {
     borderRadius: '10px', padding: '10px 14px', fontSize: '13px',
     outline: 'none', width: '100%', direction: 'ltr' as const,
   }
-
-  // Fix summary cards: exclude business expenses from gap totals
-  const nonBizResults = (results ?? []).filter(r =>
-    r.status !== 'content_creator' && r.status !== 'cancelled' && !exclusions[r.orderNumber]
-  )
-  const bizResults    = (results ?? []).filter(r =>
-    r.status === 'content_creator' || !!exclusions[r.orderNumber]
-  )
-  const realAgentTotal  = nonBizResults.reduce((s, r) => s + r.agentCost, 0)
-  const realOurTotal       = nonBizResults.filter(r => r.ourCost != null).reduce((s, r) => s + (r.ourCost ?? 0), 0)
-  const ourFromSheet       = nonBizResults.filter(r => r.ourCostSource === 'sheet').length
-  const ourFromDb          = nonBizResults.filter(r => r.ourCostSource === 'db' && r.ourCost != null).length
-  const realDiff        = realAgentTotal - realOurTotal
-  const realSystemTotal = nonBizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0)
-  const bizAgentTotal   = bizResults.reduce((s, r) => s + r.agentCost, 0)
-  const bizSystemTotal  = bizResults.reduce((s, r) => s + (r.systemCost ?? 0), 0)
 
   // Parse stored exclusion reason
   function getExclusionReason(orderNumber: string): string {

@@ -1,4 +1,6 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, after } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { registerWebhook } from '@/lib/shopify'
@@ -7,7 +9,13 @@ import { analyzeOrder } from '@/lib/claude'
 import { BusinessConfig } from '@/types'
 import Anthropic from '@anthropic-ai/sdk'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+// Lazy — constructing at module load throws when ANTHROPIC_API_KEY is unset,
+// which would break the whole OAuth callback route at import time.
+let anthropic: Anthropic | null = null
+function getAnthropic(): Anthropic | null {
+  if (!process.env.ANTHROPIC_API_KEY) return null
+  return (anthropic ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }))
+}
 
 async function triggerFullSetup(businessId: string, shop: string, accessToken: string) {
   // 1. Fetch all products from Shopify and save to productCosts
@@ -69,7 +77,9 @@ async function triggerFullSetup(businessId: string, shop: string, accessToken: s
           })),
         }))
 
-        const msg = await anthropic.messages.create({
+        const ai = getAnthropic()
+        if (!ai) throw new Error('ANTHROPIC_API_KEY is not set')
+        const msg = await ai.messages.create({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 512,
           messages: [{
@@ -176,7 +186,15 @@ export async function GET(request: NextRequest) {
   const parts      = state.split('_')
   const businessId = parts[0]
   const returnTo   = parts[1] ?? 'integrations'   // 'onboarding' or 'integrations'
-  const business = await prisma.business.findUnique({ where: { id: businessId } })
+
+  // The redirect lands in the user's browser, so the session cookie is present.
+  // Ownership check stops a forged `state` from binding a store to someone else's business.
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const business = await prisma.business.findFirst({
+    where: { id: businessId, userId: (session.user as any).id },
+  })
   if (!business) return Response.json({ error: 'Business not found' }, { status: 404 })
 
   try {
@@ -207,10 +225,13 @@ export async function GET(request: NextRequest) {
       console.error('Webhook registration failed (non-fatal):', e)
     }
 
-    // Kick off background: fetch products → AI setup → sync all history
-    // Fire-and-forget (don't await — redirect happens immediately)
-    triggerFullSetup(businessId, shop, access_token).catch(e =>
-      console.error('Full setup failed (non-fatal):', e)
+    // Background: fetch products → AI setup → sync all history.
+    // after() keeps the serverless function alive past the redirect —
+    // a bare fire-and-forget promise would be killed with the response.
+    after(() =>
+      triggerFullSetup(businessId, shop, access_token).catch(e =>
+        console.error('Full setup failed (non-fatal):', e)
+      )
     )
   } catch (error) {
     console.error('Shopify OAuth error:', error)

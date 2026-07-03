@@ -4,16 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { google } from 'googleapis'
 import { getGoogleAuthClient } from '@/lib/sheets'
-import { fetchShopifyOrder } from '@/lib/shopify'
 import { analyzeOrder } from '@/lib/claude'
 import { calculateOrderCost } from '@/lib/calculator'
 import { BusinessConfig, ShopifyOrder } from '@/types'
 
 // Column config — A=1, G=7, H=8
 const COL_ORDER_NUMBER = 1   // A
-const COL_STORE_PRICE   = 4  // D — תמכור באתר
-const COL_MY_COST       = 7  // G — עלות שלי
-const COL_NET_PROFIT    = 8  // H — רווח נטו
+const COL_MY_COST      = 7   // G — עלות שלי
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -35,10 +32,11 @@ export async function POST(request: NextRequest) {
   const auth = getGoogleAuthClient(business.googleRefreshToken)
   const sheets = google.sheets({ version: 'v4', auth })
 
-  // Read the sheet — all rows from row 2 onwards
+  // Read the sheet — all rows from row 2 onwards (unbounded, so orders past
+  // row 1000 aren't silently skipped)
   const readRes = await sheets.spreadsheets.values.get({
     spreadsheetId: business.googleSheetsId,
-    range: 'A2:H1000',
+    range: 'A2:H',
   })
 
   const rows = readRes.data.values ?? []

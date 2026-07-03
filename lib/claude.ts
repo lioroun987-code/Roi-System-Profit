@@ -1,9 +1,18 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { BusinessConfig, ShopifyOrder, AIOrderAnalysis } from '@/types'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 const MODEL = 'claude-haiku-4-5-20251001'
+
+// Lazy singleton — constructing the client at module load throws when
+// ANTHROPIC_API_KEY is unset, which broke every route importing this file
+// even when the deterministic calculator alone could handle the order.
+let client: Anthropic | null = null
+function getClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not set — AI fallback analysis unavailable')
+  }
+  return (client ??= new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }))
+}
 
 export async function analyzeOrder(
   order: ShopifyOrder,
@@ -78,15 +87,15 @@ ${aiNotes || 'None.'}
   "exchange_rate_used":${exchangeRate},"payment_method":"","notes":""
 }`
 
-  const message = await client.messages.create({
+  const message = await getClient().messages.create({
     model: MODEL,
     max_tokens: 1024,
     system: [{ type: 'text', text: cachedSystemPrompt, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: `Analyze this Shopify order:\n${JSON.stringify(order)}` }],
   } as any)
 
-  const content = message.content[0]
-  if (content.type !== 'text') throw new Error('Unexpected response type')
+  const content = message.content.find(c => c.type === 'text')
+  if (!content || content.type !== 'text') throw new Error('Unexpected response type')
 
   const text = content.text.trim()
   const jsonMatch = text.match(/```json\n?([\s\S]+?)\n?```/) || text.match(/(\{[\s\S]+\})/)

@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 
@@ -13,6 +15,19 @@ export async function GET(request: NextRequest) {
   }
 
   const businessId = state!
+
+  // The redirect lands in the user's browser, so the session cookie is present.
+  // Without an ownership check anyone could pass a foreign businessId in `state`
+  // and overwrite that business's Facebook token.
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const owned = await prisma.business.findFirst({
+    where: { id: businessId, userId: (session.user as any).id },
+    select: { id: true },
+  })
+  if (!owned) return Response.json({ error: 'Business not found' }, { status: 404 })
+
   const redirectUri = `${process.env.NEXTAUTH_URL}/api/facebook/callback`
 
   try {

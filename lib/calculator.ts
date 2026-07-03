@@ -43,11 +43,15 @@ function detectPaymentMethod(
   const gw   = (order.gateway ?? '').toLowerCase()
   const names = (order.payment_gateway_names ?? []).map(n => n.toLowerCase())
   const all   = [gw, ...names].join(' ')
+  // Token match, not substring — 'shopify_payments'.includes('payme') is true,
+  // which misdetected every credit-card order as Bit (3% fee instead of 1.5%)
+  const tokens = new Set(all.split(/[^a-z0-9_]+/))
+  const hasToken = (...kws: string[]) => kws.some(k => tokens.has(k))
 
   const find = (keyword: string) =>
     methods.find(m => m.enabled && m.name.toLowerCase().includes(keyword))
 
-  if (all.includes('bit') || all.includes('pay_me') || all.includes('payme'))
+  if (hasToken('bit', 'pay_me', 'payme'))
     return find('bit') ?? { name: 'Bit', feePercent: 3 }
 
   if (all.includes('apple'))
@@ -152,13 +156,13 @@ export function calculateOrderCost(
 
   /* ── 2. Apply cost rules from config ── */
   const costRules: CostRule[] = ((dr as any)?.costRules ?? []).filter((r: CostRule) => r.active)
+  let flatOrderDiscountUsd = 0
   for (const rule of costRules) {
     const cond = rule.condition
     const eff  = rule.effect
 
     // Evaluate condition — check ALL items including gifts
     let conditionMet = false
-    let matchingItems = parsedItems   // include gift items so rules can zero out their cost
 
     const nonGiftItems = parsedItems.filter(i => !i.isGift)
     if (cond.type === 'customer_price_is_zero') {
@@ -187,6 +191,12 @@ export function calculateOrderCost(
     }
 
     if (!conditionMet) continue
+
+    // Order-level flat discount — applied once to the order total, not per item
+    if (eff.type === 'flat_discount_total') {
+      flatOrderDiscountUsd += eff.value
+      continue
+    }
 
     // Apply effect — match items by type OR by name (whichever is configured)
     const targets = parsedItems.filter(item => {
@@ -270,7 +280,7 @@ export function calculateOrderCost(
   const itemsCostUsd   = parsedItems.filter(i => !i.isGift).reduce((s, i) => s + i.totalCostUsd, 0)
   const giftCostUsd    = parsedItems.filter(i => i.isGift).reduce((s, i) => s + i.totalCostUsd, 0)
   const shippingCostUsd = homeDelivery ? ((pc as any).homeDeliveryCostUsd ?? 3) : 0
-  const totalCostUsd   = itemsCostUsd - secondUnitDiscountUsd + shippingCostUsd + giftCostUsd
+  const totalCostUsd   = Math.max(0, itemsCostUsd - secondUnitDiscountUsd - flatOrderDiscountUsd + shippingCostUsd + giftCostUsd)
   const totalCostIls   = totalCostUsd * exchangeRate
 
   /* ── 6. Payment fee ── */

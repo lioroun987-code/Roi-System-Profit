@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, after } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { verifyWebhookSignature } from '@/lib/shopify'
 import { analyzeOrder } from '@/lib/claude'
@@ -6,10 +7,6 @@ import { calculateOrderCost } from '@/lib/calculator'
 import { getGoogleAuthClient } from '@/lib/sheets'
 import { google } from 'googleapis'
 import { BusinessConfig, ShopifyOrder } from '@/types'
-
-const COL_ORDER_NUMBER = 1  // A
-const COL_MY_COST      = 7  // G
-const COL_NET_PROFIT   = 8  // H
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text()
@@ -42,23 +39,35 @@ export async function POST(request: NextRequest) {
     })
     if (existing) return new Response('Already processed', { status: 200 })
 
-    const dbOrder = await prisma.order.create({
-      data: {
-        businessId: business.id,
-        shopifyOrderId: String(order.id),
-        orderNumber: String(order.order_number),
-        orderDate: new Date(order.created_at),
-        customerName: order.customer
-          ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
-          : null,
-        customerEmail: order.customer?.email ?? null,
-        rawData: order as any,
-        status: 'pending',
-      },
-    })
+    let dbOrder
+    try {
+      dbOrder = await prisma.order.create({
+        data: {
+          businessId: business.id,
+          shopifyOrderId: String(order.id),
+          orderNumber: String(order.order_number),
+          orderDate: new Date(order.created_at),
+          customerName: order.customer
+            ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+            : null,
+          customerEmail: order.customer?.email ?? null,
+          rawData: order as any,
+          status: 'pending',
+        },
+      })
+    } catch (e) {
+      // Shopify retries webhooks — a concurrent delivery may win the insert race.
+      // Unique-constraint violation means the order is already handled: ack with 200.
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        return new Response('Already processed', { status: 200 })
+      }
+      throw e
+    }
 
-    // Run analysis + sheet update in background
-    analyzeAndUpdateSheet(dbOrder.id, business.id, order)
+    // Run analysis + sheet update after the response is sent.
+    // after() keeps the serverless function alive until the work finishes —
+    // a bare fire-and-forget promise gets killed once the response returns.
+    after(() => analyzeAndUpdateSheet(dbOrder.id, business.id, order))
 
     return new Response('OK', { status: 200 })
   } catch (error) {
@@ -128,10 +137,11 @@ async function updateSheetRow(
     const auth = getGoogleAuthClient(refreshToken)
     const sheets = google.sheets({ version: 'v4', auth })
 
-    // Read column A to find the row with this order number
+    // Read the whole of column A to find the row with this order number
+    // (a bounded range like A2:A1000 silently misses orders past row 1000)
     const readRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: 'A2:A1000',
+      range: 'A2:A',
     })
 
     const rows = readRes.data.values ?? []
