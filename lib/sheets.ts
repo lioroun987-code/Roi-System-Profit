@@ -3,6 +3,90 @@ import { OrderRow } from '@/types'
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
+/* ── Orders sheet layout (matches the Make automation the user is replacing) ──
+   A = customer full name | B = order date (D/M) | E = store price (customer paid)
+   G = my cost            | I = order number (#N)  | C,D,F,H = unused
+──────────────────────────────────────────────────────────────────────────── */
+const SHEET_ORDER_COL = 8   // I (0-based) — order number
+const SHEET_COST_COL  = 6   // G (0-based) — my cost
+
+export interface SheetOrderRow {
+  orderNumber: string          // raw Shopify order_number, e.g. "1234"
+  customerName: string | null
+  orderDate: Date
+  storePriceIls: number | null // what the customer paid
+  myCostIls: number
+}
+
+// Format a date as "11/3" (day/month, no leading zeros) in Israel time,
+// regardless of server timezone.
+function formatSheetDate(d: Date): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jerusalem', day: '2-digit', month: '2-digit',
+  }).formatToParts(d)
+  const day   = parseInt(parts.find(p => p.type === 'day')?.value ?? '0', 10)
+  const month = parseInt(parts.find(p => p.type === 'month')?.value ?? '0', 10)
+  return `${day}/${month}`
+}
+
+/**
+ * Writes an order into the orders sheet, replacing the external Make automation:
+ * - If a row for this order already exists (matched by order number in column I),
+ *   fill its cost cell (G) only when empty — never overwrite an existing cost.
+ * - Otherwise append a full new row in the Make layout (A/B/E/G/I populated).
+ * Returns what it did, for logging.
+ */
+export async function upsertOrderRowInSheet(
+  refreshToken: string,
+  spreadsheetId: string,
+  row: SheetOrderRow
+): Promise<'appended' | 'filled' | 'skipped'> {
+  const auth = getGoogleAuthClient(refreshToken)
+  const sheets = google.sheets({ version: 'v4', auth })
+  const wanted = row.orderNumber.replace('#', '').trim()
+
+  // Read A..I (absolute indices, unbounded) to locate an existing row.
+  const readRes = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'A2:I' })
+  const rows = readRes.data.values ?? []
+
+  for (let i = 0; i < rows.length; i++) {
+    const cell = rows[i]?.[SHEET_ORDER_COL]?.toString().replace('#', '').trim()
+    if (cell !== wanted) continue
+
+    // Row already exists — only fill the cost cell when it's still empty.
+    const existingCost = rows[i]?.[SHEET_COST_COL]?.toString().trim()
+    if (existingCost) return 'skipped'
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `G${i + 2}`,
+      valueInputOption: 'RAW',
+      requestBody: { values: [[row.myCostIls.toFixed(2)]] },
+    })
+    return 'filled'
+  }
+
+  // No existing row — append a full one matching the Make column layout.
+  const values = [
+    row.customerName ?? '',                                       // A
+    formatSheetDate(row.orderDate),                               // B
+    '',                                                           // C
+    '',                                                           // D
+    row.storePriceIls != null ? row.storePriceIls.toFixed(2) : '', // E
+    '',                                                           // F
+    row.myCostIls.toFixed(2),                                     // G
+    '',                                                           // H
+    `#${wanted}`,                                                 // I
+  ]
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: 'A2',
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [values] },
+  })
+  return 'appended'
+}
+
 export function getGoogleAuthClient(refreshToken: string) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_SHEETS_CLIENT_ID,

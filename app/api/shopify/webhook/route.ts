@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { verifyWebhookSignature } from '@/lib/shopify'
 import { analyzeOrder } from '@/lib/claude'
 import { calculateOrderCost } from '@/lib/calculator'
-import { getGoogleAuthClient } from '@/lib/sheets'
-import { google } from 'googleapis'
+import { upsertOrderRowInSheet } from '@/lib/sheets'
 import { BusinessConfig, ShopifyOrder } from '@/types'
 
 export async function POST(request: NextRequest) {
@@ -110,78 +109,25 @@ async function analyzeAndUpdateSheet(orderId: string, businessId: string, order:
       },
     })
 
-    // 3. Update Google Sheet if connected
+    // 3. Write the order into the Google Sheet if connected — appends a full
+    //    row (or fills the cost of an existing one), replacing the Make automation.
     if (business.googleRefreshToken && business.googleSheetsId) {
-      await updateSheetRow(
+      await upsertOrderRowInSheet(
         business.googleRefreshToken,
         business.googleSheetsId,
-        String(order.order_number),
-        analysis.my_cost_ils
+        {
+          orderNumber:   String(order.order_number),
+          customerName:  order.customer
+            ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+            : null,
+          orderDate:     new Date(order.created_at),
+          storePriceIls: analysis.store_price_breakdown.total,
+          myCostIls:     analysis.my_cost_ils,
+        }
       )
     }
   } catch (error) {
     console.error('Analysis/sheet error:', error)
     await prisma.order.update({ where: { id: orderId }, data: { status: 'error' } })
-  }
-}
-
-// Sheet layout: order number lives in column I, and we write the cost into
-// column G. Orders are added to the sheet by an external Make automation and
-// arrive with column G empty — we only fill that gap and never overwrite a
-// row that already has a cost.
-const SHEET_COL_ORDER = 8   // I — order number written by Make
-const SHEET_COL_COST  = 6   // G — my cost (target)
-
-async function updateSheetRow(
-  refreshToken: string,
-  spreadsheetId: string,
-  orderNumber: string,
-  myCostIls: number
-) {
-  try {
-    const auth = getGoogleAuthClient(refreshToken)
-    const sheets = google.sheets({ version: 'v4', auth })
-
-    // Read A..I so column indices are absolute (A=0 … I=8), unbounded so orders
-    // past row 1000 aren't silently missed.
-    const readRes = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: 'A2:I',
-    })
-
-    const rows = readRes.data.values ?? []
-    const wanted = orderNumber.replace('#', '').trim()
-    let targetRow = -1
-
-    for (let i = 0; i < rows.length; i++) {
-      const cell = rows[i]?.[SHEET_COL_ORDER]?.toString().replace('#', '').trim()
-      if (cell !== wanted) continue
-
-      // Row matches — but only fill it when the cost cell (G) is still empty.
-      const existingCost = rows[i]?.[SHEET_COL_COST]?.toString().trim()
-      if (existingCost) {
-        console.log(`Order ${orderNumber} already has a cost in the sheet — leaving it untouched`)
-        return
-      }
-      targetRow = i + 2 // +2: data starts at row 2
-      break
-    }
-
-    if (targetRow === -1) {
-      console.log(`Order ${orderNumber} not found in sheet — skipping sheet update`)
-      return
-    }
-
-    // Write the cost into column G only — nothing else on the row is touched.
-    await sheets.spreadsheets.values.update({
-      spreadsheetId,
-      range: `G${targetRow}`,
-      valueInputOption: 'RAW',
-      requestBody: { values: [[myCostIls.toFixed(2)]] },
-    })
-
-    console.log(`Sheet updated: row ${targetRow}, order ${orderNumber}, cost ${myCostIls}`)
-  } catch (error) {
-    console.error('Sheet update error:', error)
   }
 }
